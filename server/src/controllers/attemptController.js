@@ -51,19 +51,53 @@ const logViolation = asyncHandler(async (req, res) => {
   res.json({ violationCount: attempt.violations.length, shouldAutoSubmit });
 });
 
+// const submitAttempt = asyncHandler(async (req, res) => {
+//   const attempt = await Attempt.findOne({ _id: req.params.attemptId, student: req.user._id });
+//   if (!attempt) return res.status(404).json({ message: "Attempt not found." });
+//   if (attempt.status !== "in-progress") return res.json({ attempt }); // already submitted — idempotent
+
+//   const exam = await Exam.findById(attempt.exam).populate("questions");
+//   const graded = gradeAttempt(exam.questions, attempt.answers);
+
+//   attempt.submittedAt = new Date();
+//   attempt.timeTakenSeconds = Math.round((attempt.submittedAt - attempt.startedAt) / 1000);
+//   attempt.status = req.body.auto ? "auto-submitted" : "submitted";
+//   Object.assign(attempt, graded);
+//   await attempt.save();
+
+//   res.json({ attempt });
+// });
+
 const submitAttempt = asyncHandler(async (req, res) => {
-  const attempt = await Attempt.findOne({ _id: req.params.attemptId, student: req.user._id });
-  if (!attempt) return res.status(404).json({ message: "Attempt not found." });
-  if (attempt.status !== "in-progress") return res.json({ attempt }); // already submitted — idempotent
+  const attempt = await Attempt.findOne({
+    _id: req.params.attemptId,
+    student: req.user._id,
+  });
+
+  if (!attempt)
+    return res.status(404).json({ message: "Attempt not found." });
+
+  if (attempt.status !== "in-progress")
+    return res.json({ attempt });
 
   const exam = await Exam.findById(attempt.exam).populate("questions");
+
   const graded = gradeAttempt(exam.questions, attempt.answers);
 
   attempt.submittedAt = new Date();
-  attempt.timeTakenSeconds = Math.round((attempt.submittedAt - attempt.startedAt) / 1000);
+  attempt.timeTakenSeconds = Math.round(
+    (attempt.submittedAt - attempt.startedAt) / 1000
+  );
   attempt.status = req.body.auto ? "auto-submitted" : "submitted";
+
   Object.assign(attempt, graded);
+
+  console.log("Saving attempt...");
+  console.log(attempt);
+
   await attempt.save();
+
+  console.log("Attempt saved!");
 
   res.json({ attempt });
 });

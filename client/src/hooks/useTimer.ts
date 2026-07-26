@@ -5,42 +5,41 @@ export function useTimer(
   onExpire: () => void
 ) {
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
-  const expiredRef = useRef(false);
+  const expired = useRef(false);
 
-  // Wait until initialSeconds is actually available
+  // Initialise timer only when we have a value
   useEffect(() => {
-    if (initialSeconds == null) return;
+    if (initialSeconds === undefined) return;
 
     setSecondsLeft(initialSeconds);
-    expiredRef.current = false;
+    expired.current = false;
   }, [initialSeconds]);
 
   useEffect(() => {
-    // Don't start timer until initialized
-    if (secondsLeft == null) return;
+    // Wait until timer has been initialised
+    if (secondsLeft === null) return;
 
     if (secondsLeft <= 0) {
-      if (!expiredRef.current) {
-        expiredRef.current = true;
+      if (!expired.current) {
+        expired.current = true;
         onExpire();
       }
       return;
     }
 
-    const id = setTimeout(() => {
-      setSecondsLeft((s) => (s == null ? null : s - 1));
+    const id = window.setTimeout(() => {
+      setSecondsLeft((prev) => (prev ?? 1) - 1);
     }, 1000);
 
     return () => clearTimeout(id);
   }, [secondsLeft, onExpire]);
 
-  return secondsLeft;
+  return secondsLeft ?? 0;
 }
 
-export function formatTime(totalSeconds: number | null) {
-  if (totalSeconds == null) return "--:--";
-
+export function formatTime(totalSeconds: number) {
   const s = Math.max(0, Math.floor(totalSeconds));
+
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
   const sec = s % 60;

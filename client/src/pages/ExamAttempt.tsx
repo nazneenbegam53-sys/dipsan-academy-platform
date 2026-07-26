@@ -48,24 +48,18 @@ useEffect(() => {
   //   return exam.durationMinutes * 60;
   // }, [exam, location.state]);
 const initialSeconds = useMemo(() => {
-  if (!exam) return null;
+  if (!exam) return undefined;
 
-  // If this is a fresh attempt, simply use the exam duration.
-  if (!location.state?.startedAt) {
-    return exam.durationMinutes * 60;
+  if (location.state?.startedAt) {
+    const elapsed =
+      Math.floor(
+        (Date.now() - new Date(location.state.startedAt).getTime()) / 1000
+      );
+
+    return Math.max(0, exam.durationMinutes * 60 - elapsed);
   }
 
-  const started = new Date(location.state.startedAt).getTime();
-
-  // Invalid date? Fall back to full duration.
-  if (Number.isNaN(started)) {
-    return exam.durationMinutes * 60;
-  }
-
-  const elapsed = Math.floor((Date.now() - started) / 1000);
-  const remaining = exam.durationMinutes * 60 - elapsed;
-
-  return remaining > 0 ? remaining : 0;
+  return exam.durationMinutes * 60;
 }, [exam, location.state]);
 
 const submitExam = useCallback(async (auto = false) => {
@@ -98,6 +92,8 @@ const submitExam = useCallback(async (auto = false) => {
   //const timeLeft = 999999;
 
   const timeLeft = useTimer(initialSeconds, () => submitExam(true));
+  
+
   useAntiCheat(!!exam, (type) => {
     api.post(`/attempts/${attemptId}/violation`, { type }).catch(() => {});
   });

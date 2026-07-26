@@ -28,7 +28,16 @@ export default function TeacherDashboard() {
     ]).then(([e, s]) => { setExams(e.exams); setSummary(s); }).finally(() => setLoading(false));
   }
 
-  useEffect(load, []);
+  //useEffect(load, []);
+  useEffect(() => {
+  load();
+
+  const interval = setInterval(() => {
+    load();
+  }, 5000); // Refresh every 5 seconds
+
+  return () => clearInterval(interval);
+}, []);
 
   async function togglePublish(exam: Exam) {
     const next = exam.status === "published" ? "draft" : "published";

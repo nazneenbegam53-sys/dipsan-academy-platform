@@ -17,7 +17,16 @@ export default function TeacherResults() {
     setLoading(true);
     api.get<{ attempts: Attempt[] }>(`/results/${examId}`).then((r) => setAttempts(r.attempts)).finally(() => setLoading(false));
   }
-  useEffect(load, [examId]);
+  //useEffect(load, [examId]);
+  useEffect(() => {
+  load();
+
+  const interval = setInterval(() => {
+    load();
+  }, 60000); // refresh every 1 min
+
+  return () => clearInterval(interval);
+}, [examId]);
 
   async function openDetail(attemptId: string) {
     const res = await api.get<{ attempt: Attempt; exam: Exam }>(`/results/${examId}/${attemptId}`);
@@ -81,8 +90,11 @@ export default function TeacherResults() {
       <div className="flex items-center justify-between mb-6">
         <Button variant="ghost" onClick={() => navigate("/teacher")}>← Dashboard</Button>
         <div className="flex gap-2">
-          <Button variant="ghost" onClick={openViolations}>Violation report</Button>
-          <Button variant="ghost" onClick={load}>Refresh</Button>
+          {/* <Button variant="ghost" onClick={openViolations}>Violation report</Button>
+          <Button variant="ghost" onClick={load}>Refresh</Button> */}
+        <Button variant="ghost" onClick={load}>
+          Refresh
+        </Button>
         </div>
       </div>
       <h1 className="text-xl font-bold text-ink mb-6">Results</h1>
