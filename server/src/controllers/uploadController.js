@@ -1,14 +1,18 @@
+const path = require("path");
 const { asyncHandler } = require("../middleware/errorHandler");
 
 const uploadImage = asyncHandler(async (req, res) => {
   if (!req.file) {
     return res.status(400).json({
-      message: "No image uploaded",
+      message: "No image uploaded.",
     });
   }
 
+  const baseUrl = `${req.protocol}://${req.get("host")}`;
+
   res.json({
-    url: req.file.path,
+    url: `${baseUrl}/uploads/${path.basename(req.file.path)}`,
+    local: true,
   });
 });
 

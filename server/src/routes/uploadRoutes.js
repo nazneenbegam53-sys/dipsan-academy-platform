@@ -1,21 +1,35 @@
 const express = require("express");
 const multer = require("multer");
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const path = require("path");
 
-const cloudinary = require("../config/cloudinary");
 const { uploadImage } = require("../controllers/uploadController");
 const { protect, requireRole } = require("../middleware/auth");
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: "dipsan/questions",
-    resource_type: "image",
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, "..", "..", "uploads"));
+  },
+  filename: (req, file, cb) => {
+    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    cb(null, unique + path.extname(file.originalname));
   },
 });
 
+const fileFilter = (req, file, cb) => {
+  const allowed = [
+    "image/png",
+    "image/jpeg",
+    "image/webp",
+    "image/gif",
+    "image/svg+xml",
+  ];
+
+  cb(allowed.includes(file.mimetype) ? null : new Error("Invalid image"), allowed.includes(file.mimetype));
+};
+
 const upload = multer({
   storage,
+  fileFilter,
   limits: {
     fileSize: 5 * 1024 * 1024,
   },
