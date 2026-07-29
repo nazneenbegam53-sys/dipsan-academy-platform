@@ -6,6 +6,11 @@ const { cloudinary, isConfigured } = require("../config/cloudinary");
 const { uploadImage } = require("../controllers/uploadController");
 const { protect, requireRole } = require("../middleware/auth");
 
+console.log({
+  isConfigured,
+  cloudinaryExists: !!cloudinary,
+});
+
 const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => ({
