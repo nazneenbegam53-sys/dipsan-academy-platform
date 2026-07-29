@@ -1,27 +1,46 @@
 const express = require("express");
 const multer = require("multer");
-const path = require("path");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+
+const { cloudinary, isConfigured } = require("../config/cloudinary");
 const { uploadImage } = require("../controllers/uploadController");
 const { protect, requireRole } = require("../middleware/auth");
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, "..", "..", "uploads")),
-  filename: (req, file, cb) => {
-    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(null, `${unique}${path.extname(file.originalname)}`);
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => ({
+    folder: "dipsan/questions",
+    resource_type: "image",
+    allowed_formats: ["jpg", "jpeg", "png", "gif", "webp", "svg"],
+    public_id: `${Date.now()}-${Math.round(Math.random() * 1e9)}`,
+  }),
+});
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5 MB
   },
 });
 
-const fileFilter = (req, file, cb) => {
-  const ok = ["image/png", "image/jpeg", "image/webp", "image/gif", "image/svg+xml"].includes(file.mimetype);
-  cb(ok ? null : new Error("Only PNG, JPEG, WEBP, GIF, or SVG images are allowed."), ok);
-};
-
-const upload = multer({ storage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } });
-
 const router = express.Router();
 
-// Only teachers upload question images.
-router.post("/image", protect, requireRole("teacher"), upload.single("image"), uploadImage);
+router.post(
+  "/image",
+  protect,
+  requireRole("teacher"),
+  (req, res, next) => {
+    if (!isConfigured) {
+      return res.status(500).json({
+        message:
+          "Cloudinary is not configured. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET.",
+      });
+    }
+
+    next();
+  },
+  upload.single("image"),
+  uploadImage
+);
 
 module.exports = router;
