@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Button, Card, ErrorBanner } from "../components/ui";
+import { Button, ErrorBanner, PageShell } from "../components/ui";
 import { Role } from "../types";
 
 export default function Register() {
@@ -30,47 +30,84 @@ export default function Register() {
     }
   }
 
+  const fieldClass =
+    "w-full rounded-md border border-ink/15 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-teal focus:ring-2 focus:ring-teal/20";
+
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 bg-paper py-10">
-      <Card className="p-8 w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-ink mb-1">Create your account</h1>
-        <p className="text-sm text-gray-500 mb-5">Join Dipsan Academy</p>
-
-        <div className="flex rounded-full bg-gray-100 p-1 mb-5">
-          {(["student", "teacher"] as Role[]).map((r) => (
-            <button key={r} onClick={() => setRole(r)} type="button"
-              className={`flex-1 rounded-full py-1.5 text-sm font-semibold ${role === r ? "bg-ink text-paper" : "text-gray-500"}`}>
-              {r === "student" ? "Student" : "Teacher"}
-            </button>
-          ))}
+    <PageShell className="flex min-h-screen">
+      <div className="hidden w-[42%] flex-col justify-between bg-forest p-10 text-mist lg:flex">
+        <Link to="/" className="font-display text-sm font-semibold text-signal">
+          Dipsan Academy
+        </Link>
+        <div>
+          <h2 className="font-display text-4xl font-bold leading-tight tracking-tight">
+            Join the<br />mock series.
+          </h2>
+          <p className="mt-4 max-w-xs text-sm leading-relaxed text-mist/60">
+            Students sit timed papers. Teachers publish and read every attempt.
+          </p>
         </div>
+        <p className="text-xs text-mist/35">Create once · Practice often</p>
+      </div>
 
-        <ErrorBanner message={error} />
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <input required placeholder="Full name" value={form.name} onChange={(e) => update("name", e.target.value)}
-            className="w-full rounded-lg px-3 py-2 text-sm border border-gray-300" />
-          <input type="email" required placeholder="Email" value={form.email} onChange={(e) => update("email", e.target.value)}
-            className="w-full rounded-lg px-3 py-2 text-sm border border-gray-300" />
-          <input type="password" required minLength={6} placeholder="Password (min 6 characters)" value={form.password}
-            onChange={(e) => update("password", e.target.value)} className="w-full rounded-lg px-3 py-2 text-sm border border-gray-300" />
+      <div className="flex flex-1 items-center justify-center px-6 py-12">
+        <div className="w-full max-w-sm animate-fade-up">
+          <Link to="/" className="mb-8 inline-block font-display text-sm font-semibold text-ink lg:hidden">
+            Dipsan Academy
+          </Link>
+          <h1 className="font-display text-3xl font-bold tracking-tight text-ink">Create your account</h1>
+          <p className="mt-2 text-sm text-forest/60">Pick a role and get started.</p>
 
-          {role === "student" && (
-            <>
-              <input placeholder="Class (e.g. 12th, Dropper)" value={form.className} onChange={(e) => update("className", e.target.value)}
-                className="w-full rounded-lg px-3 py-2 text-sm border border-gray-300" />
-              <input placeholder="Roll number (optional)" value={form.rollNumber} onChange={(e) => update("rollNumber", e.target.value)}
-                className="w-full rounded-lg px-3 py-2 text-sm border border-gray-300" />
-              <input placeholder="Phone (optional)" value={form.phone} onChange={(e) => update("phone", e.target.value)}
-                className="w-full rounded-lg px-3 py-2 text-sm border border-gray-300" />
-            </>
-          )}
+          <div className="mt-6 grid grid-cols-2 gap-2 rounded-md bg-mist p-1">
+            {(["student", "teacher"] as Role[]).map((r) => (
+              <button
+                key={r}
+                onClick={() => setRole(r)}
+                type="button"
+                className={`rounded-md py-2 text-sm font-semibold transition ${
+                  role === r ? "bg-ink text-mist shadow-sm" : "text-forest/55 hover:text-ink"
+                }`}
+              >
+                {r === "student" ? "Student" : "Teacher"}
+              </button>
+            ))}
+          </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>{loading ? "Creating account…" : "Create account"}</Button>
-        </form>
-        <p className="text-xs text-gray-500 mt-4">
-          Already have an account? <Link to="/login" className="text-ink font-semibold">Log in</Link>
-        </p>
-      </Card>
-    </div>
+          <form onSubmit={handleSubmit} className="mt-6 space-y-3.5">
+            <ErrorBanner message={error} />
+            <input required placeholder="Full name" value={form.name} onChange={(e) => update("name", e.target.value)} className={fieldClass} />
+            <input type="email" required placeholder="Email" value={form.email} onChange={(e) => update("email", e.target.value)} className={fieldClass} />
+            <input
+              type="password"
+              required
+              minLength={6}
+              placeholder="Password (min 6 characters)"
+              value={form.password}
+              onChange={(e) => update("password", e.target.value)}
+              className={fieldClass}
+            />
+
+            {role === "student" && (
+              <>
+                <input placeholder="Class (e.g. 12th, Dropper)" value={form.className} onChange={(e) => update("className", e.target.value)} className={fieldClass} />
+                <input placeholder="Roll number (optional)" value={form.rollNumber} onChange={(e) => update("rollNumber", e.target.value)} className={fieldClass} />
+                <input placeholder="Phone (optional)" value={form.phone} onChange={(e) => update("phone", e.target.value)} className={fieldClass} />
+              </>
+            )}
+
+            <Button type="submit" variant="accent" className="w-full" disabled={loading}>
+              {loading ? "Creating account…" : "Create account"}
+            </Button>
+          </form>
+
+          <p className="mt-6 text-sm text-forest/55">
+            Already have an account?{" "}
+            <Link to="/login" className="font-semibold text-ink underline decoration-signal decoration-2 underline-offset-4">
+              Log in
+            </Link>
+          </p>
+        </div>
+      </div>
+    </PageShell>
   );
 }

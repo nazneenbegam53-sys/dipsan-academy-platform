@@ -59,8 +59,8 @@ export default function ResultPage() {
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-6">
           <Badge tone="ink">RESULT</Badge>
-          <div className="text-5xl font-black text-ink mt-4">
-            {attempt.score}<span className="text-gray-400 text-2xl"> / {attempt.totalMarks}</span>
+          <div className="font-display text-5xl font-extrabold text-ink mt-4">
+            {attempt.score}<span className="text-forest/35 text-2xl"> / {attempt.totalMarks}</span>
           </div>
           <div className="text-sm text-gray-500 mt-1">{pct}% &middot; {exam.title}</div>
         </div>
@@ -110,7 +110,7 @@ export default function ResultPage() {
                   {(selected === undefined || selected === null) && <div className="text-xs text-gray-400">Not attempted</div>}
                 </div>
                 {q.explanation && (
-                  <div className="mt-3 text-xs rounded-lg px-3 py-2 bg-gray-50 border-l-4 border-marigold text-gray-700">
+                  <div className="mt-3 text-xs rounded-lg px-3 py-2 bg-mist border-l-4 border-teal text-forest/80">
                     <span className="font-semibold">Explanation: </span>{q.explanation}
                   </div>
                 )}

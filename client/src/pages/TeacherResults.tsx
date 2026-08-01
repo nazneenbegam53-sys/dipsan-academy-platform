@@ -48,7 +48,7 @@ export default function TeacherResults() {
         <p className="text-sm text-gray-500 mb-6">{detail.exam.title}</p>
 
         <div className="grid grid-cols-4 gap-3 mb-7">
-          <Card className="p-4 bg-ink text-paper"><div className="text-xs opacity-70">SCORE</div><div className="text-xl font-bold">{detail.attempt.score}/{detail.attempt.totalMarks}</div></Card>
+          <Card className="p-4 bg-ink text-mist"><div className="text-xs opacity-70">SCORE</div><div className="text-xl font-bold">{detail.attempt.score}/{detail.attempt.totalMarks}</div></Card>
           <Card className="p-4 bg-green-50 border-none"><div className="text-xs text-green-700">CORRECT</div><div className="text-xl font-bold text-green-700">{detail.attempt.correctCount}</div></Card>
           <Card className="p-4 bg-red-50 border-none"><div className="text-xs text-red-700">WRONG</div><div className="text-xl font-bold text-red-700">{detail.attempt.wrongCount}</div></Card>
           <Card className="p-4 bg-gray-100 border-none"><div className="text-xs text-gray-500">UNATTEMPTED</div><div className="text-xl font-bold text-gray-600">{detail.attempt.unattemptedCount}</div></Card>
@@ -105,7 +105,7 @@ export default function TeacherResults() {
         <Card className="overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-ink text-paper text-left text-xs">
+              <tr className="bg-ink text-mist text-left text-xs">
                 <th className="px-4 py-3">Student</th>
                 <th className="px-4 py-3">Score</th>
                 <th className="px-4 py-3">Correct</th>
