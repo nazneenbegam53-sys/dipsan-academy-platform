@@ -1,37 +1,24 @@
 const express = require("express");
 const multer = require("multer");
-const path = require("path");
-
 const { uploadImage } = require("../controllers/uploadController");
 const { protect, requireRole } = require("../middleware/auth");
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "..", "..", "uploads"));
-  },
-  filename: (req, file, cb) => {
-    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(null, unique + path.extname(file.originalname));
-  },
-});
-
-const fileFilter = (req, file, cb) => {
-  const allowed = [
-    "image/png",
-    "image/jpeg",
-    "image/webp",
-    "image/gif",
-    "image/svg+xml",
-  ];
-
-  cb(allowed.includes(file.mimetype) ? null : new Error("Invalid image"), allowed.includes(file.mimetype));
-};
-
+// Memory storage — bytes go to Cloudinary or MongoDB GridFS, never ephemeral disk.
 const upload = multer({
-  storage,
-  fileFilter,
+  storage: multer.memoryStorage(),
+  fileFilter: (req, file, cb) => {
+    const allowed = [
+      "image/png",
+      "image/jpeg",
+      "image/webp",
+      "image/gif",
+      "image/svg+xml",
+    ];
+    const ok = allowed.includes(file.mimetype);
+    cb(ok ? null : new Error("Invalid image type. Use PNG, JPEG, WebP, GIF, or SVG."), ok);
+  },
   limits: {
-    fileSize: 5 * 1024 * 1024,
+    fileSize: 5 * 1024 * 1024, // 5 MB
   },
 });
 

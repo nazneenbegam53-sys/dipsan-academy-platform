@@ -2,6 +2,16 @@
 // async route wrapped with asyncHandler below, and it lands here.
 function errorHandler(err, req, res, next) {
   console.error(err);
+  // Multer file-size / type errors
+  if (err instanceof require("multer").MulterError) {
+    const status = err.code === "LIMIT_FILE_SIZE" ? 400 : 400;
+    return res.status(status).json({
+      message:
+        err.code === "LIMIT_FILE_SIZE"
+          ? "Image is too large (max 5 MB)."
+          : err.message,
+    });
+  }
   const status = err.statusCode || 500;
   res.status(status).json({
     message: err.message || "Something went wrong on the server.",

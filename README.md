@@ -21,7 +21,8 @@ JWT auth · Cloudinary (optional) file storage · Chart.js (analytics) · jsPDF 
 - Exam CRUD (title, subject, duration, marking scheme, instructions, publish/unpublish)
 - Question editor: text, **image upload (shown above the options)**, 4 options,
   correct answer, marks, negative marks, chapter/topic/difficulty, explanation
-- Image upload via Cloudinary if configured, else local disk fallback
+- Image upload via Cloudinary if configured, else **MongoDB GridFS** (durable;
+  survives Render restarts — local disk is no longer used for new uploads)
 - Student flow: browse published exams → instructions → timed attempt with
   question palette (answered/not answered/marked for review/current), clear
   response, mark for review, autosave-on-change, submit anytime, auto-submit on
@@ -87,8 +88,8 @@ npm run dev                # starts on http://localhost:5173
 - Server → Render, Railway, or Fly.io (needs `MONGODB_URI`, `JWT_SECRET`, Cloudinary keys as env vars)
 - Client → Vercel or Netlify (needs `VITE_API_URL` pointed at your deployed server)
 - Database → MongoDB Atlas free tier
-- Images → Cloudinary free tier (or leave unset — server falls back to storing
-  uploads on its own local disk, which won't survive a redeploy on most hosts)
+- Images → Cloudinary free tier (optional) or MongoDB GridFS by default — both
+  persist across Render restarts. Do not rely on `server/uploads` in production.
 
 ## Honest limitations of browser-based anti-cheating
 No website can fully stop someone switching apps or screens — this implements
