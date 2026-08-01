@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { Exam, Attempt } from "../types";
-import { Button, Card, Badge, Spinner } from "../components/ui";
+import { Button, Badge, Spinner, PageShell } from "../components/ui";
+import { BrandLogo } from "../components/BrandLogo";
 
 export default function StudentDashboard() {
   const { user, logout } = useAuth();
@@ -25,65 +26,99 @@ export default function StudentDashboard() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-paper px-6 py-10 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-ink">Hi, {user?.name}</h1>
-          <p className="text-sm text-gray-500">{user?.className}</p>
-        </div>
-        <Button variant="ghost" onClick={logout}>Log out</Button>
-      </div>
+    <PageShell>
+      <div className="mx-auto max-w-5xl px-6 py-10">
+        <header className="mb-12 flex flex-wrap items-end justify-between gap-4 border-b border-gold/15 pb-8">
+          <div className="flex items-center gap-4">
+            <BrandLogo size="sm" />
+            <div>
+              <h1 className="font-display text-3xl font-semibold tracking-tight text-champagne md:text-4xl">
+                Hi, {user?.name}
+              </h1>
+              {user?.className && <p className="mt-1 text-sm text-bronze">{user.className}</p>}
+            </div>
+          </div>
+          <Button variant="ghost" onClick={logout}>Log out</Button>
+        </header>
 
-      <h2 className="font-semibold text-ink mb-3">Available exams</h2>
-      {loading ? <Spinner /> : exams.length === 0 ? (
-        <Card className="p-8 text-center text-sm text-gray-500 mb-10">No exams published yet — check back soon.</Card>
-      ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
-          {exams.map((e) => (
-            <Card key={e._id} className="p-5">
-              <Badge tone="marigold">{e.subject}</Badge>
-              <div className="font-semibold text-ink mt-2 mb-1">{e.title}</div>
-              <div className="text-xs text-gray-500 mb-4">
-                {e.questionCount} questions &middot; {e.durationMinutes} min &middot; {e.totalMarks} marks
-              </div>
-              <Button className="w-full" onClick={() => navigate(`/student/exam/${e._id}/instructions`)}>Start Test</Button>
-            </Card>
-          ))}
-        </div>
-      )}
+        <section className="mb-14">
+          <h2 className="font-display text-2xl font-semibold text-champagne">Available exams</h2>
+          <p className="mt-1 text-sm text-bronze">Pick a paper and sit it under the clock.</p>
 
-      <h2 className="font-semibold text-ink mb-3">Your past attempts</h2>
-      {attempts.length === 0 ? (
-        <Card className="p-8 text-center text-sm text-gray-500">You haven't submitted any exams yet.</Card>
-      ) : (
-        <Card className="overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-ink text-paper text-left text-xs">
-                <th className="px-4 py-3">Exam</th>
-                <th className="px-4 py-3">Score</th>
-                <th className="px-4 py-3">Submitted</th>
-                <th className="px-4 py-3"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {attempts.map((a) => {
-                const exam = a.exam as Exam;
-                return (
-                  <tr key={a._id} className="border-t border-gray-200">
-                    <td className="px-4 py-3">{exam?.title}</td>
-                    <td className="px-4 py-3 font-semibold">{a.score}/{a.totalMarks}</td>
-                    <td className="px-4 py-3 text-xs text-gray-500">{a.submittedAt ? new Date(a.submittedAt).toLocaleString() : "—"}</td>
-                    <td className="px-4 py-3">
-                      <button onClick={() => navigate(`/student/result/${a._id}`)} className="text-xs font-semibold text-ink">View →</button>
-                    </td>
+          {loading ? (
+            <div className="mt-8"><Spinner /></div>
+          ) : exams.length === 0 ? (
+            <p className="mt-8 border-t border-gold/15 pt-8 text-sm text-bronze">
+              No exams published yet — check back soon.
+            </p>
+          ) : (
+            <ul className="mt-8 divide-y divide-gold/10 border-y border-gold/15">
+              {exams.map((e) => (
+                <li key={e._id} className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <Badge tone="marigold">{e.subject}</Badge>
+                    <div className="mt-2 font-display text-xl font-semibold text-mist">{e.title}</div>
+                    <div className="mt-1 text-xs text-bronze">
+                      {e.questionCount} questions · {e.durationMinutes} min · {e.totalMarks} marks
+                    </div>
+                  </div>
+                  <Button onClick={() => navigate(`/student/exam/${e._id}/instructions`)}>
+                    Start test
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section>
+          <h2 className="font-display text-2xl font-semibold text-champagne">Past attempts</h2>
+          <p className="mt-1 text-sm text-bronze">Scores and solution reviews.</p>
+
+          {attempts.length === 0 ? (
+            <p className="mt-8 border-t border-gold/15 pt-8 text-sm text-bronze">
+              You haven&apos;t submitted any exams yet.
+            </p>
+          ) : (
+            <div className="mt-8 overflow-x-auto border-y border-gold/15">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-charcoal text-left text-xs text-gold">
+                    <th className="px-4 py-3 font-semibold">Exam</th>
+                    <th className="px-4 py-3 font-semibold">Score</th>
+                    <th className="px-4 py-3 font-semibold">Submitted</th>
+                    <th className="px-4 py-3 font-semibold"></th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </Card>
-      )}
-    </div>
+                </thead>
+                <tbody>
+                  {attempts.map((a) => {
+                    const exam = a.exam as Exam;
+                    return (
+                      <tr key={a._id} className="border-t border-gold/10">
+                        <td className="px-4 py-3.5 font-medium text-mist">{exam?.title}</td>
+                        <td className="px-4 py-3.5 font-display text-lg font-semibold text-gold">
+                          {a.score}/{a.totalMarks}
+                        </td>
+                        <td className="px-4 py-3.5 text-xs text-bronze">
+                          {a.submittedAt ? new Date(a.submittedAt).toLocaleString() : "—"}
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <button
+                            onClick={() => navigate(`/student/result/${a._id}`)}
+                            className="text-xs font-semibold text-gold hover:text-champagne"
+                          >
+                            View →
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      </div>
+    </PageShell>
   );
 }

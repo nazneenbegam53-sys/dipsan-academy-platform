@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../services/api";
 import { Exam } from "../types";
 import { Button, Card, Spinner, Badge } from "../components/ui";
+import { BrandLogo } from "../components/BrandLogo";
 
 export default function ExamInstructions() {
   const { examId } = useParams();
@@ -26,45 +27,46 @@ export default function ExamInstructions() {
     }
   }
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><Spinner /></div>;
-  if (!exam) return <div className="min-h-screen flex items-center justify-center text-sm text-gray-500">Exam not found.</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-ink"><Spinner /></div>;
+  if (!exam) return <div className="min-h-screen flex items-center justify-center bg-ink text-sm text-bronze">Exam not found.</div>;
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-10 bg-paper">
+    <div className="min-h-screen flex items-center justify-center px-6 py-10 bg-ink">
       <Card className="p-8 w-full max-w-lg">
+        <BrandLogo size="sm" className="mb-4" />
         <Badge tone="marigold">{exam.subject}</Badge>
-        <h1 className="text-2xl font-bold text-ink mt-3 mb-4">{exam.title}</h1>
+        <h1 className="font-display text-3xl font-semibold text-champagne mt-3 mb-4">{exam.title}</h1>
 
         <div className="grid grid-cols-3 gap-3 mb-5">
-          <div className="rounded-xl bg-gray-100 p-3 text-center">
-            <div className="font-bold text-lg text-ink">{exam.questionCount ?? exam.questions.length}</div>
-            <div className="text-xs text-gray-500">Questions</div>
+          <div className="rounded-sm bg-ink border border-gold/20 p-3 text-center">
+            <div className="font-display text-lg font-semibold text-gold">{exam.questionCount ?? exam.questions.length}</div>
+            <div className="text-xs text-bronze">Questions</div>
           </div>
-          <div className="rounded-xl bg-gray-100 p-3 text-center">
-            <div className="font-bold text-lg text-ink">{exam.durationMinutes}</div>
-            <div className="text-xs text-gray-500">Minutes</div>
+          <div className="rounded-sm bg-ink border border-gold/20 p-3 text-center">
+            <div className="font-display text-lg font-semibold text-gold">{exam.durationMinutes}</div>
+            <div className="text-xs text-bronze">Minutes</div>
           </div>
-          <div className="rounded-xl bg-gray-100 p-3 text-center">
-            <div className="font-bold text-lg text-ink">+{exam.defaultMarks}/&minus;{exam.defaultNegativeMarks}</div>
-            <div className="text-xs text-gray-500">Marking</div>
+          <div className="rounded-sm bg-ink border border-gold/20 p-3 text-center">
+            <div className="font-display text-lg font-semibold text-gold">+{exam.defaultMarks}/&minus;{exam.defaultNegativeMarks}</div>
+            <div className="text-xs text-bronze">Marking</div>
           </div>
         </div>
 
-        <div className="text-sm mb-5 rounded-xl p-4 bg-gray-50 border border-gray-200 text-gray-700 whitespace-pre-line">
+        <div className="text-sm mb-5 rounded-sm p-4 bg-ink border border-gold/20 text-bronze whitespace-pre-line">
           {exam.instructions || "Answer all questions within the time limit. Negative marking applies to wrong answers. There is no penalty for unattempted questions."}
         </div>
 
         {exam.antiCheat?.requireFullscreen && (
-          <div className="text-xs mb-5 rounded-xl p-3 bg-orange-50 border border-orange-200 text-orange-700">
+          <div className="text-xs mb-5 rounded-sm p-3 bg-gold/10 border border-gold/30 text-champagne">
             This test requests fullscreen mode and monitors tab-switching. Switching away from the test window may be logged as a violation.
           </div>
         )}
 
-        <label className="flex items-center gap-2 mb-5 text-sm text-ink cursor-pointer">
-          <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
-          I have read the instructions and I'm ready to begin.
+        <label className="flex items-center gap-2 mb-5 text-sm text-mist cursor-pointer">
+          <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="accent-gold" />
+          I have read the instructions and I&apos;m ready to begin.
         </label>
-        <Button className="w-full" variant="accent" disabled={!agreed || starting} onClick={handleStart}>
+        <Button className="w-full" disabled={!agreed || starting} onClick={handleStart}>
           {starting ? "Starting…" : "Start Test"}
         </Button>
       </Card>
