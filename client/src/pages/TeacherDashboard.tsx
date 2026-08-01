@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { api } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { Exam } from "../types";
 import { Button, Badge, Spinner, PageShell, Card } from "../components/ui";
+import { BrandLogo } from "../components/BrandLogo";
 
 interface DashboardSummary {
   examCount: number;
@@ -51,24 +52,24 @@ export default function TeacherDashboard() {
   return (
     <PageShell>
       <div className="mx-auto max-w-6xl px-6 py-10">
-        <header className="mb-10 flex flex-wrap items-end justify-between gap-4 border-b border-ink/10 pb-8">
-          <div>
-            <Link to="/" className="font-display text-xs font-semibold tracking-wide text-teal">
-              Dipsan Academy
-            </Link>
-            <h1 className="mt-2 font-display text-3xl font-bold tracking-tight text-ink md:text-4xl">
-              Welcome, {user?.name}
-            </h1>
-            <p className="mt-1 text-sm text-forest/55">Teacher dashboard</p>
+        <header className="mb-10 flex flex-wrap items-end justify-between gap-4 border-b border-gold/15 pb-8">
+          <div className="flex items-center gap-4">
+            <BrandLogo size="sm" />
+            <div>
+              <h1 className="font-display text-3xl font-semibold tracking-tight text-champagne md:text-4xl">
+                Welcome, {user?.name}
+              </h1>
+              <p className="mt-1 text-sm text-bronze">Teacher dashboard</p>
+            </div>
           </div>
           <div className="flex gap-2">
             <Button variant="ghost" onClick={logout}>Log out</Button>
-            <Button variant="accent" onClick={() => navigate("/teacher/exam/new")}>+ New exam</Button>
+            <Button onClick={() => navigate("/teacher/exam/new")}>+ New exam</Button>
           </div>
         </header>
 
         {summary && (
-          <div className="mb-12 grid grid-cols-2 gap-6 border-y border-ink/10 py-8 sm:grid-cols-4">
+          <div className="mb-12 grid grid-cols-2 gap-6 border-y border-gold/15 py-8 sm:grid-cols-4">
             {[
               { label: "Exams", value: summary.examCount },
               { label: "Published", value: summary.publishedCount },
@@ -76,8 +77,8 @@ export default function TeacherDashboard() {
               { label: "Avg marks", value: summary.averageMarks },
             ].map((stat) => (
               <div key={stat.label}>
-                <div className="text-xs font-semibold uppercase tracking-wide text-forest/45">{stat.label}</div>
-                <div className="mt-1 font-display text-3xl font-bold text-ink">{stat.value}</div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-bronze">{stat.label}</div>
+                <div className="mt-1 font-display text-3xl font-semibold text-gold">{stat.value}</div>
               </div>
             ))}
           </div>
@@ -86,11 +87,11 @@ export default function TeacherDashboard() {
         {loading && exams.length === 0 ? (
           <Spinner />
         ) : exams.length === 0 ? (
-          <p className="border-t border-ink/10 pt-8 text-sm text-forest/50">
+          <p className="border-t border-gold/15 pt-8 text-sm text-bronze">
             No exams yet — create your first one.
           </p>
         ) : (
-          <ul className="divide-y divide-ink/10 border-y border-ink/10">
+          <ul className="divide-y divide-gold/10 border-y border-gold/15">
             {exams.map((e) => (
               <li key={e._id} className="flex flex-col gap-5 py-7 lg:flex-row lg:items-center lg:justify-between">
                 <div className="min-w-0">
@@ -98,8 +99,8 @@ export default function TeacherDashboard() {
                     <Badge tone="marigold">{e.subject}</Badge>
                     <Badge tone={e.status === "published" ? "success" : "ink"}>{e.status}</Badge>
                   </div>
-                  <div className="font-display text-lg font-bold text-ink">{e.title}</div>
-                  <div className="mt-1 text-xs text-forest/50">
+                  <div className="font-display text-xl font-semibold text-mist">{e.title}</div>
+                  <div className="mt-1 text-xs text-bronze">
                     {e.questionCount ?? e.questions?.length ?? 0} questions · {e.totalMarks} marks
                   </div>
                 </div>
@@ -118,10 +119,10 @@ export default function TeacherDashboard() {
         )}
 
         {confirmDeleteId && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 px-6">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 px-6">
             <Card className="w-full max-w-sm p-7">
-              <div className="font-display text-lg font-bold text-ink">Delete this exam?</div>
-              <div className="mt-2 text-sm text-forest/60">
+              <div className="font-display text-xl font-semibold text-champagne">Delete this exam?</div>
+              <div className="mt-2 text-sm text-bronze">
                 Questions will be removed too. Existing results stay on record. This can&apos;t be undone.
               </div>
               <div className="mt-5 flex gap-2">

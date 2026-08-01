@@ -50,7 +50,7 @@ export default function ResultPage() {
   }
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Spinner /></div>;
-  if (!attempt || !exam) return <div className="min-h-screen flex items-center justify-center text-sm text-gray-500">Result not found.</div>;
+  if (!attempt || !exam) return <div className="min-h-screen flex items-center justify-center text-sm text-bronze">Result not found.</div>;
 
   const pct = attempt.totalMarks ? Math.round(((attempt.score || 0) / attempt.totalMarks) * 100) : 0;
 
@@ -59,24 +59,24 @@ export default function ResultPage() {
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-6">
           <Badge tone="ink">RESULT</Badge>
-          <div className="font-display text-5xl font-extrabold text-ink mt-4">
-            {attempt.score}<span className="text-forest/35 text-2xl"> / {attempt.totalMarks}</span>
+          <div className="font-display text-5xl font-semibold text-gold mt-4">
+            {attempt.score}<span className="text-bronze text-2xl"> / {attempt.totalMarks}</span>
           </div>
-          <div className="text-sm text-gray-500 mt-1">{pct}% &middot; {exam.title}</div>
+          <div className="text-sm text-bronze mt-1">{pct}% &middot; {exam.title}</div>
         </div>
 
         <div className="grid grid-cols-3 gap-3 mb-7">
-          <Card className="p-4 bg-green-50 border-none text-center">
+          <Card className="p-4 bg-teal/10 border border-gold/10 border-none text-center">
             <div className="text-xs text-green-700">CORRECT</div>
             <div className="text-xl font-bold text-green-700">{attempt.correctCount}</div>
           </Card>
-          <Card className="p-4 bg-red-50 border-none text-center">
+          <Card className="p-4 bg-ember/15 border-none text-center">
             <div className="text-xs text-red-700">WRONG</div>
             <div className="text-xl font-bold text-red-700">{attempt.wrongCount}</div>
           </Card>
-          <Card className="p-4 bg-gray-100 border-none text-center">
-            <div className="text-xs text-gray-500">UNATTEMPTED</div>
-            <div className="text-xl font-bold text-gray-600">{attempt.unattemptedCount}</div>
+          <Card className="p-4 bg-ink border border-gold/20 border-none text-center">
+            <div className="text-xs text-bronze">UNATTEMPTED</div>
+            <div className="text-xl font-bold text-bronze">{attempt.unattemptedCount}</div>
           </Card>
         </div>
 
@@ -84,7 +84,7 @@ export default function ResultPage() {
           <Button variant="accent" onClick={downloadScorecard}>Download Scorecard (PDF)</Button>
         </div>
 
-        <h2 className="font-semibold text-ink mb-3">Answer review</h2>
+        <h2 className="font-semibold text-champagne mb-3">Answer review</h2>
         <div className="space-y-4">
           {exam.questions.map((q, i) => {
             //const entry = attempt.answers[q._id];
@@ -94,23 +94,23 @@ export default function ResultPage() {
             return (
               <Card key={q._id} className="p-5">
                 <div className="text-xs text-orange-600 font-mono mb-2">QUESTION {i + 1}</div>
-                <div className="text-sm font-medium text-ink mb-3">{q.text}</div>
-                {q.imageUrl && <img src={q.imageUrl} alt="" className="max-h-64 rounded-lg mb-3 border border-gray-200" />}
+                <div className="text-sm font-medium text-champagne mb-3">{q.text}</div>
+                {q.imageUrl && <img src={q.imageUrl} alt="" className="max-h-64 rounded-lg mb-3 border border-gold/20" />}
                 <div className="space-y-2">
                   {q.options.map((opt, oi) => {
-                    let cls = "border border-gray-300";
-                    if (oi === q.correctOptionIndex) cls = "border border-green-500 bg-green-50";
-                    if (selected === oi && oi !== q.correctOptionIndex) cls = "border border-red-500 bg-red-50";
+                    let cls = "border border-gold/25";
+                    if (oi === q.correctOptionIndex) cls = "border border-green-500 bg-teal/10 border border-gold/10";
+                    if (selected === oi && oi !== q.correctOptionIndex) cls = "border border-red-500 bg-ember/15";
                     return (
                       <div key={oi} className={`rounded-lg px-3 py-2 text-sm ${cls}`}>
                         <span className="font-semibold mr-1.5">{"ABCD"[oi]}.</span>{opt}
                       </div>
                     );
                   })}
-                  {(selected === undefined || selected === null) && <div className="text-xs text-gray-400">Not attempted</div>}
+                  {(selected === undefined || selected === null) && <div className="text-xs text-bronze/70">Not attempted</div>}
                 </div>
                 {q.explanation && (
-                  <div className="mt-3 text-xs rounded-lg px-3 py-2 bg-mist border-l-4 border-teal text-forest/80">
+                  <div className="mt-3 text-xs rounded-sm px-3 py-2 bg-charcoal border-l-4 border-gold text-bronze">
                     <span className="font-semibold">Explanation: </span>{q.explanation}
                   </div>
                 )}
