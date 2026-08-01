@@ -44,14 +44,14 @@ export default function TeacherResults() {
     return (
       <div className="min-h-screen bg-paper px-6 py-8 max-w-3xl mx-auto">
         <Button variant="ghost" onClick={() => setDetail(null)} className="mb-5">← Back to results</Button>
-        <h1 className="text-xl font-bold text-champagne mb-1">{student.name}</h1>
+        <h1 className="text-xl font-bold text-ink mb-1">{student.name}</h1>
         <p className="text-sm text-bronze mb-6">{detail.exam.title}</p>
 
         <div className="grid grid-cols-4 gap-3 mb-7">
-          <Card className="p-4 bg-charcoal text-mist border-gold/30"><div className="text-xs text-bronze">SCORE</div><div className="text-xl font-bold text-gold">{detail.attempt.score}/{detail.attempt.totalMarks}</div></Card>
+          <Card className="p-4 bg-charcoal text-ink border-gold/30"><div className="text-xs text-bronze">SCORE</div><div className="text-xl font-bold text-gold">{detail.attempt.score}/{detail.attempt.totalMarks}</div></Card>
           <Card className="p-4 bg-teal/10 border border-gold/10 border-none"><div className="text-xs text-green-700">CORRECT</div><div className="text-xl font-bold text-green-700">{detail.attempt.correctCount}</div></Card>
           <Card className="p-4 bg-ember/15 border-none"><div className="text-xs text-red-700">WRONG</div><div className="text-xl font-bold text-red-700">{detail.attempt.wrongCount}</div></Card>
-          <Card className="p-4 bg-ink border border-gold/20 border-none"><div className="text-xs text-bronze">UNATTEMPTED</div><div className="text-xl font-bold text-bronze">{detail.attempt.unattemptedCount}</div></Card>
+          <Card className="p-4 bg-paper border border-ink/10 border-none"><div className="text-xs text-bronze">UNATTEMPTED</div><div className="text-xl font-bold text-bronze">{detail.attempt.unattemptedCount}</div></Card>
         </div>
 
         {detail.attempt.violations.length > 0 && (
@@ -67,11 +67,11 @@ export default function TeacherResults() {
             return (
               <Card key={q._id} className="p-5">
                 <div className="text-xs text-orange-600 font-mono mb-2">QUESTION {i + 1}</div>
-                <div className="text-sm font-medium text-champagne mb-3">{q.text}</div>
-                {q.imageUrl && <img src={q.imageUrl} alt="" className="max-h-56 rounded-lg mb-3 border border-gold/20" />}
+                <div className="text-sm font-medium text-ink mb-3">{q.text}</div>
+                {q.imageUrl && <img src={q.imageUrl} alt="" className="max-h-56 rounded-lg mb-3 border border-ink/10" />}
                 <div className="space-y-2">
                   {q.options.map((opt, oi) => {
-                    let cls = "border border-gold/25";
+                    let cls = "border border-ink/15";
                     if (oi === q.correctOptionIndex) cls = "border border-green-500 bg-teal/10 border border-gold/10";
                     if (selected === oi && oi !== q.correctOptionIndex) cls = "border border-red-500 bg-ember/15";
                     return <div key={oi} className={`rounded-lg px-3 py-2 text-sm ${cls}`}><span className="font-semibold mr-1.5">{"ABCD"[oi]}.</span>{opt}</div>;
@@ -97,7 +97,7 @@ export default function TeacherResults() {
         </Button>
         </div>
       </div>
-      <h1 className="text-xl font-bold text-champagne mb-6">Results</h1>
+      <h1 className="text-xl font-bold text-ink mb-6">Results</h1>
 
       {loading ? <Spinner /> : attempts.length === 0 ? (
         <Card className="p-10 text-center text-sm text-bronze">No submissions yet.</Card>
@@ -118,13 +118,13 @@ export default function TeacherResults() {
               {attempts.map((a) => {
                 const s = a.student as User;
                 return (
-                  <tr key={a._id} className="border-t border-gold/20">
-                    <td className="px-4 py-3 font-medium text-champagne">{s.name}</td>
+                  <tr key={a._id} className="border-t border-ink/10">
+                    <td className="px-4 py-3 font-medium text-ink">{s.name}</td>
                     <td className="px-4 py-3 font-semibold text-orange-600">{a.score}/{a.totalMarks}</td>
                     <td className="px-4 py-3 text-green-700">{a.correctCount}</td>
                     <td className="px-4 py-3 text-red-600">{a.wrongCount}</td>
                     <td className="px-4 py-3 text-xs text-bronze">{a.submittedAt ? new Date(a.submittedAt).toLocaleString() : "—"}</td>
-                    <td className="px-4 py-3"><button onClick={() => openDetail(a._id)} className="text-xs font-semibold text-champagne">View →</button></td>
+                    <td className="px-4 py-3"><button onClick={() => openDetail(a._id)} className="text-xs font-semibold text-ink">View →</button></td>
                   </tr>
                 );
               })}
@@ -137,7 +137,7 @@ export default function TeacherResults() {
         <div className="fixed inset-0 flex items-center justify-center px-6 z-50 bg-black/50">
           <Card className="p-7 w-full max-w-md max-h-[80vh] overflow-auto">
             <div className="flex items-center justify-between mb-4">
-              <div className="font-bold text-champagne">Violation report</div>
+              <div className="font-bold text-ink">Violation report</div>
               <button onClick={() => setShowViolations(false)} className="text-bronze/70">✕</button>
             </div>
             {violationReport.length === 0 ? (
@@ -145,8 +145,8 @@ export default function TeacherResults() {
             ) : (
               <div className="space-y-3">
                 {violationReport.map((r, i) => (
-                  <div key={i} className="text-sm border-b border-gold/20 pb-2">
-                    <div className="font-semibold text-champagne">{r.student.name} — {r.violationCount} violation(s)</div>
+                  <div key={i} className="text-sm border-b border-ink/10 pb-2">
+                    <div className="font-semibold text-ink">{r.student.name} — {r.violationCount} violation(s)</div>
                     <div className="text-xs text-bronze">{r.violations.map((v: any) => v.type).join(", ")}</div>
                   </div>
                 ))}

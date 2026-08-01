@@ -74,7 +74,7 @@ export default function ResultPage() {
             <div className="text-xs text-red-700">WRONG</div>
             <div className="text-xl font-bold text-red-700">{attempt.wrongCount}</div>
           </Card>
-          <Card className="p-4 bg-ink border border-gold/20 border-none text-center">
+          <Card className="p-4 bg-paper border border-ink/10 border-none text-center">
             <div className="text-xs text-bronze">UNATTEMPTED</div>
             <div className="text-xl font-bold text-bronze">{attempt.unattemptedCount}</div>
           </Card>
@@ -84,7 +84,7 @@ export default function ResultPage() {
           <Button variant="accent" onClick={downloadScorecard}>Download Scorecard (PDF)</Button>
         </div>
 
-        <h2 className="font-semibold text-champagne mb-3">Answer review</h2>
+        <h2 className="font-semibold text-ink mb-3">Answer review</h2>
         <div className="space-y-4">
           {exam.questions.map((q, i) => {
             //const entry = attempt.answers[q._id];
@@ -94,11 +94,11 @@ export default function ResultPage() {
             return (
               <Card key={q._id} className="p-5">
                 <div className="text-xs text-orange-600 font-mono mb-2">QUESTION {i + 1}</div>
-                <div className="text-sm font-medium text-champagne mb-3">{q.text}</div>
-                {q.imageUrl && <img src={q.imageUrl} alt="" className="max-h-64 rounded-lg mb-3 border border-gold/20" />}
+                <div className="text-sm font-medium text-ink mb-3">{q.text}</div>
+                {q.imageUrl && <img src={q.imageUrl} alt="" className="max-h-64 rounded-lg mb-3 border border-ink/10" />}
                 <div className="space-y-2">
                   {q.options.map((opt, oi) => {
-                    let cls = "border border-gold/25";
+                    let cls = "border border-ink/15";
                     if (oi === q.correctOptionIndex) cls = "border border-green-500 bg-teal/10 border border-gold/10";
                     if (selected === oi && oi !== q.correctOptionIndex) cls = "border border-red-500 bg-ember/15";
                     return (

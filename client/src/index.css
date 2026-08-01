@@ -3,13 +3,13 @@
 @tailwind utilities;
 
 :root {
-  --ink: #050505;
-  --coal: #0e0e0e;
-  --charcoal: #161616;
-  --gold: #d4af37;
-  --champagne: #f0e0a2;
-  --bronze: #8c7340;
-  --mist: #f5f0e6;
+  --ink: #2f2c28;
+  --coal: #eae6df;
+  --gold: #c6a96a;
+  --champagne: #ede6d6;
+  --bronze: #8a7b5f;
+  --mist: #f7f5f1;
+  --paper: #f7f5f1;
 }
 
 html {
@@ -18,13 +18,13 @@ html {
 
 body {
   font-family: "Outfit", system-ui, sans-serif;
-  background: var(--ink);
-  color: var(--mist);
+  background: var(--paper);
+  color: var(--ink);
   -webkit-font-smoothing: antialiased;
 }
 
 ::selection {
-  background: var(--gold);
+  background: rgba(198, 169, 106, 0.35);
   color: var(--ink);
 }
 
@@ -33,26 +33,11 @@ body {
     text-wrap: balance;
   }
 
-  .gold-text {
-    background-image: linear-gradient(120deg, #8c7340 0%, #d4af37 35%, #f0e0a2 52%, #d4af37 70%, #8c7340 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  .gold-border {
-    border-color: rgba(212, 175, 55, 0.35);
-  }
-
-  .hero-atmosphere {
+  .soft-atmosphere {
     background:
-      radial-gradient(ellipse 70% 55% at 50% 35%, rgba(212, 175, 55, 0.14), transparent 60%),
-      radial-gradient(ellipse 50% 40% at 80% 80%, rgba(140, 115, 64, 0.12), transparent 55%),
-      radial-gradient(ellipse 40% 30% at 15% 70%, rgba(212, 175, 55, 0.08), transparent 50%),
-      linear-gradient(180deg, #050505 0%, #0a0a0a 55%, #050505 100%);
-  }
-
-  .hairline-gold {
-    background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.55), transparent);
+      radial-gradient(ellipse 80% 55% at 15% 0%, rgba(198, 169, 106, 0.16), transparent 55%),
+      radial-gradient(ellipse 60% 45% at 90% 10%, rgba(234, 230, 223, 0.9), transparent 50%),
+      radial-gradient(ellipse 50% 40% at 70% 90%, rgba(198, 169, 106, 0.08), transparent 55%),
+      linear-gradient(180deg, #f7f5f1 0%, #f0ede7 100%);
   }
 }

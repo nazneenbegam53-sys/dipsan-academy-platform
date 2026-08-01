@@ -135,36 +135,36 @@ const submitExam = useCallback(async (auto = false) => {
     flagged: "bg-purple-600 text-white",
     answered: "bg-green-600 text-white",
     seen: "bg-ember/15 text-red-600 border border-red-400",
-    new: "bg-charcoal text-bronze border border-gold/25",
+    new: "bg-charcoal text-bronze border border-ink/15",
   };
 
   const currentEntry = answers[q._id];
 
   return (
     <div className="min-h-screen bg-paper">
-      <div className="flex items-center justify-between px-6 py-4 bg-coal text-mist border-b border-gold/20">
+      <div className="flex items-center justify-between px-6 py-4 bg-soft text-ink border-b border-ink/10">
         <div>
           <div className="font-bold">{exam.title}</div>
           <div className="text-xs text-bronze">Question {qIndex + 1} of {total}</div>
         </div>
-        <div className={`font-mono flex items-center gap-2 rounded-sm px-4 py-2 font-bold text-lg ${low ? "bg-ember text-white" : "bg-gold text-ink"}`}>
+        <div className={`font-mono flex items-center gap-2 rounded-sm px-4 py-2 font-bold text-lg ${low ? "bg-ember text-white" : "bg-gold/90 text-ink"}`}>
           {formatTime(timeLeft)}
         </div>
       </div>
 
       <div className="grid lg:grid-cols-[1fr_280px] gap-6 px-6 py-6 max-w-6xl mx-auto">
         <Card className="p-6">
-          <div className="text-base font-medium mb-4 text-champagne">{q.text}</div>
-          {q.imageUrl && <img src={q.imageUrl} alt="" className="max-h-72 rounded-xl mb-5 border border-gold/20" />}
+          <div className="text-base font-medium mb-4 text-ink">{q.text}</div>
+          {q.imageUrl && <img src={q.imageUrl} alt="" className="max-h-72 rounded-xl mb-5 border border-ink/10" />}
 
           <div className="space-y-3">
             {q.options.map((opt, oi) => (
               <button key={oi} onClick={() => persistAnswer(q._id, { selected: oi })}
-                className={`w-full text-left rounded-xl px-4 py-3 flex items-center gap-3 border ${currentEntry?.selected === oi ? "border-gold bg-gold/15" : "border-gold/25 bg-charcoal"}`}>
-                <span className={`rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold ${currentEntry?.selected === oi ? "bg-gold text-ink" : "bg-ink border border-gold/20 text-bronze"}`}>
+                className={`w-full text-left rounded-xl px-4 py-3 flex items-center gap-3 border ${currentEntry?.selected === oi ? "border-gold bg-gold/15" : "border-ink/15 bg-charcoal"}`}>
+                <span className={`rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold ${currentEntry?.selected === oi ? "bg-gold/90 text-ink" : "bg-paper border border-ink/10 text-bronze"}`}>
                   {"ABCD"[oi]}
                 </span>
-                <span className="text-sm text-champagne">{opt}</span>
+                <span className="text-sm text-ink">{opt}</span>
               </button>
             ))}
           </div>
@@ -186,7 +186,7 @@ const submitExam = useCallback(async (auto = false) => {
 
         <div className="space-y-4">
           <Card className="p-5">
-            <div className="font-semibold text-sm text-champagne mb-3">Question Palette</div>
+            <div className="font-semibold text-sm text-ink mb-3">Question Palette</div>
             <div className="grid grid-cols-5 gap-2">
               {exam.questions.map((qq, i) => (
                 <button key={qq._id} onClick={() => setQIndex(i)} className={`rounded-lg h-9 text-xs font-bold ${statusClasses[statusFor(i)]}`}>
@@ -197,7 +197,7 @@ const submitExam = useCallback(async (auto = false) => {
           </Card>
           <Card className="p-5 text-center">
             <div className="text-xs text-bronze">Answered</div>
-            <div className="text-2xl font-bold text-champagne">{answeredCount}/{total}</div>
+            <div className="text-2xl font-bold text-ink">{answeredCount}/{total}</div>
           </Card>
           <Button variant="accent" className="w-full" onClick={() => setConfirmOpen(true)}>Submit Test</Button>
         </div>
@@ -206,7 +206,7 @@ const submitExam = useCallback(async (auto = false) => {
       {confirmOpen && (
         <div className="fixed inset-0 flex items-center justify-center px-6 z-50 bg-black/50">
           <Card className="p-7 w-full max-w-sm">
-            <div className="font-bold text-lg text-champagne mb-2">Submit the test?</div>
+            <div className="font-bold text-lg text-ink mb-2">Submit the test?</div>
             <div className="text-sm text-bronze mb-5">
               You've answered {answeredCount} of {total} questions. This can't be undone.
             </div>
