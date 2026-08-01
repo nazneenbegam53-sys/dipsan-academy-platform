@@ -32,33 +32,45 @@ export default function Register() {
   }
 
   const fieldClass =
-    "w-full rounded-sm border border-gold/25 bg-charcoal px-3.5 py-2.5 text-sm text-mist outline-none transition placeholder:text-bronze/60 focus:border-gold focus:ring-1 focus:ring-gold/40";
+    "w-full rounded-xl border border-ink/10 bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition placeholder:text-bronze/50 focus:border-gold focus:ring-2 focus:ring-gold/20";
 
   return (
     <PageShell className="flex min-h-screen">
-      <div className="hidden w-[44%] flex-col items-center justify-center gap-8 border-r border-gold/15 bg-coal px-10 lg:flex">
-        <BrandLogo size="lg" to="/" />
-        <p className="max-w-xs text-center font-display text-2xl italic text-champagne/80">
-          Join the mock series.
-        </p>
+      <div className="fixed right-5 top-5 z-20 md:right-8 md:top-6">
+        <BrandLogo size="xs" rounded />
+      </div>
+
+      <div className="hidden w-[42%] flex-col justify-between border-r border-ink/8 bg-soft/80 p-10 lg:flex">
+        <Link to="/" className="font-display text-lg font-semibold text-ink">
+          Dipsan Academy
+        </Link>
+        <div>
+          <h2 className="font-display text-4xl font-semibold leading-tight text-ink">
+            Join the<br />mock series.
+          </h2>
+          <p className="mt-4 max-w-xs text-sm leading-relaxed text-bronze">
+            Students sit timed papers. Teachers publish and read every attempt.
+          </p>
+        </div>
+        <p className="text-xs text-bronze/70">Create once · Practice often</p>
       </div>
 
       <div className="flex flex-1 items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm animate-fade-up">
-          <div className="mb-8 lg:hidden">
-            <BrandLogo size="md" />
-          </div>
-          <h1 className="font-display text-4xl font-semibold tracking-tight text-champagne">Create your account</h1>
+          <Link to="/" className="mb-8 inline-block font-display text-lg font-semibold text-ink lg:hidden">
+            Dipsan Academy
+          </Link>
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-ink">Create your account</h1>
           <p className="mt-2 text-sm text-bronze">Pick a role and get started.</p>
 
-          <div className="mt-6 grid grid-cols-2 gap-2 rounded-sm border border-gold/20 bg-charcoal p-1">
+          <div className="mt-6 grid grid-cols-2 gap-2 rounded-full bg-coal/80 p-1">
             {(["student", "teacher"] as Role[]).map((r) => (
               <button
                 key={r}
                 onClick={() => setRole(r)}
                 type="button"
-                className={`rounded-sm py-2 text-sm font-semibold transition ${
-                  role === r ? "bg-gold text-ink" : "text-bronze hover:text-champagne"
+                className={`rounded-full py-2 text-sm font-semibold transition ${
+                  role === r ? "bg-ink text-mist shadow-sm" : "text-bronze hover:text-ink"
                 }`}
               >
                 {r === "student" ? "Student" : "Teacher"}
@@ -88,14 +100,14 @@ export default function Register() {
               </>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" variant="accent" className="w-full" disabled={loading}>
               {loading ? "Creating account…" : "Create account"}
             </Button>
           </form>
 
           <p className="mt-6 text-sm text-bronze">
             Already have an account?{" "}
-            <Link to="/login" className="font-semibold text-gold underline decoration-gold/40 underline-offset-4 hover:decoration-gold">
+            <Link to="/login" className="font-semibold text-ink underline decoration-gold/50 underline-offset-4">
               Log in
             </Link>
           </p>

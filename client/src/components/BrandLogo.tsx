@@ -5,24 +5,27 @@ export function BrandLogo({
   to = "/",
   showWordmark = false,
   className = "",
+  rounded = false,
 }: {
-  size?: "sm" | "md" | "lg" | "hero";
+  size?: "xs" | "sm" | "md" | "lg" | "hero";
   to?: string | null;
   showWordmark?: boolean;
   className?: string;
+  rounded?: boolean;
 }) {
   const sizes = {
-    sm: "h-10 w-10",
+    xs: "h-9 w-9",
+    sm: "h-11 w-11",
     md: "h-14 w-14",
-    lg: "h-24 w-24",
-    hero: "h-[min(52vw,280px)] w-[min(52vw,280px)] md:h-[320px] md:w-[320px]",
+    lg: "h-20 w-20",
+    hero: "h-36 w-36 md:h-44 md:w-44",
   };
 
   const img = (
     <img
       src="/dipsan-logo.png"
       alt="Dipsan Academy"
-      className={`${sizes[size]} object-contain drop-shadow-[0_0_40px_rgba(212,175,55,0.25)] ${className}`}
+      className={`${sizes[size]} object-contain ${rounded ? "rounded-full" : ""} ${className}`}
     />
   );
 
@@ -30,7 +33,7 @@ export function BrandLogo({
     return showWordmark ? (
       <div className="flex items-center gap-3">
         {img}
-        <span className="font-display text-lg font-semibold tracking-wide gold-text">Dipsan Academy</span>
+        <span className="font-display text-lg font-semibold tracking-wide text-ink">Dipsan Academy</span>
       </div>
     ) : (
       img
@@ -38,10 +41,10 @@ export function BrandLogo({
   }
 
   return (
-    <Link to={to} className="inline-flex items-center gap-3 transition hover:opacity-90">
+    <Link to={to} className="inline-flex items-center gap-3 transition hover:opacity-80">
       {img}
       {showWordmark && (
-        <span className="font-display text-lg font-semibold tracking-wide gold-text">Dipsan Academy</span>
+        <span className="font-display text-lg font-semibold tracking-wide text-ink">Dipsan Academy</span>
       )}
     </Link>
   );
