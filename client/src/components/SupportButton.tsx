@@ -16,6 +16,20 @@ function WhatsAppIcon({ className = "" }: { className?: string }) {
   );
 }
 
+function PhoneIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M6.6 3.8c.4-.4 1.1-.5 1.6-.2l2.3 1.3c.5.3.7.9.5 1.4l-.8 2.1c-.1.4 0 .8.3 1.1l2.4 2.4c.3.3.7.4 1.1.3l2.1-.8c.5-.2 1.1 0 1.4.5l1.3 2.3c.3.5.2 1.2-.2 1.6l-1.2 1.2c-.5.5-1.2.7-1.9.5-1.7-.5-3.7-1.9-5.6-3.8-1.9-1.9-3.3-3.9-3.8-5.6-.2-.7 0-1.4.5-1.9L6.6 3.8z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function MailIcon({ className = "" }: { className?: string }) {
   return (
     <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -66,27 +80,34 @@ export function SupportButton() {
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-[min(92vw,300px)] overflow-hidden rounded-2xl border border-white/10 bg-coal shadow-2xl">
+        <div className="absolute right-0 z-50 mt-2 w-[min(92vw,340px)] overflow-hidden rounded-2xl border border-white/10 bg-coal shadow-2xl">
           <div className="border-b border-white/10 px-4 py-3">
             <div className="text-sm font-semibold text-mist">Contact support</div>
-            <p className="mt-0.5 text-xs text-bronze">WhatsApp or email — we&apos;re here to help.</p>
+            <p className="mt-0.5 text-xs text-bronze">Call, WhatsApp, or email.</p>
           </div>
           <ul className="divide-y divide-white/5 p-2">
             {SUPPORT_PHONES.map((p) => (
-              <li key={p.display}>
+              <li key={p.display} className="flex items-center gap-2 rounded-xl px-3 py-2.5">
+                <span className="min-w-0 flex-1 text-sm font-semibold tracking-wide text-mist">
+                  {p.display}
+                </span>
+                <a
+                  href={`tel:+91${p.display}`}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-aurora/35 bg-aurora/10 px-2.5 py-1.5 text-[11px] font-semibold text-aurora transition hover:border-aurora hover:bg-aurora/20"
+                  aria-label={`Call ${p.display}`}
+                >
+                  <PhoneIcon />
+                  Call
+                </a>
                 <a
                   href={`https://wa.me/${p.wa}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-mist transition hover:bg-white/5"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[#25D366]/40 bg-[#25D366]/10 px-2.5 py-1.5 text-[11px] font-semibold text-[#25D366] transition hover:border-[#25D366] hover:bg-[#25D366]/20"
+                  aria-label={`WhatsApp ${p.display}`}
                 >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#25D366]/15 text-[#25D366]">
-                    <WhatsAppIcon />
-                  </span>
-                  <span>
-                    <span className="block text-sm font-semibold tracking-wide">{p.display}</span>
-                    <span className="text-[11px] text-bronze">WhatsApp</span>
-                  </span>
+                  <WhatsAppIcon />
+                  WhatsApp
                 </a>
               </li>
             ))}
