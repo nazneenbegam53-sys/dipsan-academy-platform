@@ -5,6 +5,7 @@ import { BrandLogo } from "../components/BrandLogo";
 import { NotificationBell } from "../components/NotificationBell";
 import { PracticePaperAnim } from "../components/PracticePaperAnim";
 import { PrecisionPressureLab } from "../components/PrecisionPressureLab";
+import { ReadyHallAnim } from "../components/ReadyHallAnim";
 import { SupportButton } from "../components/SupportButton";
 import { TeachersPublishAnim } from "../components/TeachersPublishAnim";
 import {
@@ -17,7 +18,6 @@ type Phase = "intro" | "settle" | "ready";
 
 // Local subject imagery — physics on hero; math in the mid section
 const HERO_IMAGE = "/hero/rocket.jpg";
-const SPACE_IMAGE = "/hero/earth.jpg";
 
 function AnimatedLetters({
   text,
@@ -388,20 +388,25 @@ export default function Landing() {
         </section>
 
         <section className="relative overflow-hidden border-t border-white/10 bg-coal">
-          <img
-            src={SPACE_IMAGE}
-            alt=""
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-25"
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(212,176,106,0.12), transparent 55%)," +
+                "radial-gradient(ellipse 60% 40% at 80% 100%, rgba(94,200,192,0.08), transparent 50%)",
+            }}
+            aria-hidden
           />
-          <div className="pointer-events-none absolute inset-0 bg-paper/70" />
-          <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center gap-8 px-6 py-20 text-center md:px-10">
+          <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center px-6 pt-16 pb-10 text-center md:px-10 md:pt-20 md:pb-12">
             <BrandLogo size="lg" glow spinRing />
-            <h2 className="font-display text-4xl font-semibold text-mist md:text-5xl">
+            <h2 className="mt-8 font-display text-4xl font-semibold text-mist md:text-5xl">
               Ready when you are.
             </h2>
-            <p className="max-w-md text-bronze">Enter the hall with focus — and the clock ahead.</p>
+            <p className="mt-3 max-w-md text-bronze">
+              Enter the hall with focus — and the clock ahead.
+            </p>
             {user ? (
-              <div className="flex flex-wrap justify-center gap-3">
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
                 <Link
                   to={user.role === "teacher" ? "/teacher" : "/student"}
                   className="inline-flex rounded-full bg-gold px-8 py-3.5 text-sm font-bold text-ink transition hover:bg-champagne"
@@ -417,7 +422,7 @@ export default function Landing() {
                 </button>
               </div>
             ) : (
-              <div className="flex flex-wrap justify-center gap-3">
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
                 <Link
                   to="/login"
                   className="inline-flex rounded-full bg-gold px-8 py-3.5 text-sm font-bold text-ink transition hover:bg-champagne"
@@ -432,6 +437,9 @@ export default function Landing() {
                 </Link>
               </div>
             )}
+            <div className="mt-10 w-full max-w-3xl text-left">
+              <ReadyHallAnim />
+            </div>
           </div>
         </section>
 
