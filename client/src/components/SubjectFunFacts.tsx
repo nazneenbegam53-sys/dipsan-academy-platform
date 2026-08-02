@@ -2,6 +2,39 @@ import { useEffect, useMemo, useState } from "react";
 
 export type SubjectKey = "physics" | "chemistry" | "maths" | "biology";
 
+type DiagramId =
+  | "sun-earth"
+  | "dense-star"
+  | "lightning"
+  | "free-fall"
+  | "sound-wave"
+  | "orbit-escape"
+  | "circuit"
+  | "carbon-lattice"
+  | "ice-water"
+  | "mole"
+  | "catalyst"
+  | "ph-scale"
+  | "salt-dissolve"
+  | "combustion"
+  | "zero-place"
+  | "pi-circle"
+  | "growth-e"
+  | "golden-spiral"
+  | "infinity"
+  | "primes"
+  | "calculus"
+  | "triangle"
+  | "mitochondria"
+  | "blood-cell"
+  | "dna"
+  | "photosynthesis"
+  | "neuron"
+  | "microbe"
+  | "enzyme";
+
+type FactItem = { text: string; diagram: DiagramId };
+
 const SUBJECT_META: Record<
   SubjectKey,
   { label: string; accent: string; glow: string; hint: string; mark: string }
@@ -36,148 +69,615 @@ const SUBJECT_META: Record<
   },
 };
 
-const FACTS: Record<SubjectKey, string[]> = {
+const FACTS: Record<SubjectKey, FactItem[]> = {
   physics: [
-    "Light takes about 8 minutes 20 seconds to travel from the Sun to Earth — that delay is why we always see the Sun slightly in the past.",
-    "A neutron star’s teaspoon of material would weigh billions of tonnes on Earth — denser than an atomic nucleus packed tight.",
-    "Lightning heats air to ~30,000°C, hotter than the Sun’s surface, which is why you hear thunder from the rapid expansion.",
-    "Your phone accelerometer is a tiny MEMS device that measures proper acceleration — the same idea as weightlessness in free fall.",
-    "In free fall, every object accelerates the same way under gravity — feather or hammer — until air resistance gets involved.",
-    "Sound needs a medium; in space, explosions are silent. Movies add sound for drama, not physics.",
-    "The escape velocity from Earth is about 11.2 km/s — slower than that and gravity eventually pulls you back.",
-    "Ohm’s law (V = IR) is linear only for ohmic materials; semiconductors and LEDs break that simple straight line.",
+    {
+      text: "Light takes about 8 minutes 20 seconds to travel from the Sun to Earth — we always see the Sun slightly in the past.",
+      diagram: "sun-earth",
+    },
+    {
+      text: "A neutron star’s teaspoon of material would weigh billions of tonnes — denser than an atomic nucleus packed tight.",
+      diagram: "dense-star",
+    },
+    {
+      text: "Lightning heats air to ~30,000°C, hotter than the Sun’s surface — thunder is that rapid expansion you hear.",
+      diagram: "lightning",
+    },
+    {
+      text: "In free fall, every object accelerates the same under gravity — feather or hammer — until air resistance matters.",
+      diagram: "free-fall",
+    },
+    {
+      text: "Sound needs a medium; in space, explosions are silent. Movies add sound for drama, not physics.",
+      diagram: "sound-wave",
+    },
+    {
+      text: "Earth’s escape velocity is about 11.2 km/s — slower than that and gravity eventually pulls you back.",
+      diagram: "orbit-escape",
+    },
+    {
+      text: "Ohm’s law (V = IR) is linear only for ohmic materials; semiconductors and LEDs break that straight line.",
+      diagram: "circuit",
+    },
+    {
+      text: "Your phone’s accelerometer measures proper acceleration — the same idea behind weightlessness in free fall.",
+      diagram: "free-fall",
+    },
   ],
   chemistry: [
-    "Diamond and graphite are both pure carbon — same atoms, different lattices, wildly different hardness and conductivity.",
-    "Water expands when it freezes, which is why ice floats and why lakes rarely freeze solid — life under the ice survives winters.",
-    "A mole of anything contains 6.022×10²³ particles — Avogadro’s number — the chemist’s bridge between atoms and grams.",
-    "Noble gases were once thought completely inert; today xenon compounds and neon signs prove chemistry is never finished.",
-    "Catalysts speed reactions without being consumed — they lower activation energy, like a shorter mountain pass.",
-    "pH 7 is neutral only at 25°C for pure water; temperature shifts Kw, so ‘neutral’ isn’t always exactly 7.",
-    "Salt dissolves because water’s polarity stabilises Na⁺ and Cl⁻ ions — solvent–solute forces win over the crystal lattice.",
-    "Combustion of hydrocarbons isn’t just ‘burning’ — it’s a redox race where oxygen oxidises carbon and hydrogen.",
+    {
+      text: "Diamond and graphite are both pure carbon — same atoms, different lattices, wildly different properties.",
+      diagram: "carbon-lattice",
+    },
+    {
+      text: "Water expands when it freezes, so ice floats — lakes rarely freeze solid and life can survive under the ice.",
+      diagram: "ice-water",
+    },
+    {
+      text: "A mole holds 6.022×10²³ particles — Avogadro’s number bridges the tiny world of atoms to grams on a balance.",
+      diagram: "mole",
+    },
+    {
+      text: "Catalysts speed reactions without being consumed — they lower activation energy, like a shorter mountain pass.",
+      diagram: "catalyst",
+    },
+    {
+      text: "pH 7 is neutral only at 25°C for pure water; temperature shifts Kw, so ‘neutral’ isn’t always exactly 7.",
+      diagram: "ph-scale",
+    },
+    {
+      text: "Salt dissolves because water’s polarity stabilises Na⁺ and Cl⁻ — solvent forces beat the crystal lattice.",
+      diagram: "salt-dissolve",
+    },
+    {
+      text: "Combustion of hydrocarbons is a redox race — oxygen oxidises carbon and hydrogen, releasing energy.",
+      diagram: "combustion",
+    },
+    {
+      text: "Noble gases were once thought fully inert; xenon compounds and neon lights show chemistry keeps surprising us.",
+      diagram: "mole",
+    },
   ],
   maths: [
-    "Zero was formalised in Indian mathematics centuries ago — a placeholder that unlocked place value and modern algebra.",
-    "π is transcendental: it never ends and never repeats, yet it ties circles, waves, and probability together.",
-    "e ≈ 2.718… appears in continuous growth, radioactive decay, and compound interest — nature’s favourite base.",
-    "The golden ratio φ ≈ 1.618 shows up in pentagons, spirals, and some growth patterns — geometry meeting aesthetics.",
-    "A set can be infinite yet countable (integers) or uncountable (reals) — infinity comes in different sizes.",
-    "Prime numbers never stop: Euclid’s proof shows there is no largest prime — only larger ones waiting to be found.",
-    "Derivatives measure instantaneous rate of change; integrals accumulate — calculus is the language of motion and area.",
-    "In a triangle, the sum of interior angles is 180° on a flat plane — but not on a sphere, where geometry bends.",
+    {
+      text: "Zero was formalised in Indian mathematics centuries ago — a placeholder that unlocked place value and algebra.",
+      diagram: "zero-place",
+    },
+    {
+      text: "π never ends and never repeats, yet it ties circles, waves, and probability into one constant.",
+      diagram: "pi-circle",
+    },
+    {
+      text: "e ≈ 2.718… appears in continuous growth, decay, and compound interest — nature’s favourite base.",
+      diagram: "growth-e",
+    },
+    {
+      text: "The golden ratio φ ≈ 1.618 shows up in pentagons and spirals — geometry meeting natural growth.",
+      diagram: "golden-spiral",
+    },
+    {
+      text: "Infinity comes in sizes: integers are countable; the real numbers are a larger, uncountable infinity.",
+      diagram: "infinity",
+    },
+    {
+      text: "Primes never stop — Euclid’s proof shows there is always a larger prime waiting to be found.",
+      diagram: "primes",
+    },
+    {
+      text: "Derivatives measure instantaneous change; integrals accumulate — calculus speaks motion and area.",
+      diagram: "calculus",
+    },
+    {
+      text: "On a flat plane, triangle angles sum to 180° — on a sphere, geometry bends and that rule changes.",
+      diagram: "triangle",
+    },
   ],
   biology: [
-    "Mitochondria have their own DNA — a clue they once were free-living bacteria that joined our cells long ago.",
-    "Your body replaces most red blood cells every ~120 days — a quiet renewal factory working while you sleep.",
-    "DNA’s double helix stores ~3 billion base pairs in humans, yet fits inside a cell nucleus only a few micrometres across.",
-    "Plants ‘breathe’ opposite to us by day: photosynthesis takes in CO₂ and releases O₂ — the planet’s oxygen engine.",
-    "Neurons can fire hundreds of times per second; thought is electricity and chemistry dancing across synapses.",
-    "Antibiotics target bacteria, not viruses — which is why a cold doesn’t improve with antibacterial pills.",
-    "The human microbiome outnumbers our own cells; gut microbes help digest food and train the immune system.",
-    "Enzymes are biological catalysts — shape-specific proteins that make life’s reactions fast enough to sustain us.",
+    {
+      text: "Mitochondria have their own DNA — a clue they were once free-living bacteria that joined our cells.",
+      diagram: "mitochondria",
+    },
+    {
+      text: "Most red blood cells renew about every 120 days — a quiet factory working while you sleep.",
+      diagram: "blood-cell",
+    },
+    {
+      text: "DNA’s double helix stores ~3 billion base pairs, yet folds into a nucleus only a few micrometres across.",
+      diagram: "dna",
+    },
+    {
+      text: "By day, plants take in CO₂ and release O₂ — photosynthesis is Earth’s oxygen engine.",
+      diagram: "photosynthesis",
+    },
+    {
+      text: "Neurons can fire hundreds of times per second — thought is electricity and chemistry across synapses.",
+      diagram: "neuron",
+    },
+    {
+      text: "Antibiotics target bacteria, not viruses — which is why a cold doesn’t improve with antibacterial pills.",
+      diagram: "microbe",
+    },
+    {
+      text: "Gut microbes help digest food and train immunity — the microbiome is a living partner inside us.",
+      diagram: "microbe",
+    },
+    {
+      text: "Enzymes are shape-specific biological catalysts — lock-and-key proteins that make life’s reactions fast enough.",
+      diagram: "enzyme",
+    },
   ],
 };
 
-function pickFact(subject: SubjectKey, avoid?: string) {
+function pickFact(subject: SubjectKey, avoid?: string): FactItem {
   const list = FACTS[subject];
-  if (list.length === 1) return list[0];
   let next = list[Math.floor(Math.random() * list.length)];
   let guard = 0;
-  while (next === avoid && guard++ < 8) {
+  while (avoid && next.text === avoid && guard++ < 8) {
     next = list[Math.floor(Math.random() * list.length)];
   }
   return next;
 }
 
-export function SubjectFunFactPanel({
+function FactDiagram({ id, accent }: { id: DiagramId; accent: string }) {
+  const stroke = accent;
+  const muted = "rgba(232,240,245,0.35)";
+
+  const common = {
+    fill: "none" as const,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    className: "diagram-draw",
+  };
+
+  switch (id) {
+    case "sun-earth":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <circle cx="42" cy="70" r="22" stroke={stroke} strokeWidth="2" {...common} />
+          <circle cx="42" cy="70" r="8" fill={stroke} opacity="0.35" />
+          <path d="M70 70 H155" stroke={muted} strokeWidth="1.5" strokeDasharray="4 5" {...common} />
+          <circle cx="168" cy="70" r="12" stroke={stroke} strokeWidth="2" {...common} />
+          <path d="M78 58 l8 12 -8 0 z" fill={stroke} opacity="0.7" />
+          <text x="100" y="52" fill={muted} fontSize="10" fontFamily="ui-monospace, monospace">
+            ~8 min 20 s
+          </text>
+        </svg>
+      );
+    case "dense-star":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <circle cx="100" cy="70" r="36" stroke={stroke} strokeWidth="2" {...common} />
+          <circle cx="100" cy="70" r="14" fill={stroke} opacity="0.25" stroke={stroke} strokeWidth="1.5" />
+          <path d="M100 34 V20 M100 106 V120 M64 70 H50 M136 70 H150" stroke={muted} strokeWidth="1.5" {...common} />
+          <rect x="152" y="58" width="22" height="22" rx="2" stroke={stroke} strokeWidth="1.5" {...common} />
+          <text x="58" y="128" fill={muted} fontSize="9" fontFamily="ui-monospace, monospace">
+            extreme density
+          </text>
+        </svg>
+      );
+    case "lightning":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <path d="M20 40 Q60 20 100 35 T180 28" stroke={muted} strokeWidth="1.5" {...common} />
+          <path d="M108 36 L92 72 H112 L88 118" stroke={stroke} strokeWidth="2.5" {...common} />
+          <path d="M40 110 H160" stroke={muted} strokeWidth="1.5" {...common} />
+        </svg>
+      );
+    case "free-fall":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <path d="M70 24 V110" stroke={muted} strokeWidth="1.5" strokeDasharray="3 4" {...common} />
+          <path d="M130 24 V110" stroke={muted} strokeWidth="1.5" strokeDasharray="3 4" {...common} />
+          <rect x="58" y="40" width="24" height="18" rx="2" stroke={stroke} strokeWidth="2" {...common} />
+          <path d="M118 38 c8 0 14 8 14 14 s-6 12-14 12-12-4-12-10 6-16 12-16z" stroke={stroke} strokeWidth="2" {...common} />
+          <path d="M70 118 l-6-8 M70 118 l6-8 M130 118 l-6-8 M130 118 l6-8" stroke={stroke} strokeWidth="1.5" {...common} />
+          <text x="78" y="132" fill={muted} fontSize="9" fontFamily="ui-monospace, monospace">
+            a = g
+          </text>
+        </svg>
+      );
+    case "sound-wave":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <circle cx="40" cy="70" r="10" stroke={stroke} strokeWidth="2" {...common} />
+          <path d="M60 70 Q75 40 90 70 T120 70 T150 70 T180 70" stroke={stroke} strokeWidth="2" {...common} />
+          <path d="M60 70 Q75 100 90 70" stroke={muted} strokeWidth="1.5" {...common} />
+          <text x="70" y="118" fill={muted} fontSize="9" fontFamily="ui-monospace, monospace">
+            needs a medium
+          </text>
+        </svg>
+      );
+    case "orbit-escape":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <circle cx="100" cy="78" r="20" stroke={stroke} strokeWidth="2" {...common} />
+          <ellipse cx="100" cy="78" rx="58" ry="28" stroke={muted} strokeWidth="1.5" strokeDasharray="4 4" {...common} />
+          <path d="M155 65 Q175 40 188 22" stroke={stroke} strokeWidth="2" {...common} />
+          <circle cx="152" cy="68" r="5" fill={stroke} opacity="0.7" />
+          <text x="118" y="28" fill={muted} fontSize="9" fontFamily="ui-monospace, monospace">
+            vₑ ≈ 11.2 km/s
+          </text>
+        </svg>
+      );
+    case "circuit":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <path d="M40 40 H160 V100 H40 V40" stroke={muted} strokeWidth="1.5" {...common} />
+          <path d="M70 40 V28 M70 28 H90 M90 28 V40" stroke={stroke} strokeWidth="2" {...common} />
+          <path d="M110 100 l8-10 8 10 8-10 8 10 8-10" stroke={stroke} strokeWidth="2" {...common} />
+          <text x="72" y="70" fill={muted} fontSize="11" fontFamily="ui-monospace, monospace">
+            V = IR
+          </text>
+        </svg>
+      );
+    case "carbon-lattice":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          {/* diamond-ish */}
+          <path d="M50 40 L70 55 L70 85 L50 100 L30 85 L30 55 Z" stroke={stroke} strokeWidth="1.8" {...common} />
+          <circle cx="50" cy="40" r="3" fill={stroke} />
+          <circle cx="70" cy="55" r="3" fill={stroke} />
+          <circle cx="70" cy="85" r="3" fill={stroke} />
+          <circle cx="50" cy="100" r="3" fill={stroke} />
+          <circle cx="30" cy="85" r="3" fill={stroke} />
+          <circle cx="30" cy="55" r="3" fill={stroke} />
+          {/* graphite layers */}
+          <path d="M120 45 H180 M120 70 H180 M120 95 H180" stroke={stroke} strokeWidth="1.8" {...common} />
+          <circle cx="130" cy="45" r="3" fill={stroke} />
+          <circle cx="150" cy="45" r="3" fill={stroke} />
+          <circle cx="170" cy="45" r="3" fill={stroke} />
+          <circle cx="130" cy="70" r="3" fill={stroke} />
+          <circle cx="150" cy="70" r="3" fill={stroke} />
+          <circle cx="170" cy="70" r="3" fill={stroke} />
+          <text x="36" y="122" fill={muted} fontSize="9" fontFamily="ui-monospace, monospace">
+            diamond
+          </text>
+          <text x="132" y="122" fill={muted} fontSize="9" fontFamily="ui-monospace, monospace">
+            graphite
+          </text>
+        </svg>
+      );
+    case "ice-water":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <path d="M30 100 H170 V110 H30 Z" stroke={muted} strokeWidth="1.5" {...common} />
+          <path d="M40 100 Q70 70 100 100 T160 100" stroke={stroke} strokeWidth="1.5" fill={`${stroke}22`} className="diagram-draw" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M80 55 L95 75 L80 70 L65 75 Z" stroke={stroke} strokeWidth="1.8" {...common} />
+          <path d="M120 48 L132 68 L120 62 L108 68 Z" stroke={stroke} strokeWidth="1.8" {...common} />
+          <text x="70" y="128" fill={muted} fontSize="9" fontFamily="ui-monospace, monospace">
+            ice floats
+          </text>
+        </svg>
+      );
+    case "mole":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <circle
+              key={i}
+              cx={55 + (i % 3) * 22}
+              cy={45 + Math.floor(i / 3) * 22}
+              r="6"
+              stroke={stroke}
+              strokeWidth="1.5"
+              {...common}
+            />
+          ))}
+          <path d="M130 40 H175 V100 H130 Z" stroke={muted} strokeWidth="1.5" {...common} />
+          <text x="136" y="78" fill={stroke} fontSize="12" fontFamily="ui-monospace, monospace">
+            1 mol
+          </text>
+          <text x="48" y="128" fill={muted} fontSize="9" fontFamily="ui-monospace, monospace">
+            Nₐ ≈ 6.022×10²³
+          </text>
+        </svg>
+      );
+    case "catalyst":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <path d="M30 110 Q70 30 100 70 Q130 30 170 110" stroke={muted} strokeWidth="1.8" {...common} />
+          <path d="M30 110 Q70 70 100 85 Q130 70 170 110" stroke={stroke} strokeWidth="2.2" {...common} />
+          <text x="78" y="28" fill={muted} fontSize="9" fontFamily="ui-monospace, monospace">
+            Eₐ
+          </text>
+          <text x="70" y="128" fill={muted} fontSize="9" fontFamily="ui-monospace, monospace">
+            with catalyst
+          </text>
+        </svg>
+      );
+    case "ph-scale":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <path d="M30 70 H170" stroke={muted} strokeWidth="2" {...common} />
+          {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+            <path key={i} d={`M${40 + i * 20} 62 V78`} stroke={stroke} strokeWidth="1.5" {...common} />
+          ))}
+          <circle cx="100" cy="70" r="7" stroke={stroke} strokeWidth="2" fill={`${stroke}33`} className="diagram-draw" strokeLinecap="round" strokeLinejoin="round" />
+          <text x="92" y="98" fill={muted} fontSize="10" fontFamily="ui-monospace, monospace">
+            pH 7
+          </text>
+          <text x="34" y="50" fill={muted} fontSize="9" fontFamily="ui-monospace, monospace">
+            acid
+          </text>
+          <text x="148" y="50" fill={muted} fontSize="9" fontFamily="ui-monospace, monospace">
+            base
+          </text>
+        </svg>
+      );
+    case "salt-dissolve":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <ellipse cx="100" cy="100" rx="70" ry="16" stroke={muted} strokeWidth="1.5" {...common} />
+          <path d="M40 100 Q40 40 100 40 Q160 40 160 100" stroke={muted} strokeWidth="1.5" {...common} />
+          <circle cx="78" cy="72" r="8" stroke={stroke} strokeWidth="1.8" {...common} />
+          <text x="73" y="76" fill={stroke} fontSize="9">
+            Na
+          </text>
+          <circle cx="120" cy="78" r="8" stroke={stroke} strokeWidth="1.8" {...common} />
+          <text x="115" y="82" fill={stroke} fontSize="9">
+            Cl
+          </text>
+          <path d="M88 68 Q100 55 112 72" stroke={muted} strokeWidth="1.2" strokeDasharray="3 3" {...common} />
+        </svg>
+      );
+    case "combustion":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <path d="M100 110 C85 90 78 70 92 48 C100 62 112 58 108 40 C130 58 128 88 100 110 Z" stroke={stroke} strokeWidth="2" {...common} />
+          <path d="M40 110 H160" stroke={muted} strokeWidth="1.5" {...common} />
+          <text x="58" y="28" fill={muted} fontSize="9" fontFamily="ui-monospace, monospace">
+            CxHy + O₂ → CO₂ + H₂O
+          </text>
+        </svg>
+      );
+    case "zero-place":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <text x="40" y="78" fill={stroke} fontSize="42" fontFamily="Georgia, serif">
+            10
+          </text>
+          <circle cx="118" cy="48" r="14" stroke={stroke} strokeWidth="2" {...common} />
+          <text x="111" y="54" fill={stroke} fontSize="16" fontFamily="Georgia, serif">
+            0
+          </text>
+          <text x="48" y="118" fill={muted} fontSize="9" fontFamily="ui-monospace, monospace">
+            place value
+          </text>
+        </svg>
+      );
+    case "pi-circle":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <circle cx="90" cy="70" r="40" stroke={stroke} strokeWidth="2" {...common} />
+          <path d="M90 70 H130" stroke={muted} strokeWidth="1.5" {...common} />
+          <circle cx="90" cy="70" r="3" fill={stroke} />
+          <text x="108" y="66" fill={muted} fontSize="10" fontFamily="ui-monospace, monospace">
+            r
+          </text>
+          <text x="145" y="78" fill={stroke} fontSize="28" fontFamily="Georgia, serif">
+            π
+          </text>
+        </svg>
+      );
+    case "growth-e":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <path d="M30 110 H170 M30 110 V30" stroke={muted} strokeWidth="1.5" {...common} />
+          <path d="M40 100 Q80 95 110 70 T165 28" stroke={stroke} strokeWidth="2.2" {...common} />
+          <text x="140" y="55" fill={muted} fontSize="12" fontFamily="Georgia, serif">
+            eˣ
+          </text>
+        </svg>
+      );
+    case "golden-spiral":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <path
+            d="M100 70 m0-8 a8 8 0 1 1 0 0.1 m0-8 a16 16 0 1 0 0-0.1 m0 16 a24 24 0 1 1 0 0.1 m0-24 a36 36 0 1 0 0-0.1"
+            stroke={stroke}
+            strokeWidth="1.8"
+            {...common}
+          />
+          <text x="130" y="118" fill={muted} fontSize="11" fontFamily="Georgia, serif">
+            φ ≈ 1.618
+          </text>
+        </svg>
+      );
+    case "infinity":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <path d="M60 70 C60 40 95 40 100 70 C105 100 140 100 140 70 C140 40 105 40 100 70 C95 100 60 100 60 70" stroke={stroke} strokeWidth="2.4" {...common} />
+        </svg>
+      );
+    case "primes":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          {[2, 3, 5, 7, 11, 13].map((n, i) => (
+            <g key={n}>
+              <circle cx={40 + i * 26} cy="70" r="12" stroke={stroke} strokeWidth="1.6" {...common} />
+              <text x={40 + i * 26 - (n > 9 ? 7 : 4)} y="74" fill={stroke} fontSize="11" fontFamily="ui-monospace, monospace">
+                {n}
+              </text>
+            </g>
+          ))}
+          <text x="70" y="110" fill={muted} fontSize="9" fontFamily="ui-monospace, monospace">
+            primes go on…
+          </text>
+        </svg>
+      );
+    case "calculus":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <path d="M30 110 H170 M30 110 V30" stroke={muted} strokeWidth="1.4" {...common} />
+          <path d="M40 95 Q80 90 100 55 T160 35" stroke={stroke} strokeWidth="2" {...common} />
+          <path d="M100 55 L130 40" stroke={muted} strokeWidth="1.5" {...common} />
+          <path d="M70 110 V80 H115 V110" stroke={stroke} strokeWidth="1.2" fill={`${stroke}22`} className="diagram-draw" strokeLinecap="round" strokeLinejoin="round" />
+          <text x="138" y="70" fill={muted} fontSize="10" fontFamily="ui-monospace, monospace">
+            dy/dx
+          </text>
+        </svg>
+      );
+    case "triangle":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <path d="M50 110 L100 40 L150 110 Z" stroke={stroke} strokeWidth="2" {...common} />
+          <text x="88" y="95" fill={muted} fontSize="10" fontFamily="ui-monospace, monospace">
+            180°
+          </text>
+        </svg>
+      );
+    case "mitochondria":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <ellipse cx="100" cy="70" rx="70" ry="36" stroke={stroke} strokeWidth="2" {...common} />
+          <ellipse cx="100" cy="70" rx="58" ry="26" stroke={muted} strokeWidth="1.4" {...common} />
+          <path d="M50 70 Q65 50 80 70 T110 70 T140 70 T155 70" stroke={stroke} strokeWidth="1.8" {...common} />
+        </svg>
+      );
+    case "blood-cell":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <ellipse cx="100" cy="70" rx="48" ry="28" stroke={stroke} strokeWidth="2" {...common} />
+          <ellipse cx="100" cy="70" rx="22" ry="12" stroke={muted} strokeWidth="1.5" {...common} />
+          <text x="72" y="118" fill={muted} fontSize="9" fontFamily="ui-monospace, monospace">
+            ~120 day cycle
+          </text>
+        </svg>
+      );
+    case "dna":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <path d="M70 20 Q110 40 70 60 Q30 80 70 100 Q110 120 70 130" stroke={stroke} strokeWidth="2" {...common} />
+          <path d="M130 20 Q90 40 130 60 Q170 80 130 100 Q90 120 130 130" stroke={stroke} strokeWidth="2" {...common} />
+          {[0, 1, 2, 3, 4].map((i) => (
+            <path key={i} d={`M${70 + (i % 2 === 0 ? 0 : 8)} ${35 + i * 20} H${130 - (i % 2 === 0 ? 0 : 8)}`} stroke={muted} strokeWidth="1.4" {...common} />
+          ))}
+        </svg>
+      );
+    case "photosynthesis":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <circle cx="150" cy="36" r="14" stroke={stroke} strokeWidth="1.8" {...common} />
+          <path d="M100 120 C100 70 70 55 55 45" stroke={stroke} strokeWidth="2" {...common} />
+          <path d="M100 85 Q70 70 48 78 Q70 55 100 70" stroke={stroke} strokeWidth="1.8" {...common} />
+          <path d="M100 95 Q130 78 150 88 Q128 65 100 80" stroke={stroke} strokeWidth="1.8" {...common} />
+          <text x="30" y="30" fill={muted} fontSize="9" fontFamily="ui-monospace, monospace">
+            CO₂ → O₂
+          </text>
+        </svg>
+      );
+    case "neuron":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <circle cx="70" cy="70" r="16" stroke={stroke} strokeWidth="2" {...common} />
+          <path d="M54 58 L40 42 M50 70 H28 M54 82 L40 98" stroke={stroke} strokeWidth="1.6" {...common} />
+          <path d="M86 70 H150" stroke={stroke} strokeWidth="2" {...common} />
+          <path d="M150 70 L170 55 M150 70 L170 70 M150 70 L170 85" stroke={stroke} strokeWidth="1.6" {...common} />
+          <circle cx="70" cy="70" r="5" fill={stroke} opacity="0.4" />
+        </svg>
+      );
+    case "microbe":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <ellipse cx="70" cy="70" rx="28" ry="16" stroke={stroke} strokeWidth="2" {...common} />
+          <path d="M42 70 Q30 50 22 70 Q30 90 42 70" stroke={muted} strokeWidth="1.4" {...common} />
+          <circle cx="140" cy="70" r="22" stroke={stroke} strokeWidth="1.8" strokeDasharray="3 4" {...common} />
+          <circle cx="140" cy="70" r="8" stroke={muted} strokeWidth="1.4" {...common} />
+          <text x="52" y="112" fill={muted} fontSize="9" fontFamily="ui-monospace, monospace">
+            bacteria
+          </text>
+          <text x="122" y="112" fill={muted} fontSize="9" fontFamily="ui-monospace, monospace">
+            virus
+          </text>
+        </svg>
+      );
+    case "enzyme":
+      return (
+        <svg viewBox="0 0 200 140" className="h-full w-full">
+          <path d="M40 50 H90 V40 H120 V60 H160 V90 H120 V110 H90 V100 H40 Z" stroke={stroke} strokeWidth="2" {...common} />
+          <rect x="95" y="62" width="30" height="26" rx="3" stroke={muted} strokeWidth="1.6" {...common} />
+          <text x="58" y="128" fill={muted} fontSize="9" fontFamily="ui-monospace, monospace">
+            lock & key
+          </text>
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
+
+export function SubjectFunFactInline({
   subject,
+  refreshKey,
   onClose,
+  onShuffle,
 }: {
   subject: SubjectKey;
+  refreshKey: number;
   onClose: () => void;
+  onShuffle: () => void;
 }) {
   const meta = SUBJECT_META[subject];
-  const [fact, setFact] = useState(() => pickFact(subject));
-  const [factKey, setFactKey] = useState(0);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setVisible(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
+  const [fact, setFact] = useState<FactItem>(() => pickFact(subject));
+  const [show, setShow] = useState(false);
 
   useEffect(() => {
     setFact(pickFact(subject));
-    setFactKey((k) => k + 1);
-  }, [subject]);
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") requestClose();
-    }
-    document.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- close handler uses local visible state
-  }, []);
-
-  function requestClose() {
-    setVisible(false);
-    window.setTimeout(onClose, 280);
-  }
-
-  function shuffle() {
-    setFact((prev) => pickFact(subject, prev));
-    setFactKey((k) => k + 1);
-  }
+    setShow(false);
+    const id = requestAnimationFrame(() => setShow(true));
+    return () => cancelAnimationFrame(id);
+  }, [subject, refreshKey]);
 
   const particles = useMemo(
     () =>
-      Array.from({ length: 14 }, (_, i) => ({
+      Array.from({ length: 10 }, (_, i) => ({
         id: i,
-        left: `${8 + ((i * 17) % 84)}%`,
-        top: `${12 + ((i * 29) % 70)}%`,
-        delay: `${(i % 7) * 0.18}s`,
-        size: 2 + (i % 3),
+        left: `${10 + ((i * 19) % 80)}%`,
+        top: `${15 + ((i * 27) % 65)}%`,
+        delay: `${(i % 5) * 0.2}s`,
+        size: 1.5 + (i % 3),
       })),
     [subject]
   );
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-end justify-center p-4 sm:items-center"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="fun-fact-title"
+      className={`mb-4 overflow-hidden rounded-2xl border border-white/12 transition-all duration-300 ease-out ${
+        show ? "max-h-[420px] translate-y-0 opacity-100" : "max-h-0 translate-y-3 opacity-0"
+      }`}
+      style={{
+        background: "rgba(15,31,46,0.82)",
+        boxShadow: `0 0 40px ${meta.glow}`,
+      }}
+      role="region"
+      aria-label={`${meta.label} fun fact`}
     >
-      <button
-        type="button"
-        aria-label="Close fun fact"
-        className={`absolute inset-0 bg-ink/70 backdrop-blur-sm transition-opacity duration-300 ${
-          visible ? "opacity-100" : "opacity-0"
-        }`}
-        onClick={requestClose}
-      />
+      <style>{`
+        .diagram-draw {
+          stroke-dasharray: 240;
+          stroke-dashoffset: 240;
+          animation: diagram-sketch 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        @keyframes diagram-sketch {
+          to { stroke-dashoffset: 0; }
+        }
+        .fact-copy-in {
+          animation: fact-copy-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        @keyframes fact-copy-in {
+          from { opacity: 0; transform: translateY(10px); filter: blur(3px); }
+          to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+      `}</style>
 
-      <div
-        className={`relative z-10 w-full max-w-lg overflow-hidden rounded-3xl border border-white/12 bg-coal/95 shadow-2xl transition-all duration-300 ease-out ${
-          visible ? "translate-y-0 scale-100 opacity-100" : "translate-y-6 scale-[0.96] opacity-0"
-        }`}
-        style={{ boxShadow: `0 0 60px ${meta.glow}` }}
-      >
+      <div className="relative px-4 py-4 md:px-5 md:py-5">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
           style={{
-            background: `radial-gradient(ellipse 80% 55% at 20% 0%, ${meta.glow}, transparent 55%), radial-gradient(ellipse 60% 40% at 90% 100%, rgba(212,176,106,0.08), transparent 50%)`,
+            background: `radial-gradient(ellipse 70% 80% at 15% 40%, ${meta.glow}, transparent 60%)`,
           }}
         />
-
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
           {particles.map((p) => (
             <span
@@ -189,82 +689,59 @@ export function SubjectFunFactPanel({
                 width: p.size,
                 height: p.size,
                 background: meta.accent,
-                opacity: 0.45,
+                opacity: 0.4,
                 animationDelay: p.delay,
-                boxShadow: `0 0 8px ${meta.accent}`,
               }}
             />
           ))}
         </div>
 
-        <div className="relative px-6 pb-6 pt-5 md:px-8 md:pb-8 md:pt-6">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <div
-                className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em]"
-                style={{ borderColor: `${meta.accent}55`, color: meta.accent }}
-              >
-                <span aria-hidden className="font-mono text-[11px] normal-case tracking-normal">
-                  {meta.mark}
-                </span>
-                Fun fact
-              </div>
-              <h3
-                id="fun-fact-title"
-                className="mt-3 font-display text-3xl font-semibold tracking-tight text-mist md:text-4xl"
-              >
-                {meta.label}
-              </h3>
-              <p className="mt-1 text-sm text-bronze">{meta.hint}</p>
-            </div>
-            <button
-              type="button"
-              onClick={requestClose}
-              className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-bronze transition hover:border-gold/50 hover:text-gold"
-            >
-              Close
-            </button>
-          </div>
-
+        <div className="relative flex items-center justify-between gap-3">
           <div
-            key={factKey}
-            className="fact-card-enter mt-6 rounded-2xl border border-white/10 bg-ink/50 px-5 py-5 md:px-6 md:py-6"
+            className="inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em]"
+            style={{ borderColor: `${meta.accent}55`, color: meta.accent }}
           >
-            <p
-              className="font-display text-xl leading-snug text-mist md:text-2xl"
-              style={{ textShadow: `0 0 24px ${meta.glow}` }}
-            >
-              {fact}
-            </p>
+            <span className="font-mono text-[10px] normal-case tracking-normal">{meta.mark}</span>
+            {meta.label} fact
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-bronze transition hover:border-gold/40 hover:text-gold"
+          >
+            Close
+          </button>
+        </div>
+
+        <div className="relative mt-3 grid items-center gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(140px,200px)]">
+          <div key={`${refreshKey}-copy`} className="fact-copy-in min-w-0">
+            <p className="font-display text-lg leading-snug text-mist md:text-xl">{fact.text}</p>
             <div
-              className="mt-4 h-px w-16 origin-left animate-underline-grow"
+              className="mt-3 h-px w-14 origin-left animate-underline-grow"
               style={{ background: `linear-gradient(90deg, ${meta.accent}, transparent)` }}
             />
-          </div>
-
-          <div className="mt-6 flex flex-wrap items-center gap-3">
             <button
               type="button"
-              onClick={shuffle}
-              className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold tracking-wide text-ink transition hover:brightness-110"
+              onClick={onShuffle}
+              className="mt-3 inline-flex items-center rounded-full px-4 py-2 text-xs font-bold tracking-wide text-ink transition hover:brightness-110"
               style={{ background: meta.accent }}
             >
               Another fact
             </button>
-            <p className="text-xs text-bronze">Tap again on a subject anytime for a new surprise.</p>
+          </div>
+
+          <div
+            key={`${refreshKey}-diagram`}
+            className="fact-copy-in relative mx-auto aspect-[10/7] w-full max-w-[220px] rounded-xl border border-white/10 bg-ink/40 p-2"
+            style={{ boxShadow: `inset 0 0 24px ${meta.glow}` }}
+          >
+            <FactDiagram id={fact.diagram} accent={meta.accent} />
+            <span className="pointer-events-none absolute bottom-1.5 right-2 text-[9px] uppercase tracking-[0.16em] text-bronze/70">
+              sketch
+            </span>
           </div>
         </div>
       </div>
-
-      <style>{`
-        .fact-card-enter {
-          animation: fact-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
-        }
-        @keyframes fact-in {
-          0% { opacity: 0; transform: translateY(14px) scale(0.98); filter: blur(4px); }
-          100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-        }
-      `}</style>
     </div>
   );
 }
@@ -279,7 +756,7 @@ export function SubjectNav({
   const items: SubjectKey[] = ["physics", "chemistry", "maths", "biology"];
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-3 border-t border-white/10 pt-6 sm:gap-5">
+    <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5">
       {items.map((key, i) => {
         const meta = SUBJECT_META[key];
         const isActive = active === key;
@@ -288,14 +765,14 @@ export function SubjectNav({
             {i > 0 && (
               <span
                 className="hidden h-1 w-1 rounded-full sm:block"
-                style={{ background: i % 2 === 0 ? "var(--aurora)" : "var(--gold)" }}
+                style={{ background: i % 2 === 0 ? "#5EC8C0" : "#D4B06A" }}
                 aria-hidden
               />
             )}
             <button
               type="button"
               onClick={() => onSelect(key)}
-              className={`group relative rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] transition-all duration-300 ${
+              className={`relative rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] transition-all duration-300 ${
                 isActive ? "text-ink" : "text-bronze hover:text-mist"
               }`}
               style={
@@ -305,13 +782,6 @@ export function SubjectNav({
               }
               aria-pressed={isActive}
             >
-              <span
-                className={`absolute inset-0 -z-10 rounded-full opacity-0 transition duration-300 group-hover:opacity-100 ${
-                  isActive ? "opacity-0" : ""
-                }`}
-                style={{ boxShadow: `0 0 18px ${meta.glow}` }}
-                aria-hidden
-              />
               {meta.label}
             </button>
           </div>
