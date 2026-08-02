@@ -1,268 +1,232 @@
-import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
-
-type Particle = {
-  id: number;
-  x: number;
-  y: number;
-  born: number;
-};
-
-const FORMULAS = [
-  "E = mc²",
-  "F = ma",
-  "PV = nRT",
-  "λ = h/p",
-  "ΔG < 0",
-  "v = u + at",
-  "pH = −log[H⁺]",
-  "DNA",
-  "∫dx",
-  "NaCl",
-  "H₂O",
-  "Δx·Δp ≥ ℏ/2",
-];
-
-const ORBIT_ELECTRONS = [
-  { r: 72, speed: 0.7, phase: 0, color: "#5EC8C0" },
-  { r: 108, speed: -0.45, phase: 1.2, color: "#D4B06A" },
-  { r: 148, speed: 0.32, phase: 2.4, color: "#F0E0B8" },
-];
+import { useEffect, useRef } from "react";
 
 /**
- * Interactive science field for the login page —
- * orbiting electrons, formula drift, cursor-tethered bonds.
- * Lives behind the form; does not steal form pointer events.
+ * Aesthetic optics / harmonics field for login —
+ * Lissajous traces + soft interference ripples.
+ * Cursor steers phase and wavelength; form stays clickable above.
  */
 export function LoginScienceBg() {
-  const rootRef = useRef<HTMLDivElement>(null);
-  const [t, setT] = useState(0);
-  const [pointer, setPointer] = useState({ x: 0.5, y: 0.45 });
-  const [particles, setParticles] = useState<Particle[]>([]);
-  const idRef = useRef(0);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const pointer = useRef({ x: 0.5, y: 0.45 });
+  const clickRipples = useRef<{ x: number; y: number; t: number }[]>([]);
 
   useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
     let raf = 0;
+    let running = true;
     const start = performance.now();
-    const loop = (now: number) => {
-      setT((now - start) / 1000);
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
-  }, []);
 
-  // Global pointer so parallax still works over the form card
-  useEffect(() => {
-    function onMove(e: MouseEvent) {
-      setPointer({
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      canvas!.width = Math.floor(w * dpr);
+      canvas!.height = Math.floor(h * dpr);
+      canvas!.style.width = `${w}px`;
+      canvas!.style.height = `${h}px`;
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function onMove(e: PointerEvent) {
+      pointer.current = {
         x: e.clientX / window.innerWidth,
         y: e.clientY / window.innerHeight,
-      });
+      };
     }
+
+    function onDown(e: PointerEvent) {
+      // Ignore presses on the login card / interactive UI
+      const target = e.target as HTMLElement | null;
+      if (target?.closest?.("form, a, button, input, label, .luxury-panel")) return;
+      clickRipples.current.push({
+        x: e.clientX,
+        y: e.clientY,
+        t: performance.now(),
+      });
+      if (clickRipples.current.length > 6) clickRipples.current.shift();
+    }
+
+    function drawLissajous(
+      cx: number,
+      cy: number,
+      scaleX: number,
+      scaleY: number,
+      a: number,
+      b: number,
+      delta: number,
+      t: number,
+      color: string,
+      alpha: number
+    ) {
+      ctx!.beginPath();
+      const steps = 360;
+      for (let i = 0; i <= steps; i++) {
+        const u = (i / steps) * Math.PI * 2;
+        const x = cx + Math.sin(a * u + delta + t * 0.15) * scaleX;
+        const y = cy + Math.sin(b * u + t * 0.11) * scaleY;
+        if (i === 0) ctx!.moveTo(x, y);
+        else ctx!.lineTo(x, y);
+      }
+      ctx!.strokeStyle = color;
+      ctx!.globalAlpha = alpha;
+      ctx!.lineWidth = 1.25;
+      ctx!.stroke();
+      ctx!.globalAlpha = 1;
+    }
+
+    function frame(now: number) {
+      if (!running) return;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const t = (now - start) / 1000;
+      const px = pointer.current.x;
+      const py = pointer.current.y;
+
+      // Soft fade trail for chronograph feel
+      ctx!.fillStyle = "rgba(7, 18, 28, 0.18)";
+      ctx!.fillRect(0, 0, w, h);
+
+      // Ambient wash
+      const g = ctx!.createRadialGradient(
+        w * px,
+        h * py,
+        20,
+        w * 0.5,
+        h * 0.45,
+        Math.max(w, h) * 0.7
+      );
+      g.addColorStop(0, "rgba(94, 200, 192, 0.05)");
+      g.addColorStop(0.45, "rgba(212, 176, 106, 0.03)");
+      g.addColorStop(1, "rgba(7, 18, 28, 0)");
+      ctx!.fillStyle = g;
+      ctx!.fillRect(0, 0, w, h);
+
+      // Faint lab grid
+      ctx!.strokeStyle = "rgba(157, 176, 192, 0.045)";
+      ctx!.lineWidth = 1;
+      const step = 48;
+      ctx!.beginPath();
+      for (let x = 0; x <= w; x += step) {
+        ctx!.moveTo(x + ((t * 6) % step), 0);
+        ctx!.lineTo(x + ((t * 6) % step), h);
+      }
+      for (let y = 0; y <= h; y += step) {
+        ctx!.moveTo(0, y);
+        ctx!.lineTo(w, y);
+      }
+      ctx!.stroke();
+
+      // Harmonic ratios steered by cursor
+      const a = 2 + Math.round(px * 3); // 2..5
+      const b = 3 + Math.round(py * 2); // 3..5
+      const delta = px * Math.PI;
+
+      const cx = w * 0.5;
+      const cy = h * 0.46;
+      const sx = Math.min(w, h) * 0.28;
+      const sy = Math.min(w, h) * 0.2;
+
+      drawLissajous(cx, cy, sx, sy, a, b, delta, t, "#5EC8C0", 0.35);
+      drawLissajous(cx, cy, sx * 0.72, sy * 0.72, a + 1, b, delta + 0.6, t * 0.9, "#D4B06A", 0.28);
+      drawLissajous(cx, cy, sx * 1.15, sy * 0.55, 3, 4, t * 0.4, t * 0.7, "#F0E0B8", 0.12);
+
+      // Oscilloscope baseline wave
+      ctx!.beginPath();
+      const baseY = h * 0.82;
+      const amp = 14 + py * 18;
+      const freq = 0.012 + px * 0.01;
+      for (let x = 0; x <= w; x += 3) {
+        const y =
+          baseY +
+          Math.sin(x * freq + t * 2.2) * amp +
+          Math.sin(x * freq * 2.3 + t * 1.4) * (amp * 0.35);
+        if (x === 0) ctx!.moveTo(x, y);
+        else ctx!.lineTo(x, y);
+      }
+      ctx!.strokeStyle = "rgba(94, 200, 192, 0.35)";
+      ctx!.lineWidth = 1.5;
+      ctx!.stroke();
+
+      // Soft interference rings from cursor + fixed sources
+      const sources = [
+        { x: w * 0.22, y: h * 0.3, color: "rgba(94,200,192," },
+        { x: w * 0.78, y: h * 0.28, color: "rgba(212,176,106," },
+        { x: w * px, y: h * py, color: "rgba(240,224,184," },
+      ];
+      for (const s of sources) {
+        for (let k = 0; k < 5; k++) {
+          const r = ((t * 38 + k * 36) % 180) + 10;
+          ctx!.beginPath();
+          ctx!.arc(s.x, s.y, r, 0, Math.PI * 2);
+          ctx!.strokeStyle = `${s.color}${0.14 - k * 0.018})`;
+          ctx!.lineWidth = 1;
+          ctx!.stroke();
+        }
+      }
+
+      // Click ripples
+      const nowMs = now;
+      clickRipples.current = clickRipples.current.filter((r) => nowMs - r.t < 1600);
+      for (const r of clickRipples.current) {
+        const age = (nowMs - r.t) / 1600;
+        const radius = 12 + age * 160;
+        ctx!.beginPath();
+        ctx!.arc(r.x, r.y, radius, 0, Math.PI * 2);
+        ctx!.strokeStyle = `rgba(94, 200, 192, ${0.35 * (1 - age)})`;
+        ctx!.lineWidth = 1.5;
+        ctx!.stroke();
+        ctx!.beginPath();
+        ctx!.arc(r.x, r.y, radius * 0.55, 0, Math.PI * 2);
+        ctx!.strokeStyle = `rgba(212, 176, 106, ${0.25 * (1 - age)})`;
+        ctx!.stroke();
+      }
+
+      // Wavelength tick strip
+      const stripY = h * 0.9;
+      ctx!.fillStyle = "rgba(157, 176, 192, 0.35)";
+      ctx!.font = "10px ui-monospace, SFMono-Regular, Menlo, monospace";
+      ctx!.fillText(`λ ratio ${a}:${b}`, 24, stripY);
+      ctx!.fillText("harmonics · interference", w - 170, stripY);
+
+      // Center vignette so the card stays readable
+      const vig = ctx!.createRadialGradient(cx, cy, Math.min(w, h) * 0.15, cx, cy, Math.max(w, h) * 0.65);
+      vig.addColorStop(0, "rgba(7, 18, 28, 0)");
+      vig.addColorStop(1, "rgba(7, 18, 28, 0.55)");
+      ctx!.fillStyle = vig;
+      ctx!.fillRect(0, 0, w, h);
+
+      raf = requestAnimationFrame(frame);
+    }
+
+    resize();
+    // Seed opaque background once
+    ctx.fillStyle = "#07121c";
+    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+    window.addEventListener("resize", resize);
     window.addEventListener("pointermove", onMove, { passive: true });
-    return () => window.removeEventListener("pointermove", onMove);
+    window.addEventListener("pointerdown", onDown, { passive: true });
+    raf = requestAnimationFrame(frame);
+
+    return () => {
+      running = false;
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", resize);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerdown", onDown);
+    };
   }, []);
 
-  // Cull burst particles
-  useEffect(() => {
-    if (particles.length === 0) return;
-    const id = window.setInterval(() => {
-      const now = performance.now();
-      setParticles((prev) => prev.filter((p) => now - p.born < 1200));
-    }, 200);
-    return () => window.clearInterval(id);
-  }, [particles.length]);
-
-  const nodes = useMemo(
-    () =>
-      FORMULAS.map((label, i) => {
-        const a = (i / FORMULAS.length) * Math.PI * 2;
-        return {
-          label,
-          baseX: 50 + Math.cos(a) * (28 + (i % 4) * 6),
-          baseY: 48 + Math.sin(a) * (22 + (i % 3) * 7),
-          drift: 0.4 + (i % 5) * 0.12,
-          size: i % 3 === 0 ? 13 : 11,
-        };
-      }),
-    []
-  );
-
-  function spawnAt(clientX: number, clientY: number) {
-    const el = rootRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = ((clientX - rect.left) / rect.width) * 100;
-    const y = ((clientY - rect.top) / rect.height) * 100;
-    const born = performance.now();
-    const batch: Particle[] = Array.from({ length: 6 }, (_, i) => ({
-      id: ++idRef.current,
-      x: x + Math.cos((i / 6) * Math.PI * 2) * 1.2,
-      y: y + Math.sin((i / 6) * Math.PI * 2) * 1.2,
-      born: born + i * 20,
-    }));
-    setParticles((prev) => [...prev.slice(-24), ...batch]);
-  }
-
-  function onBgPointer(e: PointerEvent<HTMLDivElement>) {
-    // Only react when the event target is the background itself
-    if (e.target !== e.currentTarget && !(e.target as HTMLElement).dataset?.sciHit) return;
-    spawnAt(e.clientX, e.clientY);
-  }
-
-  const px = (pointer.x - 0.5) * 40;
-  const py = (pointer.y - 0.5) * 30;
-  const nucleusX = 50 + px * 0.15;
-  const nucleusY = 46 + py * 0.15;
-
   return (
-    <div
-      ref={rootRef}
-      className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
+    <canvas
+      ref={canvasRef}
+      className="pointer-events-none fixed inset-0 z-0"
       aria-hidden
-    >
-      <style>{`
-        .sci-formula {
-          transition: transform 0.35s cubic-bezier(0.22,1,0.36,1), opacity 0.4s ease;
-        }
-        .sci-burst {
-          animation: sci-burst 1.1s ease-out forwards;
-        }
-        @keyframes sci-burst {
-          0% { opacity: 0.9; transform: scale(0.4); }
-          100% { opacity: 0; transform: scale(2.4); }
-        }
-        .sci-orbit-glow {
-          filter: drop-shadow(0 0 6px rgba(94,200,192,0.45));
-        }
-      `}</style>
-
-      {/* Atmospheric wash */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(ellipse 70% 55% at 50% 40%, rgba(94,200,192,0.1), transparent 60%)," +
-            "radial-gradient(ellipse 50% 40% at 80% 80%, rgba(212,176,106,0.08), transparent 55%)," +
-            "radial-gradient(ellipse 40% 35% at 15% 20%, rgba(240,224,184,0.05), transparent 50%)",
-        }}
-      />
-
-      {/* Clickable field — only empty areas (form sits above with z-10) */}
-      <div
-        className="pointer-events-auto absolute inset-0"
-        data-sci-hit="1"
-        onPointerDown={onBgPointer}
-      />
-
-      {/* Molecular bond lattice toward cursor */}
-      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-        {nodes.slice(0, 8).map((n, i) => {
-          const ox = n.baseX + Math.sin(t * n.drift + i) * 1.5 + px * 0.04;
-          const oy = n.baseY + Math.cos(t * n.drift * 0.8 + i) * 1.2 + py * 0.04;
-          return (
-            <line
-              key={`bond-${n.label}`}
-              x1={ox}
-              y1={oy}
-              x2={nucleusX}
-              y2={nucleusY}
-              stroke="rgba(94,200,192,0.12)"
-              strokeWidth="0.15"
-            />
-          );
-        })}
-        {/* Cursor tether */}
-        <line
-          x1={nucleusX}
-          y1={nucleusY}
-          x2={pointer.x * 100}
-          y2={pointer.y * 100}
-          stroke="rgba(212,176,106,0.22)"
-          strokeWidth="0.2"
-          strokeDasharray="1.2 1.2"
-        />
-      </svg>
-
-      {/* Central atom + orbits */}
-      <div
-        className="absolute left-1/2 top-[46%] -translate-x-1/2 -translate-y-1/2"
-        style={{ transform: `translate(calc(-50% + ${px * 0.4}px), calc(-50% + ${py * 0.4}px))` }}
-      >
-        <svg width="340" height="340" viewBox="0 0 340 340" className="sci-orbit-glow opacity-80">
-          {ORBIT_ELECTRONS.map((orb, i) => (
-            <ellipse
-              key={`ring-${i}`}
-              cx="170"
-              cy="170"
-              rx={orb.r}
-              ry={orb.r * (0.42 + i * 0.08)}
-              fill="none"
-              stroke="rgba(255,255,255,0.1)"
-              strokeWidth="1"
-              transform={`rotate(${i * 55 + t * 4} 170 170)`}
-            />
-          ))}
-          <circle cx="170" cy="170" r="10" fill="#D4B06A" opacity="0.85" />
-          <circle cx="170" cy="170" r="18" fill="none" stroke="rgba(212,176,106,0.35)" strokeWidth="1.5" />
-          {ORBIT_ELECTRONS.map((orb, i) => {
-            const a = t * orb.speed * Math.PI * 2 + orb.phase;
-            const rx = orb.r;
-            const ry = orb.r * (0.42 + i * 0.08);
-            const rot = ((i * 55 + t * 4) * Math.PI) / 180;
-            const lx = Math.cos(a) * rx;
-            const ly = Math.sin(a) * ry;
-            const x = 170 + lx * Math.cos(rot) - ly * Math.sin(rot);
-            const y = 170 + lx * Math.sin(rot) + ly * Math.cos(rot);
-            return <circle key={`e-${i}`} cx={x} cy={y} r="4.5" fill={orb.color} />;
-          })}
-        </svg>
-      </div>
-
-      {/* Drifting formulas */}
-      {nodes.map((n, i) => {
-        const ox = n.baseX + Math.sin(t * n.drift + i) * 1.8 + px * 0.08;
-        const oy = n.baseY + Math.cos(t * n.drift * 0.9 + i) * 1.4 + py * 0.08;
-        const dx = ox - pointer.x * 100;
-        const dy = oy - pointer.y * 100;
-        const dist = Math.hypot(dx, dy);
-        const push = dist < 18 ? ((18 - dist) / 18) * 4 : 0;
-        const nx = ox + (dist > 0.1 ? (dx / dist) * push : 0);
-        const ny = oy + (dist > 0.1 ? (dy / dist) * push : 0);
-        return (
-          <span
-            key={n.label}
-            className="sci-formula pointer-events-none absolute font-mono text-mist/25"
-            style={{
-              left: `${nx}%`,
-              top: `${ny}%`,
-              fontSize: n.size,
-              transform: `translate(-50%, -50%) rotate(${Math.sin(t * 0.3 + i) * 6}deg)`,
-            }}
-          >
-            {n.label}
-          </span>
-        );
-      })}
-
-      {/* Click bursts */}
-      {particles.map((p) => (
-        <span
-          key={p.id}
-          className="sci-burst pointer-events-none absolute h-3 w-3 rounded-full bg-aurora/70"
-          style={{ left: `${p.x}%`, top: `${p.y}%`, marginLeft: -6, marginTop: -6 }}
-        />
-      ))}
-
-      {/* Soft vignette so the form stays readable */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(ellipse 55% 50% at 50% 50%, rgba(7,18,28,0.15), rgba(7,18,28,0.72) 100%)",
-        }}
-      />
-    </div>
+    />
   );
 }
 
