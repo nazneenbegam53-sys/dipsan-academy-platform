@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { useState, type MouseEvent, type KeyboardEvent } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 export function BrandLogo({
   size = "md",
@@ -8,6 +9,7 @@ export function BrandLogo({
   rounded = true,
   glow = false,
   spinRing = false,
+  tapSpin = false,
 }: {
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "hero";
   to?: string | null;
@@ -16,7 +18,12 @@ export function BrandLogo({
   rounded?: boolean;
   glow?: boolean;
   spinRing?: boolean;
+  /** Spin the crest once whenever the user taps/clicks it */
+  tapSpin?: boolean;
 }) {
+  const location = useLocation();
+  const [spinToken, setSpinToken] = useState(0);
+
   const sizes = {
     xs: "h-10 w-10",
     sm: "h-10 w-10 md:h-12 md:w-12",
@@ -35,8 +42,37 @@ export function BrandLogo({
     hero: "text-3xl",
   };
 
+  function triggerSpin() {
+    if (!tapSpin) return;
+    setSpinToken((n) => n + 1);
+  }
+
+  function onActivate(e?: MouseEvent) {
+    if (!tapSpin) return;
+    // Stay on landing when already home — tap is for spin
+    if (to === "/" && location.pathname === "/") {
+      e?.preventDefault();
+    }
+    if (to === null) {
+      e?.preventDefault();
+    }
+    triggerSpin();
+  }
+
+  function onKey(e: KeyboardEvent) {
+    if (!tapSpin) return;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      triggerSpin();
+    }
+  }
+
   const img = (
-    <span className={`relative inline-flex shrink-0 ${glow ? "animate-gold-pulse rounded-full" : ""}`}>
+    <span
+      className={`relative inline-flex shrink-0 ${glow ? "animate-gold-pulse rounded-full" : ""} ${
+        tapSpin ? "cursor-pointer" : ""
+      }`}
+    >
       {spinRing && (
         <span
           aria-hidden
@@ -51,9 +87,12 @@ export function BrandLogo({
         />
       )}
       <img
+        key={spinToken || "logo"}
         src="/dipsan-logo.png"
         alt="Dipsan Academy"
-        className={`${sizes[size]} object-contain ${rounded ? "rounded-full" : ""} ${className}`}
+        className={`${sizes[size]} object-contain ${rounded ? "rounded-full" : ""} ${className} ${
+          spinToken > 0 ? "animate-logo-tap-spin" : ""
+        }`}
       />
     </span>
   );
@@ -66,7 +105,14 @@ export function BrandLogo({
 
   if (to === null) {
     return (
-      <div className="inline-flex items-center gap-3">
+      <div
+        className={`inline-flex items-center gap-3 ${tapSpin ? "pointer-events-auto" : ""}`}
+        role={tapSpin ? "button" : undefined}
+        tabIndex={tapSpin ? 0 : undefined}
+        aria-label={tapSpin ? "Spin Dipsan Academy logo" : undefined}
+        onClick={tapSpin ? () => triggerSpin() : undefined}
+        onKeyDown={tapSpin ? onKey : undefined}
+      >
         {img}
         {wordmark}
       </div>
@@ -74,7 +120,12 @@ export function BrandLogo({
   }
 
   return (
-    <Link to={to} className="inline-flex items-center gap-3 transition hover:opacity-90">
+    <Link
+      to={to}
+      className="inline-flex items-center gap-3 transition hover:opacity-90"
+      onClick={onActivate}
+      aria-label={tapSpin ? "Spin Dipsan Academy logo" : undefined}
+    >
       {img}
       {wordmark}
     </Link>
