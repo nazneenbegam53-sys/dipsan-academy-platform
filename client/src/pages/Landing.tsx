@@ -16,6 +16,24 @@ import {
 
 type Phase = "intro" | "settle" | "ready";
 
+const INTRO_KEY = "dipsan_intro_done";
+
+function hasSeenIntro() {
+  try {
+    return sessionStorage.getItem(INTRO_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markIntroDone() {
+  try {
+    sessionStorage.setItem(INTRO_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+}
+
 // Local subject imagery — physics on hero; math in the mid section
 const HERO_IMAGE = "/hero/rocket.jpg";
 
@@ -49,20 +67,31 @@ function AnimatedLetters({
 
 export default function Landing() {
   const { user, logout } = useAuth();
-  const [phase, setPhase] = useState<Phase>("intro");
+  const [phase, setPhase] = useState<Phase>(() => (hasSeenIntro() ? "ready" : "intro"));
   const [orbitDone, setOrbitDone] = useState(false);
   const [orbitRun, setOrbitRun] = useState(0);
   const [funSubject, setFunSubject] = useState<SubjectKey | null>(null);
   const [funKey, setFunKey] = useState(0);
 
+  // After login/signup (or any authenticated visit), skip the crest intro immediately.
   useEffect(() => {
+    if (!user) return;
+    setPhase("ready");
+    markIntroDone();
+  }, [user]);
+
+  useEffect(() => {
+    if (phase === "ready" || user) return;
     const settleTimer = window.setTimeout(() => setPhase("settle"), 1800);
-    const readyTimer = window.setTimeout(() => setPhase("ready"), 3200);
+    const readyTimer = window.setTimeout(() => {
+      setPhase("ready");
+      markIntroDone();
+    }, 3200);
     return () => {
       window.clearTimeout(settleTimer);
       window.clearTimeout(readyTimer);
     };
-  }, []);
+  }, [phase, user]);
 
   useEffect(() => {
     if (phase === "ready") setOrbitDone(false);
@@ -72,12 +101,9 @@ export default function Landing() {
 
   return (
     <div className="relative min-h-screen overflow-x-hidden science-atmosphere text-mist">
-      {/* Crest intro — clean, flat reveal (no tilt) */}
-      <div
-        className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-[850ms] ease-out ${
-          phase === "ready" ? "pointer-events-none opacity-0" : "opacity-100"
-        }`}
-      >
+      {/* Crest intro — skipped after login/signup or once per session */}
+      {phase !== "ready" && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center opacity-100">
         <div className="absolute inset-0 science-atmosphere" />
         <div
           aria-hidden
@@ -135,6 +161,7 @@ export default function Landing() {
           </p>
         </div>
       </div>
+      )}
 
       {/* Mobile/desktop top actions — always show Alerts icon */}
       <div

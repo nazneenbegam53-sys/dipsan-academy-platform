@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Button, ErrorBanner, PageShell } from "../components/ui";
 import { BrandLogo } from "../components/BrandLogo";
 import { LoginScienceBg } from "../components/LoginScienceBg";
+
+const INTRO_KEY = "dipsan_intro_done";
 
 export default function Login() {
   const { login, user } = useAuth();
@@ -13,21 +15,33 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (!user) return;
+    try {
+      sessionStorage.setItem(INTRO_KEY, "1");
+    } catch {
+      /* ignore */
+    }
+    navigate("/", { replace: true });
+  }, [user, navigate]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
       await login(email, password);
-      navigate("/");
+      try {
+        sessionStorage.setItem(INTRO_KEY, "1");
+      } catch {
+        /* ignore */
+      }
+      navigate("/", { replace: true });
     } catch (err: any) {
       setError(err.message || "Login failed.");
-    } finally {
       setLoading(false);
     }
   }
-
-  if (user) navigate("/");
 
   const fieldClass =
     "w-full rounded-xl border border-gold/25 bg-charcoal px-3.5 py-3 text-sm text-mist outline-none transition placeholder:text-bronze/60 focus:border-gold focus:ring-2 focus:ring-gold/25";
@@ -64,6 +78,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className={fieldClass}
+              autoComplete="email"
             />
           </label>
           <label className="block">
@@ -76,6 +91,7 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className={fieldClass}
+              autoComplete="current-password"
             />
           </label>
           <Button type="submit" className="w-full" disabled={loading}>
