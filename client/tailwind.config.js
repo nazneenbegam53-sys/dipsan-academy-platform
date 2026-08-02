@@ -5,14 +5,14 @@ export default {
     extend: {
       colors: {
         // Night-lab science palette — deep teal-ink + aurora + warm gold crest
-        ink: "#07121C", // dark text ON gold/light chips only
+        ink: "#07121C",
         coal: "#0F1F2E",
         charcoal: "#1A3044",
         gold: "#D4B06A",
         champagne: "#F0E0B8",
-        bronze: "#9DB0C0", // secondary text
-        mist: "#E8F0F5", // primary readable text
-        paper: "#07121C", // page background
+        bronze: "#9DB0C0",
+        mist: "#E8F0F5",
+        paper: "#07121C",
         aurora: "#5EC8C0",
         ember: "#FF6B6B",
         soft: "#0F1F2E",
@@ -34,29 +34,17 @@ export default {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
         },
+        // Clean open — no tilt / wobble
         "logo-enter": {
-          "0%": {
-            opacity: "0",
-            transform: "scale(0.35) rotate(-18deg)",
-            filter: "blur(18px)",
-          },
-          "55%": {
-            opacity: "1",
-            transform: "scale(1.08) rotate(3deg)",
-            filter: "blur(0)",
-          },
-          "100%": {
-            opacity: "1",
-            transform: "scale(1) rotate(0deg)",
-            filter: "blur(0)",
-          },
+          "0%": { opacity: "0", transform: "scale(0.88)", filter: "blur(6px)" },
+          "100%": { opacity: "1", transform: "scale(1)", filter: "blur(0)" },
         },
         "title-rise": {
           "0%": { opacity: "0", transform: "translateY(24px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
         "intro-title": {
-          "0%": { opacity: "0", transform: "translateY(20px)", letterSpacing: "0.42em" },
+          "0%": { opacity: "0", transform: "translateY(14px)", letterSpacing: "0.34em" },
           "100%": { opacity: "1", transform: "translateY(0)", letterSpacing: "0.18em" },
         },
         "gold-pulse": {
@@ -69,7 +57,7 @@ export default {
         },
         float: {
           "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-10px)" },
+          "50%": { transform: "translateY(-8px)" },
         },
         "ken-burns": {
           "0%": { transform: "scale(1)" },
@@ -80,50 +68,39 @@ export default {
           "100%": { transform: "translate(-50%, -50%) rotate(360deg)" },
         },
         "pulse-ring": {
-          "0%": { transform: "scale(0.72)", opacity: "0.55" },
-          "100%": { transform: "scale(1.55)", opacity: "0" },
-        },
-        "orbit-tilt": {
-          "0%": { transform: "rotateX(68deg) rotateZ(0deg)" },
-          "100%": { transform: "rotateX(68deg) rotateZ(360deg)" },
+          "0%": { transform: "scale(0.85)", opacity: "0.45" },
+          "100%": { transform: "scale(1.35)", opacity: "0" },
         },
         "star-twinkle": {
           "0%, 100%": { opacity: "0.25", transform: "scale(1)" },
-          "50%": { opacity: "1", transform: "scale(1.35)" },
+          "50%": { opacity: "1", transform: "scale(1.25)" },
         },
+        // Flat letter rise — no rotateX bend
         "letter-in": {
-          "0%": {
-            opacity: "0",
-            transform: "translateY(36px) rotateX(65deg) scale(0.9)",
-            filter: "blur(10px)",
-          },
-          "100%": {
-            opacity: "1",
-            transform: "translateY(0) rotateX(0deg) scale(1)",
-            filter: "blur(0)",
-          },
+          "0%": { opacity: "0", transform: "translateY(18px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
         "letter-glow": {
           "0%, 100%": { textShadow: "0 0 0 transparent" },
-          "50%": { textShadow: "0 0 18px rgba(94,200,192,0.45), 0 0 8px rgba(212,176,106,0.35)" },
+          "50%": { textShadow: "0 0 14px rgba(212,176,106,0.35)" },
         },
+        // Pure circular path — linear so counter-spin stays perfectly upright
         "crest-orbit": {
           "0%": { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(360deg)" },
         },
         "crest-face": {
-          "0%": { transform: "rotate(0deg) scale(0.88)" },
-          "50%": { transform: "rotate(-180deg) scale(1.06)" },
-          "100%": { transform: "rotate(-360deg) scale(1)" },
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(-360deg)" },
         },
         "intro-bloom": {
-          "0%": { opacity: "0", transform: "scale(0.5)" },
-          "45%": { opacity: "0.9", transform: "scale(1.15)" },
-          "100%": { opacity: "0.55", transform: "scale(1)" },
+          "0%": { opacity: "0", transform: "scale(0.7)" },
+          "100%": { opacity: "0.7", transform: "scale(1)" },
         },
-        "intro-arc": {
-          "0%": { strokeDashoffset: "920" },
-          "100%": { strokeDashoffset: "0" },
+        "intro-ring": {
+          "0%": { opacity: "0", transform: "scale(0.7)" },
+          "55%": { opacity: "1", transform: "scale(1.02)" },
+          "100%": { opacity: "0.85", transform: "scale(1)" },
         },
         "underline-grow": {
           "0%": { transform: "scaleX(0)", opacity: "0" },
@@ -136,25 +113,25 @@ export default {
       },
       animation: {
         "fade-up": "fade-up 0.75s ease-out both",
-        "fade-in": "fade-in 0.65s ease-out both",
-        "logo-enter": "logo-enter 1.55s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "fade-in": "fade-in 0.8s ease-out both",
+        "logo-enter": "logo-enter 1.4s cubic-bezier(0.22, 1, 0.36, 1) both",
         "title-rise": "title-rise 0.9s ease-out both",
-        "intro-title": "intro-title 1.15s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "intro-title": "intro-title 1.2s cubic-bezier(0.22, 1, 0.36, 1) both",
         "gold-pulse": "gold-pulse 2.8s ease-out infinite",
-        "ring-spin": "ring-spin 10s linear infinite",
+        "ring-spin": "ring-spin 12s linear infinite",
         float: "float 7s ease-in-out infinite",
         "ken-burns": "ken-burns 24s ease-out forwards",
         "orbit-slow": "orbit-slow 36s linear infinite",
-        "pulse-ring": "pulse-ring 2.8s ease-out infinite",
-        "orbit-tilt": "orbit-tilt 14s linear infinite",
+        "pulse-ring": "pulse-ring 2.6s ease-out infinite",
         "star-twinkle": "star-twinkle 2.8s ease-in-out infinite",
-        "letter-in": "letter-in 0.85s cubic-bezier(0.16, 1, 0.3, 1) both",
-        "letter-glow": "letter-glow 3.5s ease-in-out infinite",
-        "crest-orbit": "crest-orbit 3.1s cubic-bezier(0.45, 0.05, 0.2, 1) both",
-        "crest-face": "crest-face 3.1s cubic-bezier(0.45, 0.05, 0.2, 1) both",
-        "intro-bloom": "intro-bloom 1.8s ease-out both",
-        "intro-arc": "intro-arc 1.7s cubic-bezier(0.4, 0, 0.2, 1) both",
-        "underline-grow": "underline-grow 0.9s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "letter-in": "letter-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both",
+        "letter-glow": "letter-glow 4s ease-in-out infinite",
+        // linear = no bend — logo stays upright on the circle
+        "crest-orbit": "crest-orbit 2.8s linear both",
+        "crest-face": "crest-face 2.8s linear both",
+        "intro-bloom": "intro-bloom 1.5s ease-out both",
+        "intro-ring": "intro-ring 1.35s cubic-bezier(0.22, 1, 0.36, 1) both",
+        "underline-grow": "underline-grow 0.85s cubic-bezier(0.22, 1, 0.36, 1) both",
         shimmer: "shimmer 5s linear infinite",
         "logo-drift": "float 16s ease-in-out infinite",
         "logo-drift-delayed": "float 20s ease-in-out infinite reverse",
