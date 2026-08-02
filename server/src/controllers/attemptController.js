@@ -3,6 +3,7 @@ const Question = require("../models/Question");
 const Attempt = require("../models/Attempt");
 const { gradeAttempt } = require("../utils/scoring");
 const { asyncHandler } = require("../middleware/errorHandler");
+const { notifyUser } = require("../utils/notify");
 
 // Starts (or resumes) a student's attempt at a published exam.
 const startAttempt = asyncHandler(async (req, res) => {
@@ -97,7 +98,31 @@ const submitAttempt = asyncHandler(async (req, res) => {
 
   await attempt.save();
 
-  console.log("Attempt saved!");
+  const topicLabel = `${exam.subject} — ${exam.title}`;
+
+  await notifyUser(req.user._id, {
+    type: "submission-success",
+    title: "Submission successful",
+    message: `Your attempt for "${topicLabel}" was submitted successfully.`,
+    link: `/student/result/${attempt._id}`,
+    meta: { examId: exam._id, attemptId: attempt._id, subject: exam.subject, title: exam.title },
+  });
+
+  if (exam.createdBy) {
+    await notifyUser(exam.createdBy, {
+      type: "submission-received",
+      title: "New submission",
+      message: `${req.user.name} submitted "${topicLabel}".`,
+      link: `/teacher/exam/${exam._id}/results`,
+      meta: {
+        examId: exam._id,
+        attemptId: attempt._id,
+        studentName: req.user.name,
+        subject: exam.subject,
+        title: exam.title,
+      },
+    });
+  }
 
   res.json({ attempt });
 });

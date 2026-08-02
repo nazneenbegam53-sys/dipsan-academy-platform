@@ -2,13 +2,13 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { BrandLogo } from "../components/BrandLogo";
-import { Button } from "../components/ui";
+import { FreeBodyScrollSection } from "../components/FreeBodyScrollSection";
 
 type Phase = "intro" | "settle" | "ready";
 
 // Local subject imagery — physics on hero; chem / bio / math in the mid sections
 const HERO_IMAGE = "/hero/rocket.jpg";
-const CHEMISTRY_IMAGE = "/hero/chemistry.jpg";
+const SCIENCE_IMAGE = "/hero/science.jpg";
 const BIOLOGY_IMAGE = "/hero/biology.jpg";
 const MATH_IMAGE = "/hero/math.jpg";
 const SPACE_IMAGE = "/hero/earth.jpg";
@@ -176,30 +176,7 @@ export default function Landing() {
           />
 
           <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-6xl flex-col px-6 pb-12 pt-8 md:px-10">
-            <nav className="flex items-center justify-end gap-4 pr-16">
-              <div className="flex items-center gap-2 sm:gap-3">
-                {user ? (
-                  <>
-                    <Link
-                      to={user.role === "teacher" ? "/teacher" : "/student"}
-                      className="hidden text-sm font-medium text-mist/90 transition hover:text-gold sm:inline"
-                    >
-                      Dashboard
-                    </Link>
-                    <Button variant="ghost" onClick={logout} className="!py-2 !text-xs sm:!text-sm">
-                      Log out
-                    </Button>
-                  </>
-                ) : (
-                  <Link
-                    to="/login"
-                    className="text-sm font-medium text-mist/90 transition hover:text-gold"
-                  >
-                    Log in
-                  </Link>
-                )}
-              </div>
-            </nav>
+            <div className="h-10 pr-16" aria-hidden />
 
             <div className="mb-auto mt-auto flex flex-col items-center py-10 text-center">
               {/* Brand circle: crest stays on the orbit and rests at top-center (middle of ring) */}
@@ -318,6 +295,8 @@ export default function Landing() {
           </div>
         </section>
 
+        <FreeBodyScrollSection />
+
         <section className="relative overflow-hidden border-t border-white/10 bg-coal">
           <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-20 md:grid-cols-2 md:px-10 md:py-24">
             <div className="animate-fade-up">
@@ -342,8 +321,8 @@ export default function Landing() {
               style={{ animationDelay: "0.12s" }}
             >
               <img
-                src={CHEMISTRY_IMAGE}
-                alt="Molecular model — chemistry"
+                src={SCIENCE_IMAGE}
+                alt="Science and engineering in practice"
                 className="h-[340px] w-full object-cover md:h-[400px]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-paper via-transparent to-transparent" />

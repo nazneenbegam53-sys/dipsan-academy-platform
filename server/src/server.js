@@ -58,14 +58,7 @@ app.use("/api/results", resultRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/media", mediaRoutes);
 app.use("/api/analytics", analyticsRoutes);
-
-// TODO (not implemented): notifications (spec #24). A real implementation would
-// hook into exam publish / result submission and send via an email provider
-// (e.g. Resend, SendGrid) or SMS provider (e.g. Twilio). Stub below just logs.
-function notify(event, payload) {
-  console.log(`[notify:${event}]`, payload);
-}
-module.exports.notify = notify; // exported so controllers can `require("../server").notify(...)` later if wired in
+app.use("/api/notifications", require("./routes/notificationRoutes"));
 
 app.use((req, res) => res.status(404).json({ message: "Route not found." }));
 app.use(errorHandler);

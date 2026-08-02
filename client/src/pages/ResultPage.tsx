@@ -145,7 +145,9 @@ export default function ResultPage() {
         y += 4;
       }
 
-      doc.save(`${exam.title.replace(/\s+/g, "-")}-scorecard.pdf`);
+      doc.save(
+        `${exam.subject.replace(/\s+/g, "-")}-${exam.title.replace(/\s+/g, "-")}-scorecard.pdf`
+      );
     } finally {
       setPdfBusy(false);
     }

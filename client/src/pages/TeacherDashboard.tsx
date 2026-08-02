@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { Exam } from "../types";
 import { Button, Badge, Spinner, PageShell, Card, AppHeader } from "../components/ui";
 import { BrandLogo } from "../components/BrandLogo";
+import { NotificationBell } from "../components/NotificationBell";
 
 interface DashboardSummary {
   examCount: number;
@@ -62,6 +63,7 @@ export default function TeacherDashboard() {
           subtitle="Teacher dashboard"
           actions={
             <>
+              <NotificationBell />
               <Link to="/">
                 <Button variant="ghost">Home</Button>
               </Link>
