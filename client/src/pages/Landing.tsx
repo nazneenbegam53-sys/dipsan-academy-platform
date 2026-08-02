@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { BrandLogo } from "../components/BrandLogo";
 import { NotificationBell } from "../components/NotificationBell";
+import { PracticePaperAnim } from "../components/PracticePaperAnim";
 import { PrecisionPressureLab } from "../components/PrecisionPressureLab";
 import { SupportButton } from "../components/SupportButton";
 import {
@@ -13,9 +14,8 @@ import {
 
 type Phase = "intro" | "settle" | "ready";
 
-// Local subject imagery — physics on hero; bio / math in the mid sections
+// Local subject imagery — physics on hero; math in the mid section
 const HERO_IMAGE = "/hero/rocket.jpg";
-const BIOLOGY_IMAGE = "/hero/biology.jpg";
 const MATH_IMAGE = "/hero/math.jpg";
 const SPACE_IMAGE = "/hero/earth.jpg";
 
@@ -348,14 +348,10 @@ export default function Landing() {
 
         <section className="border-t border-white/10">
           <div className="mx-auto grid max-w-6xl md:grid-cols-2">
-            <div className="relative min-h-[300px] overflow-hidden border-b border-white/10 md:border-b-0 md:border-r">
-              <img
-                src={BIOLOGY_IMAGE}
-                alt="Fluorescent cells — biology"
-                className="absolute inset-0 h-full w-full object-cover opacity-50"
-              />
-              <div className="absolute inset-0 bg-paper/55" />
-              <div className="relative px-6 py-16 md:px-10 md:py-20">
+            <div className="relative min-h-[420px] overflow-hidden border-b border-white/10 md:min-h-[480px] md:border-b-0 md:border-r">
+              <PracticePaperAnim />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-paper via-paper/40 to-transparent" />
+              <div className="pointer-events-none relative z-10 flex h-full flex-col justify-end px-6 py-12 md:px-10 md:py-16">
                 <BrandLogo size="xs" glow />
                 <div className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-gold">
                   Students
@@ -365,6 +361,7 @@ export default function Landing() {
                 </h3>
                 <p className="mt-3 max-w-sm leading-relaxed text-bronze">
                   Timed attempts, negative marking, and solution walkthroughs for NEET &amp; JEE.
+                  Tap the bubbles to mark answers on the live sheet.
                 </p>
               </div>
             </div>
