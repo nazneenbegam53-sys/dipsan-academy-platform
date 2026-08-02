@@ -42,7 +42,7 @@ const updateQuestion = asyncHandler(async (req, res) => {
   const editable = [
     "type", "text", "imageUrl", "options", "correctOptionIndex", "correctOptionIndexes",
     "correctNumericValue", "numericTolerance", "marks", "negativeMarks",
-    "chapter", "topic", "difficulty", "explanation",
+    "chapter", "topic", "difficulty", "explanation", "explanationImageUrl",
   ];
   editable.forEach((field) => {
     if (req.body[field] !== undefined) question[field] = req.body[field];
