@@ -6,11 +6,11 @@ import { Button } from "../components/ui";
 
 type Phase = "intro" | "settle" | "ready";
 
-// Local physics-themed assets (shipped with the app — no chalkboard / board photos)
+// Local subject imagery — physics on hero; chem / bio / math in the mid sections
 const HERO_IMAGE = "/hero/rocket.jpg";
-const PHYSICS_IMAGE = "/hero/nebula.jpg";
-const STUDY_IMAGE = "/hero/nebula.jpg";
-const CLASS_IMAGE = "/hero/earth.jpg";
+const CHEMISTRY_IMAGE = "/hero/chemistry.jpg";
+const BIOLOGY_IMAGE = "/hero/biology.jpg";
+const MATH_IMAGE = "/hero/math.jpg";
 const SPACE_IMAGE = "/hero/earth.jpg";
 
 export default function Landing() {
@@ -215,14 +215,19 @@ export default function Landing() {
               style={{ animationDelay: "0.12s" }}
             >
               <img
-                src={PHYSICS_IMAGE}
-                alt="Cosmos and physics"
+                src={CHEMISTRY_IMAGE}
+                alt="Molecular model — chemistry"
                 className="h-[340px] w-full object-cover md:h-[400px]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-paper via-transparent to-transparent" />
-              <div className="absolute bottom-5 left-5 flex items-center gap-3">
-                <BrandLogo size="xs" />
-                <span className="font-display text-lg text-mist">Precision over pressure.</span>
+              <div className="absolute bottom-5 left-5 right-5 flex flex-wrap items-end justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <BrandLogo size="xs" />
+                  <span className="font-display text-lg text-mist">Precision over pressure.</span>
+                </div>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gold">
+                  Chemistry
+                </span>
               </div>
             </div>
           </div>
@@ -232,9 +237,9 @@ export default function Landing() {
           <div className="mx-auto grid max-w-6xl md:grid-cols-2">
             <div className="relative min-h-[300px] overflow-hidden border-b border-white/10 md:border-b-0 md:border-r">
               <img
-                src={STUDY_IMAGE}
-                alt="Deep space nebula — physics scale"
-                className="absolute inset-0 h-full w-full object-cover opacity-45"
+                src={BIOLOGY_IMAGE}
+                alt="Fluorescent cells — biology"
+                className="absolute inset-0 h-full w-full object-cover opacity-50"
               />
               <div className="absolute inset-0 bg-paper/55" />
               <div className="relative px-6 py-16 md:px-10 md:py-20">
@@ -252,8 +257,8 @@ export default function Landing() {
             </div>
             <div className="relative min-h-[300px] overflow-hidden">
               <img
-                src={CLASS_IMAGE}
-                alt="Earth from orbit — physics of motion"
+                src={MATH_IMAGE}
+                alt="Equations on paper — mathematics"
                 className="absolute inset-0 h-full w-full object-cover opacity-40"
               />
               <div className="absolute inset-0 bg-paper/60" />
