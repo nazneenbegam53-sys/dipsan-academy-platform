@@ -71,6 +71,9 @@ export default function TeacherDashboard() {
               <Button variant="ghost" onClick={load}>
                 Refresh
               </Button>
+              <Button variant="ghost" onClick={() => navigate("/teacher/results")}>
+                Results by exam
+              </Button>
               <Button onClick={() => navigate("/teacher/exam/new")}>+ New exam</Button>
             </>
           }
