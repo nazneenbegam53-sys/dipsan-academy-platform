@@ -95,6 +95,14 @@ export default {
           "0%, 100%": { textShadow: "0 0 0 transparent" },
           "50%": { textShadow: "0 0 18px rgba(94,200,192,0.45), 0 0 8px rgba(212,176,106,0.35)" },
         },
+        "crest-orbit": {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
+        },
+        "crest-face": {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(-360deg)" },
+        },
         shimmer: {
           "0%": { backgroundPosition: "0% 50%" },
           "100%": { backgroundPosition: "100% 50%" },
@@ -116,6 +124,8 @@ export default {
         "star-twinkle": "star-twinkle 2.8s ease-in-out infinite",
         "letter-in": "letter-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both",
         "letter-glow": "letter-glow 3.5s ease-in-out infinite",
+        "crest-orbit": "crest-orbit 2.85s cubic-bezier(0.4, 0.05, 0.2, 1) both",
+        "crest-face": "crest-face 2.85s cubic-bezier(0.4, 0.05, 0.2, 1) both",
         shimmer: "shimmer 5s linear infinite",
         "logo-drift": "float 16s ease-in-out infinite",
         "logo-drift-delayed": "float 20s ease-in-out infinite reverse",
