@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Button, ErrorBanner, PageShell } from "../components/ui";
 import { BrandLogo } from "../components/BrandLogo";
+import { LoginScienceBg } from "../components/LoginScienceBg";
 
 export default function Login() {
   const { login, user } = useAuth();
@@ -32,12 +33,14 @@ export default function Login() {
     "w-full rounded-xl border border-gold/25 bg-charcoal px-3.5 py-3 text-sm text-mist outline-none transition placeholder:text-bronze/60 focus:border-gold focus:ring-2 focus:ring-gold/25";
 
   return (
-    <PageShell className="flex min-h-screen items-center justify-center px-6 py-16">
+    <PageShell className="relative flex min-h-screen items-center justify-center px-6 py-16">
+      <LoginScienceBg />
+
       <div className="fixed right-5 top-5 z-20 md:right-8 md:top-6">
         <BrandLogo size="sm" glow spinRing />
       </div>
 
-      <div className="w-full max-w-md animate-fade-up luxury-panel rounded-3xl p-8 md:p-10">
+      <div className="relative z-10 w-full max-w-md animate-fade-up luxury-panel rounded-3xl p-8 md:p-10">
         <div className="mb-8 flex flex-col items-center text-center">
           <BrandLogo size="lg" glow spinRing />
           <p className="mt-4 font-display text-sm font-semibold tracking-[0.22em] gold-text">
