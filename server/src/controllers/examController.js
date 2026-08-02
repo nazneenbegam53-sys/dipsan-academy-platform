@@ -1,5 +1,6 @@
 const Exam = require("../models/Exam");
 const Question = require("../models/Question");
+const Attempt = require("../models/Attempt");
 const { asyncHandler } = require("../middleware/errorHandler");
 
 // Teacher: list exams they created
@@ -7,10 +8,28 @@ const listMyExams = asyncHandler(async (req, res) => {
   const exams = await Exam.find({ createdBy: req.user._id })
     .sort({ createdAt: -1 })
     .select("title subject durationMinutes status questions defaultMarks createdAt");
+
+  const examIds = exams.map((e) => e._id);
+  const submissionCounts = examIds.length
+    ? await Attempt.aggregate([
+        {
+          $match: {
+            exam: { $in: examIds },
+            status: { $in: ["submitted", "auto-submitted"] },
+          },
+        },
+        { $group: { _id: "$exam", count: { $sum: 1 } } },
+      ])
+    : [];
+  const submissionsByExam = Object.fromEntries(
+    submissionCounts.map((row) => [row._id.toString(), row.count])
+  );
+
   const withCounts = exams.map((e) => ({
     ...e.toObject(),
     questionCount: e.questions.length,
     totalMarks: e.questions.length * e.defaultMarks,
+    submissionCount: submissionsByExam[e._id.toString()] || 0,
   }));
   res.json({ exams: withCounts });
 });
@@ -48,7 +67,11 @@ const getExamForTeacher = asyncHandler(async (req, res) => {
 // Student-facing exam fetch — must NOT leak correct answers/explanations.
 const getExamForStudent = asyncHandler(async (req, res) => {
   const exam = await Exam.findOne({ _id: req.params.id, status: "published" })
-    .populate({ path: "questions", select: "-correctOptionIndex -correctOptionIndexes -correctNumericValue -explanation" });
+    .populate({
+      path: "questions",
+      select:
+        "-correctOptionIndex -correctOptionIndexes -correctNumericValue -explanation -explanationImageUrl",
+    });
   if (!exam) return res.status(404).json({ message: "Exam not found or not published." });
   res.json({ exam });
 });

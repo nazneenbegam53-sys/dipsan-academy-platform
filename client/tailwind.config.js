@@ -14,7 +14,6 @@ export default {
         paper: "#F7F5F1",
         ember: "#C96B5D",
         soft: "#F0EDE7",
-        // aliases for older pages
         forest: "#8A7B5F",
         teal: "#C6A96A",
         signal: "#C6A96A",
@@ -38,11 +37,18 @@ export default {
           "55%": { opacity: "1", transform: "scale(1)" },
           "100%": { opacity: "1", transform: "scale(1)" },
         },
+        "title-rise": {
+          "0%": { opacity: "0", transform: "translateY(28px) scale(0.96)", filter: "blur(6px)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)", filter: "blur(0)" },
+        },
       },
       animation: {
         "fade-up": "fade-up 0.7s ease-out both",
         "fade-in": "fade-in 0.6s ease-out both",
         "logo-enter": "logo-enter 1.1s ease-out both",
+        "title-rise": "title-rise 0.9s ease-out both",
+        "logo-drift": "logo-drift 14s ease-in-out infinite",
+        "logo-drift-delayed": "logo-drift-delayed 18s ease-in-out infinite",
       },
     },
   },

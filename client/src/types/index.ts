@@ -26,6 +26,7 @@ export interface Question {
   topic?: string;
   difficulty?: "easy" | "medium" | "hard";
   explanation?: string;
+  explanationImageUrl?: string | null;
 }
 
 export interface Exam {
@@ -40,6 +41,7 @@ export interface Exam {
   questions: Question[];
   questionCount?: number;
   totalMarks?: number;
+  submissionCount?: number;
   status: "draft" | "published" | "archived";
   antiCheat: {
     requireFullscreen: boolean;

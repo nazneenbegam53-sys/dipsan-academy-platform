@@ -29,9 +29,7 @@ const questionSchema = new mongoose.Schema(
     difficulty: { type: String, enum: ["easy", "medium", "hard"], default: "medium" },
 
     explanation: { type: String, default: "" },
-    // TODO (not implemented): formula/graph/table rich-content blocks, video link,
-    // reference image separate from the question image — spec #7 lists these as
-    // additional editor fields. `explanation` currently just takes plain text/markdown.
+    explanationImageUrl: { type: String, default: null }, // solution diagram shown with explanation
   },
   { timestamps: true }
 );

@@ -17,7 +17,27 @@ const analyticsRoutes = require("./routes/analyticsRoutes");
 
 const app = express();
 
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || "http://localhost:5173" }));
+const allowedOrigins = (process.env.CLIENT_ORIGIN || "http://localhost:5173")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      // Allow non-browser / same-origin, configured clients, and Vercel previews
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        /\.vercel\.app$/i.test(origin)
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, allowedOrigins[0] || true);
+    },
+    credentials: true,
+  })
+);
 app.use(express.json({ limit: "2mb" }));
 
 // Legacy local-disk files (older uploads). New uploads go to Cloudinary or GridFS.

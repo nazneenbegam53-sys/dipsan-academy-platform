@@ -2,116 +2,261 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import jsPDF from "jspdf";
 import { api } from "../services/api";
-import { Attempt, Exam } from "../types";
-import { Card, Spinner, Button, Badge } from "../components/ui";
+import { Attempt, Exam, Question } from "../types";
+import { Card, Spinner, Button, Badge, PageShell } from "../components/ui";
+import { BrandLogo } from "../components/BrandLogo";
+
+async function loadImageDataUrl(url: string): Promise<{ dataUrl: string; format: "PNG" | "JPEG" } | null> {
+  try {
+    const res = await fetch(url, { mode: "cors" });
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+    const format = blob.type.includes("png") || dataUrl.startsWith("data:image/png") ? "PNG" : "JPEG";
+    return { dataUrl, format };
+  } catch {
+    return null;
+  }
+}
+
+function fitImage(doc: jsPDF, dataUrl: string, format: "PNG" | "JPEG", y: number, maxW = 120, maxH = 55) {
+  const props = doc.getImageProperties(dataUrl);
+  const ratio = Math.min(maxW / props.width, maxH / props.height);
+  const w = props.width * ratio;
+  const h = props.height * ratio;
+  if (y + h > 280) {
+    doc.addPage();
+    y = 20;
+  }
+  doc.addImage(dataUrl, format, 14, y, w, h);
+  return y + h + 6;
+}
 
 export default function ResultPage() {
   const { attemptId } = useParams();
   const [attempt, setAttempt] = useState<Attempt | null>(null);
   const [exam, setExam] = useState<Exam | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pdfBusy, setPdfBusy] = useState(false);
 
   useEffect(() => {
-    api.get<{ attempt: Attempt; exam: Exam }>(`/attempts/${attemptId}/result`)
-      .then((r) => { setAttempt(r.attempt); setExam(r.exam); })
+    api
+      .get<{ attempt: Attempt; exam: Exam }>(`/attempts/${attemptId}/result`)
+      .then((r) => {
+        setAttempt(r.attempt);
+        setExam(r.exam);
+      })
       .finally(() => setLoading(false));
   }, [attemptId]);
 
-  function downloadScorecard() {
+  async function downloadScorecard() {
     if (!attempt || !exam) return;
-    const doc = new jsPDF();
-    let y = 20;
-    doc.setFontSize(18);
-    doc.text("Dipsan Academy — Scorecard", 14, y);
-    y += 10;
-    doc.setFontSize(12);
-    doc.text(`Exam: ${exam.title}`, 14, y); y += 7;
-    doc.text(`Score: ${attempt.score} / ${attempt.totalMarks}`, 14, y); y += 7;
-    doc.text(`Correct: ${attempt.correctCount}   Wrong: ${attempt.wrongCount}   Unattempted: ${attempt.unattemptedCount}`, 14, y); y += 7;
-    doc.text(`Submitted: ${attempt.submittedAt ? new Date(attempt.submittedAt).toLocaleString() : "—"}`, 14, y); y += 12;
+    setPdfBusy(true);
+    try {
+      const doc = new jsPDF();
+      let y = 20;
+      doc.setFontSize(18);
+      doc.text("Dipsan Academy — Scorecard", 14, y);
+      y += 10;
+      doc.setFontSize(12);
+      doc.text(`Exam: ${exam.title}`, 14, y);
+      y += 7;
+      doc.text(`Score: ${attempt.score} / ${attempt.totalMarks}`, 14, y);
+      y += 7;
+      doc.text(
+        `Correct: ${attempt.correctCount}   Wrong: ${attempt.wrongCount}   Unattempted: ${attempt.unattemptedCount}`,
+        14,
+        y
+      );
+      y += 7;
+      doc.text(
+        `Submitted: ${attempt.submittedAt ? new Date(attempt.submittedAt).toLocaleString() : "—"}`,
+        14,
+        y
+      );
+      y += 12;
 
-    exam.questions.forEach((q, i) => {
-      if (y > 270) { doc.addPage(); y = 20; }
-      //const entry = attempt.answers?.[q._id];
-      const answers = attempt.answers || {};
-      const entry = answers[q._id];
-      doc.setFontSize(11);
-      const lines = doc.splitTextToSize(`Q${i + 1}. ${q.text}`, 180);
-      doc.text(lines, 14, y);
-      y += lines.length * 6;
-      const correctLetter = q.correctOptionIndex !== null && q.correctOptionIndex !== undefined ? "ABCD"[q.correctOptionIndex] : "—";
-      const yourLetter = entry?.selected !== undefined && entry?.selected !== null ? "ABCD"[Number(entry.selected)] : "Not attempted";
-      doc.setFontSize(10);
-      doc.text(`Correct answer: ${correctLetter}   Your answer: ${yourLetter}`, 14, y);
-      y += 9;
-    });
+      for (let i = 0; i < exam.questions.length; i++) {
+        const q = exam.questions[i];
+        if (y > 250) {
+          doc.addPage();
+          y = 20;
+        }
 
-    doc.save(`${exam.title.replace(/\s+/g, "-")}-scorecard.pdf`);
+        const answers = attempt.answers || {};
+        const entry = answers[q._id];
+        doc.setFontSize(11);
+        const lines = doc.splitTextToSize(`Q${i + 1}. ${q.text}`, 180);
+        doc.text(lines, 14, y);
+        y += lines.length * 6;
+
+        if (q.imageUrl) {
+          const img = await loadImageDataUrl(q.imageUrl);
+          if (img) {
+            doc.setFontSize(9);
+            doc.setTextColor(100);
+            doc.text("Question image:", 14, y);
+            y += 4;
+            doc.setTextColor(0);
+            y = fitImage(doc, img.dataUrl, img.format, y);
+          }
+        }
+
+        const correctLetter =
+          q.correctOptionIndex !== null && q.correctOptionIndex !== undefined
+            ? "ABCD"[q.correctOptionIndex]
+            : "—";
+        const yourLetter =
+          entry?.selected !== undefined && entry?.selected !== null
+            ? "ABCD"[Number(entry.selected)]
+            : "Not attempted";
+        doc.setFontSize(10);
+        doc.text(`Correct answer: ${correctLetter}   Your answer: ${yourLetter}`, 14, y);
+        y += 7;
+
+        if (q.explanation) {
+          const expLines = doc.splitTextToSize(`Explanation: ${q.explanation}`, 180);
+          if (y + expLines.length * 5 > 280) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.setFontSize(9);
+          doc.text(expLines, 14, y);
+          y += expLines.length * 5 + 2;
+        }
+
+        if (q.explanationImageUrl) {
+          const img = await loadImageDataUrl(q.explanationImageUrl);
+          if (img) {
+            doc.setFontSize(9);
+            doc.setTextColor(100);
+            doc.text("Solution image:", 14, y);
+            y += 4;
+            doc.setTextColor(0);
+            y = fitImage(doc, img.dataUrl, img.format, y);
+          }
+        }
+
+        y += 4;
+      }
+
+      doc.save(`${exam.title.replace(/\s+/g, "-")}-scorecard.pdf`);
+    } finally {
+      setPdfBusy(false);
+    }
   }
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><Spinner /></div>;
-  if (!attempt || !exam) return <div className="min-h-screen flex items-center justify-center text-sm text-bronze">Result not found.</div>;
+  if (loading) {
+    return (
+      <PageShell className="flex min-h-screen items-center justify-center">
+        <Spinner />
+      </PageShell>
+    );
+  }
+  if (!attempt || !exam) {
+    return (
+      <PageShell className="flex min-h-screen items-center justify-center text-sm text-bronze">
+        Result not found.
+      </PageShell>
+    );
+  }
 
-  const pct = attempt.totalMarks ? Math.round(((attempt.score || 0) / attempt.totalMarks) * 100) : 0;
+  const pct = attempt.totalMarks
+    ? Math.round(((attempt.score || 0) / attempt.totalMarks) * 100)
+    : 0;
 
   return (
-    <div className="min-h-screen bg-paper px-6 py-10">
-      <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-6">
+    <PageShell>
+      <div className="fixed right-5 top-5 z-20 md:right-8 md:top-6">
+        <BrandLogo size="xs" rounded />
+      </div>
+      <div className="mx-auto max-w-3xl animate-fade-up px-6 py-10 pr-20">
+        <div className="mb-6 text-center">
           <Badge tone="ink">RESULT</Badge>
-          <div className="font-display text-5xl font-semibold text-gold mt-4">
-            {attempt.score}<span className="text-bronze text-2xl"> / {attempt.totalMarks}</span>
+          <div className="mt-4 font-display text-5xl font-semibold text-ink">
+            {attempt.score}
+            <span className="text-2xl text-bronze"> / {attempt.totalMarks}</span>
           </div>
-          <div className="text-sm text-bronze mt-1">{pct}% &middot; {exam.title}</div>
+          <div className="mt-1 text-sm text-bronze">
+            {pct}% · {exam.title}
+          </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mb-7">
-          <Card className="p-4 bg-teal/10 border border-gold/10 border-none text-center">
-            <div className="text-xs text-green-700">CORRECT</div>
-            <div className="text-xl font-bold text-green-700">{attempt.correctCount}</div>
+        <div className="mb-7 grid grid-cols-3 gap-3">
+          <Card className="border-none bg-emerald-50 p-4 text-center">
+            <div className="text-xs text-emerald-700">CORRECT</div>
+            <div className="text-xl font-bold text-emerald-700">{attempt.correctCount}</div>
           </Card>
-          <Card className="p-4 bg-ember/15 border-none text-center">
+          <Card className="border-none bg-red-50 p-4 text-center">
             <div className="text-xs text-red-700">WRONG</div>
             <div className="text-xl font-bold text-red-700">{attempt.wrongCount}</div>
           </Card>
-          <Card className="p-4 bg-paper border border-ink/10 border-none text-center">
+          <Card className="border-none bg-soft p-4 text-center">
             <div className="text-xs text-bronze">UNATTEMPTED</div>
             <div className="text-xl font-bold text-bronze">{attempt.unattemptedCount}</div>
           </Card>
         </div>
 
-        <div className="flex justify-center mb-8">
-          <Button variant="accent" onClick={downloadScorecard}>Download Scorecard (PDF)</Button>
+        <div className="mb-8 flex justify-center">
+          <Button variant="accent" onClick={downloadScorecard} disabled={pdfBusy}>
+            {pdfBusy ? "Building PDF…" : "Download Scorecard (PDF)"}
+          </Button>
         </div>
 
-        <h2 className="font-semibold text-ink mb-3">Answer review</h2>
+        <h2 className="mb-3 font-semibold text-ink">Answer review</h2>
         <div className="space-y-4">
-          {exam.questions.map((q, i) => {
-            //const entry = attempt.answers[q._id];
+          {exam.questions.map((q: Question, i) => {
             const answers = attempt.answers || {};
             const entry = answers[q._id];
             const selected = entry?.selected;
             return (
-              <Card key={q._id} className="p-5">
-                <div className="text-xs text-orange-600 font-mono mb-2">QUESTION {i + 1}</div>
-                <div className="text-sm font-medium text-ink mb-3">{q.text}</div>
-                {q.imageUrl && <img src={q.imageUrl} alt="" className="max-h-64 rounded-lg mb-3 border border-ink/10" />}
+              <Card key={q._id} className="animate-fade-up p-5" style={{ animationDelay: `${i * 0.04}s` } as React.CSSProperties}>
+                <div className="mb-2 font-mono text-xs text-orange-600">QUESTION {i + 1}</div>
+                <div className="mb-3 text-sm font-medium text-ink">{q.text}</div>
+                {q.imageUrl && (
+                  <img
+                    src={q.imageUrl}
+                    alt=""
+                    className="mb-3 max-h-64 rounded-lg border border-ink/10"
+                  />
+                )}
                 <div className="space-y-2">
                   {q.options.map((opt, oi) => {
                     let cls = "border border-ink/15";
-                    if (oi === q.correctOptionIndex) cls = "border border-green-500 bg-teal/10 border border-gold/10";
-                    if (selected === oi && oi !== q.correctOptionIndex) cls = "border border-red-500 bg-ember/15";
+                    if (oi === q.correctOptionIndex) cls = "border border-emerald-500 bg-emerald-50";
+                    if (selected === oi && oi !== q.correctOptionIndex)
+                      cls = "border border-red-500 bg-red-50";
                     return (
                       <div key={oi} className={`rounded-lg px-3 py-2 text-sm ${cls}`}>
-                        <span className="font-semibold mr-1.5">{"ABCD"[oi]}.</span>{opt}
+                        <span className="mr-1.5 font-semibold">{"ABCD"[oi]}.</span>
+                        {opt}
                       </div>
                     );
                   })}
-                  {(selected === undefined || selected === null) && <div className="text-xs text-bronze/70">Not attempted</div>}
+                  {(selected === undefined || selected === null) && (
+                    <div className="text-xs text-bronze/70">Not attempted</div>
+                  )}
                 </div>
-                {q.explanation && (
-                  <div className="mt-3 text-xs rounded-sm px-3 py-2 bg-charcoal border-l-4 border-gold text-bronze">
-                    <span className="font-semibold">Explanation: </span>{q.explanation}
+                {(q.explanation || q.explanationImageUrl) && (
+                  <div className="mt-3 rounded-xl border-l-4 border-gold bg-champagne/50 px-3 py-2 text-xs text-ink/80">
+                    {q.explanation && (
+                      <div>
+                        <span className="font-semibold">Explanation: </span>
+                        {q.explanation}
+                      </div>
+                    )}
+                    {q.explanationImageUrl && (
+                      <img
+                        src={q.explanationImageUrl}
+                        alt="Solution"
+                        className="mt-2 max-h-56 rounded-lg border border-ink/10"
+                      />
+                    )}
                   </div>
                 )}
               </Card>
@@ -119,6 +264,6 @@ export default function ResultPage() {
           })}
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

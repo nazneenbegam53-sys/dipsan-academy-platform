@@ -35,9 +35,78 @@ body {
 
   .soft-atmosphere {
     background:
-      radial-gradient(ellipse 80% 55% at 15% 0%, rgba(198, 169, 106, 0.16), transparent 55%),
-      radial-gradient(ellipse 60% 45% at 90% 10%, rgba(234, 230, 223, 0.9), transparent 50%),
-      radial-gradient(ellipse 50% 40% at 70% 90%, rgba(198, 169, 106, 0.08), transparent 55%),
+      radial-gradient(ellipse 80% 55% at 15% 0%, rgba(198, 169, 106, 0.18), transparent 55%),
+      radial-gradient(ellipse 60% 45% at 90% 10%, rgba(234, 230, 223, 0.95), transparent 50%),
+      radial-gradient(ellipse 50% 40% at 70% 90%, rgba(198, 169, 106, 0.1), transparent 55%),
       linear-gradient(180deg, #f7f5f1 0%, #f0ede7 100%);
+  }
+
+  .gold-shimmer {
+    background-image: linear-gradient(
+      120deg,
+      #8a7b5f 0%,
+      #c6a96a 35%,
+      #f0e6c8 50%,
+      #c6a96a 65%,
+      #8a7b5f 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: title-rise 0.9s ease-out both, shimmer-slide 4.5s ease-in-out infinite;
+  }
+}
+
+@keyframes logo-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translate(18px, -14px) rotate(4deg) scale(1.04);
+  }
+}
+
+@keyframes logo-drift-delayed {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translate(-16px, 12px) rotate(-3deg) scale(1.03);
+  }
+}
+
+@keyframes title-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(28px) scale(0.96);
+    filter: blur(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes shimmer-slide {
+  0%,
+  100% {
+    background-position: 0% center;
+  }
+  50% {
+    background-position: 100% center;
+  }
+}
+
+@keyframes soft-pulse {
+  0%,
+  100% {
+    opacity: 0.05;
+  }
+  50% {
+    opacity: 0.09;
   }
 }

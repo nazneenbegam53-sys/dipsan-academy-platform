@@ -17,16 +17,10 @@ export default function TeacherResults() {
     setLoading(true);
     api.get<{ attempts: Attempt[] }>(`/results/${examId}`).then((r) => setAttempts(r.attempts)).finally(() => setLoading(false));
   }
-  //useEffect(load, [examId]);
+
   useEffect(() => {
-  load();
-
-  const interval = setInterval(() => {
     load();
-  }, 60000); // refresh every 1 min
-
-  return () => clearInterval(interval);
-}, [examId]);
+  }, [examId]);
 
   async function openDetail(attemptId: string) {
     const res = await api.get<{ attempt: Attempt; exam: Exam }>(`/results/${examId}/${attemptId}`);
@@ -77,6 +71,16 @@ export default function TeacherResults() {
                     return <div key={oi} className={`rounded-lg px-3 py-2 text-sm ${cls}`}><span className="font-semibold mr-1.5">{"ABCD"[oi]}.</span>{opt}</div>;
                   })}
                 </div>
+                {(q.explanation || q.explanationImageUrl) && (
+                  <div className="mt-3 rounded-xl border-l-4 border-gold bg-champagne/50 px-3 py-2 text-xs text-ink/80">
+                    {q.explanation && (
+                      <div><span className="font-semibold">Explanation: </span>{q.explanation}</div>
+                    )}
+                    {q.explanationImageUrl && (
+                      <img src={q.explanationImageUrl} alt="Solution" className="mt-2 max-h-48 rounded-lg border border-ink/10" />
+                    )}
+                  </div>
+                )}
               </Card>
             );
           })}
@@ -97,7 +101,8 @@ export default function TeacherResults() {
         </Button>
         </div>
       </div>
-      <h1 className="text-xl font-bold text-ink mb-6">Results</h1>
+      <h1 className="text-xl font-bold text-ink mb-2">Submissions</h1>
+      <p className="text-sm text-bronze mb-6">Student submissions for this exam only.</p>
 
       {loading ? <Spinner /> : attempts.length === 0 ? (
         <Card className="p-10 text-center text-sm text-bronze">No submissions yet.</Card>
