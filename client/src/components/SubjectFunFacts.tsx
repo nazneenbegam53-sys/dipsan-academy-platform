@@ -832,8 +832,8 @@ export function SubjectFunFactInline({
 
   return (
     <div
-      className={`mb-4 overflow-hidden rounded-2xl border border-white/12 transition-all duration-300 ease-out ${
-        show ? "max-h-[420px] translate-y-0 opacity-100" : "max-h-0 translate-y-3 opacity-0"
+      className={`mb-3 overflow-hidden rounded-2xl border border-white/12 transition-all duration-300 ease-out sm:mb-4 ${
+        show ? "max-h-[560px] translate-y-0 opacity-100" : "max-h-0 translate-y-3 opacity-0"
       }`}
       style={{
         background: "rgba(15,31,46,0.82)",
@@ -860,7 +860,7 @@ export function SubjectFunFactInline({
         }
       `}</style>
 
-      <div className="relative px-4 py-4 md:px-5 md:py-5">
+      <div className="relative px-3 py-3 sm:px-4 sm:py-4 md:px-5 md:py-5">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
@@ -886,50 +886,50 @@ export function SubjectFunFactInline({
           ))}
         </div>
 
-        <div className="relative flex items-center justify-between gap-3">
+        <div className="relative flex items-center justify-between gap-2 sm:gap-3">
           <div
-            className="inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em]"
+            className="inline-flex max-w-[75%] items-center gap-1.5 rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] sm:gap-2 sm:px-2.5 sm:py-1 sm:text-[10px] sm:tracking-[0.2em]"
             style={{ borderColor: `${meta.accent}55`, color: meta.accent }}
           >
-            <span className="font-mono text-[10px] normal-case tracking-normal">{meta.mark}</span>
-            {meta.label} fact
+            <span className="font-mono text-[9px] normal-case tracking-normal sm:text-[10px]">{meta.mark}</span>
+            <span className="truncate">{meta.label} fact</span>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-bronze transition hover:border-gold/40 hover:text-gold"
+            className="shrink-0 rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-bronze transition hover:border-gold/40 hover:text-gold sm:px-2.5 sm:py-1 sm:text-[10px]"
           >
             Close
           </button>
         </div>
 
-        <div className="relative mt-3 grid items-center gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(140px,200px)]">
-          <div key={`${refreshKey}-copy`} className="fact-copy-in min-w-0">
-            <p className="font-display text-lg leading-snug text-mist md:text-xl">{fact.text}</p>
+        <div className="relative mt-2.5 grid items-center gap-3 sm:mt-3 sm:grid-cols-[minmax(0,1fr)_minmax(140px,200px)] sm:gap-4">
+          <div
+            key={`${refreshKey}-diagram`}
+            className="fact-copy-in relative mx-auto aspect-[10/7] w-full max-w-[160px] rounded-xl border border-white/10 bg-ink/40 p-1.5 sm:order-2 sm:max-w-[220px] sm:p-2"
+            style={{ boxShadow: `inset 0 0 24px ${meta.glow}` }}
+          >
+            <FactDiagram id={fact.diagram} accent={meta.accent} />
+            <span className="pointer-events-none absolute bottom-1 right-1.5 text-[8px] uppercase tracking-[0.16em] text-bronze/70 sm:bottom-1.5 sm:right-2 sm:text-[9px]">
+              sketch
+            </span>
+          </div>
+
+          <div key={`${refreshKey}-copy`} className="fact-copy-in min-w-0 sm:order-1">
+            <p className="font-display text-base leading-snug text-mist sm:text-lg md:text-xl">{fact.text}</p>
             <div
-              className="mt-3 h-px w-14 origin-left animate-underline-grow"
+              className="mt-2 h-px w-12 origin-left animate-underline-grow sm:mt-3 sm:w-14"
               style={{ background: `linear-gradient(90deg, ${meta.accent}, transparent)` }}
             />
             <button
               type="button"
               onClick={onShuffle}
-              className="mt-3 inline-flex items-center rounded-full px-4 py-2 text-xs font-bold tracking-wide text-ink transition hover:brightness-110"
+              className="mt-2.5 inline-flex items-center rounded-full px-3.5 py-1.5 text-[11px] font-bold tracking-wide text-ink transition hover:brightness-110 sm:mt-3 sm:px-4 sm:py-2 sm:text-xs"
               style={{ background: meta.accent }}
             >
               Another fact
             </button>
-            <p className="mt-2 text-[10px] text-bronze">Keep tapping — new facts never run out.</p>
-          </div>
-
-          <div
-            key={`${refreshKey}-diagram`}
-            className="fact-copy-in relative mx-auto aspect-[10/7] w-full max-w-[220px] rounded-xl border border-white/10 bg-ink/40 p-2"
-            style={{ boxShadow: `inset 0 0 24px ${meta.glow}` }}
-          >
-            <FactDiagram id={fact.diagram} accent={meta.accent} />
-            <span className="pointer-events-none absolute bottom-1.5 right-2 text-[9px] uppercase tracking-[0.16em] text-bronze/70">
-              sketch
-            </span>
+            <p className="mt-1.5 text-[9px] text-bronze sm:mt-2 sm:text-[10px]">Keep tapping — new facts never run out.</p>
           </div>
         </div>
       </div>
@@ -947,12 +947,12 @@ export function SubjectNav({
   const items: SubjectKey[] = ["physics", "chemistry", "maths", "biology"];
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5">
+    <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-3 md:gap-5">
       {items.map((key, i) => {
         const meta = SUBJECT_META[key];
         const isActive = active === key;
         return (
-          <div key={key} className="flex items-center gap-3 sm:gap-5">
+          <div key={key} className="flex items-center gap-1.5 sm:gap-3 md:gap-5">
             {i > 0 && (
               <span
                 className="hidden h-1 w-1 rounded-full sm:block"
@@ -963,7 +963,7 @@ export function SubjectNav({
             <button
               type="button"
               onClick={() => onSelect(key)}
-              className={`relative rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] transition-all duration-300 ${
+              className={`relative rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] transition-all duration-300 sm:px-3 sm:py-1.5 sm:text-[11px] sm:tracking-[0.22em] ${
                 isActive ? "text-ink" : "text-bronze hover:text-mist"
               }`}
               style={

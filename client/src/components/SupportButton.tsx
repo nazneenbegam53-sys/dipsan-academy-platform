@@ -60,7 +60,7 @@ export function SupportButton() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="relative inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-3.5 py-2 text-mist transition hover:border-gold hover:bg-gold/20"
+        className="relative inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-2.5 py-1.5 text-mist transition hover:border-gold hover:bg-gold/20 sm:gap-2 sm:px-3.5 sm:py-2"
         aria-label="Support contacts"
         aria-expanded={open}
       >
@@ -76,38 +76,39 @@ export function SupportButton() {
             <circle cx="12" cy="16.5" r="1" fill="currentColor" />
           </svg>
         </span>
-        <span className="text-xs font-semibold tracking-wide text-champagne">Support</span>
+        <span className="hidden text-xs font-semibold tracking-wide text-champagne sm:inline">Support</span>
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-[min(92vw,340px)] overflow-hidden rounded-2xl border border-white/10 bg-coal shadow-2xl">
-          <div className="border-b border-white/10 px-4 py-3">
+        <div className="absolute right-0 z-50 mt-2 w-[min(calc(100vw-1.5rem),340px)] overflow-hidden rounded-2xl border border-white/10 bg-coal shadow-2xl">
+          <div className="border-b border-white/10 px-3 py-2.5 sm:px-4 sm:py-3">
             <div className="text-sm font-semibold text-mist">Contact support</div>
             <p className="mt-0.5 text-xs text-bronze">Call, WhatsApp, or email.</p>
           </div>
-          <ul className="divide-y divide-white/5 p-2">
+          <ul className="divide-y divide-white/5 p-1.5 sm:p-2">
             {SUPPORT_PHONES.map((p) => (
-              <li key={p.display} className="flex items-center gap-2 rounded-xl px-3 py-2.5">
+              <li key={p.display} className="flex flex-wrap items-center gap-2 rounded-xl px-2 py-2 sm:flex-nowrap sm:px-3 sm:py-2.5">
                 <span className="min-w-0 flex-1 text-sm font-semibold tracking-wide text-mist">
                   {p.display}
                 </span>
                 <a
                   href={`tel:+91${p.display}`}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-aurora/35 bg-aurora/10 px-2.5 py-1.5 text-[11px] font-semibold text-aurora transition hover:border-aurora hover:bg-aurora/20"
+                  className="inline-flex items-center gap-1 rounded-full border border-aurora/35 bg-aurora/10 px-2 py-1.5 text-[10px] font-semibold text-aurora transition hover:border-aurora hover:bg-aurora/20 sm:gap-1.5 sm:px-2.5 sm:text-[11px]"
                   aria-label={`Call ${p.display}`}
                 >
                   <PhoneIcon />
-                  Call
+                  <span className="sm:inline">Call</span>
                 </a>
                 <a
                   href={`https://wa.me/${p.wa}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-[#25D366]/40 bg-[#25D366]/10 px-2.5 py-1.5 text-[11px] font-semibold text-[#25D366] transition hover:border-[#25D366] hover:bg-[#25D366]/20"
+                  className="inline-flex items-center gap-1 rounded-full border border-[#25D366]/40 bg-[#25D366]/10 px-2 py-1.5 text-[10px] font-semibold text-[#25D366] transition hover:border-[#25D366] hover:bg-[#25D366]/20 sm:gap-1.5 sm:px-2.5 sm:text-[11px]"
                   aria-label={`WhatsApp ${p.display}`}
                 >
                   <WhatsAppIcon />
-                  WhatsApp
+                  <span className="sm:hidden">WA</span>
+                  <span className="hidden sm:inline">WhatsApp</span>
                 </a>
               </li>
             ))}
