@@ -5,7 +5,7 @@ import { BrandLogo } from "../components/BrandLogo";
 import { NotificationBell } from "../components/NotificationBell";
 import { SupportButton } from "../components/SupportButton";
 import {
-  SubjectFunFactPanel,
+  SubjectFunFactInline,
   SubjectNav,
   type SubjectKey,
 } from "../components/SubjectFunFacts";
@@ -295,23 +295,25 @@ export default function Landing() {
               </div>
             </div>
 
-            <SubjectNav
-              active={funSubject}
-              onSelect={(s) => {
-                setFunSubject(s);
-                setFunKey((k) => k + 1);
-              }}
-            />
+            <div className="mt-2 border-t border-white/10 pt-5">
+              {funSubject && (
+                <SubjectFunFactInline
+                  subject={funSubject}
+                  refreshKey={funKey}
+                  onClose={() => setFunSubject(null)}
+                  onShuffle={() => setFunKey((k) => k + 1)}
+                />
+              )}
+              <SubjectNav
+                active={funSubject}
+                onSelect={(s) => {
+                  setFunSubject(s);
+                  setFunKey((k) => k + 1);
+                }}
+              />
+            </div>
           </div>
         </section>
-
-        {funSubject && (
-          <SubjectFunFactPanel
-            key={`${funSubject}-${funKey}`}
-            subject={funSubject}
-            onClose={() => setFunSubject(null)}
-          />
-        )}
 
         <section className="relative overflow-hidden border-t border-white/10 bg-coal">
           <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-20 md:grid-cols-2 md:px-10 md:py-24">
