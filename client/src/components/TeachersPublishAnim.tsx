@@ -5,7 +5,6 @@ type Attempt = {
   name: string;
   score: number;
   max: number;
-  mins: number;
 };
 
 type QStat = {
@@ -14,35 +13,73 @@ type QStat = {
 };
 
 const SEED_ATTEMPTS: Attempt[] = [
-  { id: "a1", name: "A. Sharma", score: 148, max: 180, mins: 168 },
-  { id: "a2", name: "R. Patel", score: 132, max: 180, mins: 175 },
-  { id: "a3", name: "S. Khan", score: 156, max: 180, mins: 152 },
-  { id: "a4", name: "M. Iyer", score: 120, max: 180, mins: 179 },
-  { id: "a5", name: "P. Das", score: 164, max: 180, mins: 141 },
+  { id: "a1", name: "A. Sharma", score: 148, max: 180 },
+  { id: "a2", name: "R. Patel", score: 132, max: 180 },
+  { id: "a3", name: "S. Khan", score: 156, max: 180 },
+  { id: "a4", name: "M. Iyer", score: 120, max: 180 },
+  { id: "a5", name: "P. Das", score: 164, max: 180 },
 ];
 
-const SEED_STATS: QStat[] = [
-  { q: 1, accuracy: 78 },
-  { q: 2, accuracy: 62 },
-  { q: 3, accuracy: 41 },
-  { q: 4, accuracy: 88 },
-  { q: 5, accuracy: 55 },
-  { q: 6, accuracy: 71 },
+/** Accuracy settles as attempts arrive — no random wobble. */
+const ACCURACY_BY_COUNT: QStat[][] = [
+  [
+    { q: 1, accuracy: 100 },
+    { q: 2, accuracy: 100 },
+    { q: 3, accuracy: 0 },
+    { q: 4, accuracy: 100 },
+    { q: 5, accuracy: 0 },
+    { q: 6, accuracy: 100 },
+  ],
+  [
+    { q: 1, accuracy: 100 },
+    { q: 2, accuracy: 50 },
+    { q: 3, accuracy: 0 },
+    { q: 4, accuracy: 100 },
+    { q: 5, accuracy: 50 },
+    { q: 6, accuracy: 50 },
+  ],
+  [
+    { q: 1, accuracy: 100 },
+    { q: 2, accuracy: 67 },
+    { q: 3, accuracy: 33 },
+    { q: 4, accuracy: 100 },
+    { q: 5, accuracy: 33 },
+    { q: 6, accuracy: 67 },
+  ],
+  [
+    { q: 1, accuracy: 75 },
+    { q: 2, accuracy: 50 },
+    { q: 3, accuracy: 25 },
+    { q: 4, accuracy: 100 },
+    { q: 5, accuracy: 50 },
+    { q: 6, accuracy: 75 },
+  ],
+  [
+    { q: 1, accuracy: 80 },
+    { q: 2, accuracy: 60 },
+    { q: 3, accuracy: 40 },
+    { q: 4, accuracy: 100 },
+    { q: 5, accuracy: 60 },
+    { q: 6, accuracy: 80 },
+  ],
 ];
+
+const EMPTY_STATS: QStat[] = [1, 2, 3, 4, 5, 6].map((q) => ({ q, accuracy: 0 }));
 
 /**
  * Interactive “Publish once. Read every attempt.” panel —
- * draft → live publish, live attempt feed, and tap-to-inspect accuracy.
+ * Tap Publish → attempts stream in → tap accuracy bars to inspect.
+ * Does not auto-publish (matches the on-page instruction).
  */
 export function TeachersPublishAnim() {
   const rootRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   const [published, setPublished] = useState(false);
-  const [tick, setTick] = useState(0);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
-  const [focusQ, setFocusQ] = useState(3);
-  const [stats, setStats] = useState<QStat[]>(SEED_STATS);
+  const [focusQ, setFocusQ] = useState<number | null>(null);
+  const [stats, setStats] = useState<QStat[]>(EMPTY_STATS);
   const [pointer, setPointer] = useState({ x: 0.5, y: 0.5 });
+  const userPickedRef = useRef(false);
 
   useEffect(() => {
     const el = rootRef.current;
@@ -51,45 +88,38 @@ export function TeachersPublishAnim() {
       ([entry]) => {
         if (entry?.isIntersecting) setVisible(true);
       },
-      { threshold: 0.2 }
+      { threshold: 0.12, rootMargin: "40px" }
     );
     io.observe(el);
-    return () => io.disconnect();
+    // Fallback if IO never fires (e.g. already on-screen quirks)
+    const fallback = window.setTimeout(() => setVisible(true), 900);
+    return () => {
+      io.disconnect();
+      window.clearTimeout(fallback);
+    };
   }, []);
 
-  // Auto-publish shortly after entering view
+  // Stream attempts only after the user taps Publish
   useEffect(() => {
-    if (!visible || published) return;
-    const id = window.setTimeout(() => setPublished(true), 1200);
+    if (!published || !visible) return;
+    if (attempts.length >= SEED_ATTEMPTS.length) return;
+
+    const id = window.setTimeout(() => {
+      const next = SEED_ATTEMPTS[attempts.length];
+      if (!next) return;
+      const count = attempts.length + 1;
+      setAttempts((prev) => [...prev, next]);
+      setStats(ACCURACY_BY_COUNT[count - 1] ?? EMPTY_STATS);
+      // Soft highlight newest weak question unless user is inspecting
+      if (!userPickedRef.current) {
+        const board = ACCURACY_BY_COUNT[count - 1] ?? EMPTY_STATS;
+        const weak = board.find((s) => s.accuracy < 50);
+        setFocusQ(weak?.q ?? board[0]?.q ?? 1);
+      }
+    }, attempts.length === 0 ? 450 : 900);
+
     return () => window.clearTimeout(id);
-  }, [visible, published]);
-
-  useEffect(() => {
-    if (!visible || !published) return;
-    const id = window.setInterval(() => setTick((t) => t + 1), 1100);
-    return () => window.clearInterval(id);
-  }, [visible, published]);
-
-  // Stream attempts one-by-one after publish
-  useEffect(() => {
-    if (!published) return;
-    const next = SEED_ATTEMPTS[attempts.length];
-    if (!next) return;
-    if (tick < attempts.length + 1) return;
-    setAttempts((prev) => [...prev, next]);
-  }, [tick, published, attempts.length]);
-
-  // Soft-pulse accuracy on the focused question
-  useEffect(() => {
-    if (!published || attempts.length === 0) return;
-    setFocusQ((q) => (q % 6) + 1);
-    setStats((prev) =>
-      prev.map((s) => {
-        const wobble = ((tick + s.q) % 5) - 2;
-        return { ...s, accuracy: Math.max(18, Math.min(96, s.accuracy + wobble)) };
-      })
-    );
-  }, [tick, published, attempts.length]);
+  }, [published, visible, attempts.length]);
 
   const liveCount = attempts.length;
   const avg =
@@ -97,8 +127,8 @@ export function TeachersPublishAnim() {
       ? 0
       : Math.round(attempts.reduce((sum, a) => sum + a.score, 0) / liveCount);
 
-  const parallaxX = (pointer.x - 0.5) * 12;
-  const parallaxY = (pointer.y - 0.5) * 10;
+  const parallaxX = (pointer.x - 0.5) * 10;
+  const parallaxY = (pointer.y - 0.5) * 8;
 
   function onMove(e: PointerEvent<HTMLDivElement>) {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -109,12 +139,27 @@ export function TeachersPublishAnim() {
   }
 
   function publishNow() {
+    if (published) {
+      // Reset so the “Tap Publish…” flow can be tried again
+      setPublished(false);
+      setAttempts([]);
+      setStats(EMPTY_STATS);
+      setFocusQ(null);
+      userPickedRef.current = false;
+      return;
+    }
     setPublished(true);
+    userPickedRef.current = false;
+    setFocusQ(null);
   }
 
   function inspectQ(q: number) {
+    if (!published) return;
+    userPickedRef.current = true;
     setFocusQ(q);
   }
+
+  const focusedStat = focusQ != null ? stats.find((s) => s.q === focusQ) : null;
 
   const ghosts = useMemo(
     () => ["PUBLISH", "Q-BANK", "NEET", "JEE", "Δ%", "OMR"],
@@ -130,10 +175,10 @@ export function TeachersPublishAnim() {
       }`}
     >
       <style>{`
-        .teachers-publish-enter { opacity: 0; transform: scale(1.02); transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.22,1,0.36,1); }
-        .teachers-publish-enter.is-visible { opacity: 1; transform: scale(1); }
+        .teachers-publish-enter { opacity: 0; transform: translateY(10px); transition: opacity 0.55s ease, transform 0.55s cubic-bezier(0.22,1,0.36,1); }
+        .teachers-publish-enter.is-visible { opacity: 1; transform: translateY(0); }
         .pub-bar { transition: width 0.55s cubic-bezier(0.22,1,0.36,1), background 0.3s ease; }
-        .attempt-row { animation: attempt-in 0.45s cubic-bezier(0.22,1,0.36,1) both; }
+        .attempt-row { animation: attempt-in 0.4s cubic-bezier(0.22,1,0.36,1) both; }
         @keyframes attempt-in {
           from { opacity: 0; transform: translateY(8px); }
           to { opacity: 1; transform: translateY(0); }
@@ -174,10 +219,10 @@ export function TeachersPublishAnim() {
       </div>
 
       <div
-        className="absolute inset-x-4 top-6 bottom-6 sm:inset-x-8 sm:top-8 sm:bottom-8"
-        style={{ transform: `translate(${parallaxX * 0.2}px, ${parallaxY * 0.2}px)` }}
+        className="absolute inset-x-3 top-4 bottom-4 sm:inset-x-6 sm:top-6 sm:bottom-6"
+        style={{ transform: `translate(${parallaxX * 0.15}px, ${parallaxY * 0.15}px)` }}
       >
-        <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/12 bg-ink/55 shadow-[0_0_40px_rgba(212,176,106,0.1)] backdrop-blur-[2px]">
+        <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/12 bg-ink/60 shadow-[0_0_40px_rgba(212,176,106,0.1)] backdrop-blur-[2px]">
           <div className="flex items-center justify-between gap-2 border-b border-white/10 px-4 py-3 sm:px-5">
             <div>
               <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-gold">
@@ -188,19 +233,20 @@ export function TeachersPublishAnim() {
             <button
               type="button"
               onClick={publishNow}
-              className={`rounded-full border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] transition ${
+              className={`relative z-10 rounded-full border px-3.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] transition ${
                 published
-                  ? "border-aurora/50 bg-aurora/15 text-aurora pub-pulse"
-                  : "border-gold/40 bg-gold/15 text-champagne hover:bg-gold/25"
+                  ? "border-aurora/50 bg-aurora/15 text-aurora pub-pulse hover:border-white/30 hover:text-mist"
+                  : "border-gold/50 bg-gold/20 text-champagne hover:bg-gold/30"
               }`}
               aria-pressed={published}
+              aria-label={published ? "Reset to draft" : "Publish paper"}
+              title={published ? "Tap to reset and try again" : "Publish the paper"}
             >
-              {published ? "Live" : "Publish"}
+              {published ? "Live · reset" : "Publish"}
             </button>
           </div>
 
           <div className="grid min-h-0 flex-1 grid-cols-1 gap-0 sm:grid-cols-2">
-            {/* Paper + attempts */}
             <div className="flex min-h-0 flex-col border-b border-white/10 p-3 sm:border-b-0 sm:border-r sm:p-4">
               <div
                 className={`rounded-xl border px-3 py-2 transition duration-500 ${
@@ -225,11 +271,16 @@ export function TeachersPublishAnim() {
               <p className="mt-3 text-[9px] font-semibold uppercase tracking-[0.16em] text-bronze">
                 Attempts {liveCount}/5
               </p>
-              <div className="mt-1.5 min-h-0 flex-1 space-y-1.5 overflow-hidden">
+              <div className="mt-1.5 min-h-0 flex-1 space-y-1.5 overflow-y-auto">
                 {!published && (
-                  <p className="py-4 text-center text-[11px] text-bronze/80">
-                    Tap Publish to open the paper.
+                  <p className="py-6 text-center text-[11px] leading-relaxed text-bronze">
+                    Tap <span className="text-champagne">Publish</span> to open the paper.
+                    <br />
+                    Attempts will stream in live.
                   </p>
+                )}
+                {published && attempts.length === 0 && (
+                  <p className="py-6 text-center text-[11px] text-bronze">Waiting for first attempt…</p>
                 )}
                 {attempts.map((a) => (
                   <div
@@ -246,29 +297,37 @@ export function TeachersPublishAnim() {
 
               <div className="mt-2 flex items-center justify-between border-t border-white/10 pt-2 text-[10px] uppercase tracking-[0.12em] text-bronze">
                 <span>
-                  Avg <span className="font-mono normal-case tracking-normal text-mist">{avg || "—"}</span>
+                  Avg{" "}
+                  <span className="font-mono normal-case tracking-normal text-mist">
+                    {avg || "—"}
+                  </span>
                 </span>
-                <span className="text-aurora">{liveCount} live</span>
+                <span className={published ? "text-aurora" : "text-bronze"}>
+                  {liveCount} live
+                </span>
               </div>
             </div>
 
-            {/* Question accuracy */}
             <div className="flex min-h-0 flex-col p-3 sm:p-4">
               <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-bronze">
                 Question accuracy
               </p>
-              <p className="mt-0.5 text-[10px] text-bronze/80">Tap a bar to inspect</p>
-              <div className="mt-2 min-h-0 flex-1 space-y-2 overflow-hidden">
+              <p className="mt-0.5 text-[10px] text-bronze/80">
+                {published ? "Tap a bar to inspect" : "Unlocks after Publish"}
+              </p>
+              <div className="mt-2 min-h-0 flex-1 space-y-1.5 overflow-y-auto">
                 {stats.map((s) => {
                   const focused = focusQ === s.q;
-                  const weak = s.accuracy < 50;
+                  const weak = published && s.accuracy < 50;
+                  const width = published && liveCount > 0 ? `${s.accuracy}%` : "0%";
                   return (
                     <button
                       key={s.q}
                       type="button"
                       onClick={() => inspectQ(s.q)}
-                      className={`flex w-full items-center gap-2 rounded-lg px-1.5 py-1 text-left transition ${
-                        focused ? "bg-gold/10" : "hover:bg-white/[0.04]"
+                      disabled={!published || liveCount === 0}
+                      className={`relative z-10 flex w-full items-center gap-2 rounded-lg px-1.5 py-1.5 text-left transition disabled:cursor-not-allowed ${
+                        focused ? "bg-gold/15 ring-1 ring-gold/35" : "hover:bg-white/[0.04]"
                       }`}
                       aria-pressed={focused}
                       aria-label={`Question ${s.q} accuracy ${s.accuracy}%`}
@@ -280,37 +339,40 @@ export function TeachersPublishAnim() {
                       >
                         Q{s.q}
                       </span>
-                      <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/10">
+                      <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-white/10">
                         <div
                           className={`pub-bar h-full rounded-full ${
-                            weak ? "bg-ember/80" : "bg-aurora/80"
+                            weak ? "bg-ember/85" : "bg-aurora/85"
                           }`}
                           style={{
-                            width: published ? `${s.accuracy}%` : "8%",
-                            opacity: published ? 1 : 0.35,
+                            width,
+                            opacity: published && liveCount > 0 ? 1 : 0.25,
                           }}
                         />
                       </div>
-                      <span className="w-8 shrink-0 text-right font-mono text-[10px] text-mist">
-                        {published ? `${s.accuracy}%` : "—"}
+                      <span className="w-9 shrink-0 text-right font-mono text-[10px] text-mist">
+                        {published && liveCount > 0 ? `${s.accuracy}%` : "—"}
                       </span>
                     </button>
                   );
                 })}
               </div>
               <p className="mt-2 border-t border-white/10 pt-2 text-[10px] text-bronze">
-                {published ? (
+                {!published ? (
+                  "Tap Publish, then inspect the accuracy bars."
+                ) : liveCount === 0 ? (
+                  "Accuracy fills as attempts arrive."
+                ) : focusedStat ? (
                   <>
-                    Focus <span className="text-champagne">Q{focusQ}</span>
-                    {stats.find((s) => s.q === focusQ)?.accuracy != null &&
-                    (stats.find((s) => s.q === focusQ)!.accuracy < 50) ? (
+                    Focus <span className="text-champagne">Q{focusedStat.q}</span>
+                    {focusedStat.accuracy < 50 ? (
                       <span className="text-ember"> · needs review</span>
                     ) : (
                       <span className="text-aurora"> · holding well</span>
                     )}
                   </>
                 ) : (
-                  "Accuracy unlocks after publish."
+                  "Tap any bar to inspect a question."
                 )}
               </p>
             </div>
