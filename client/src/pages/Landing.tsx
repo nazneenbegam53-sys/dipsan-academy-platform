@@ -348,10 +348,8 @@ export default function Landing() {
 
         <section className="border-t border-white/10">
           <div className="mx-auto grid max-w-6xl md:grid-cols-2">
-            <div className="relative min-h-[420px] overflow-hidden border-b border-white/10 md:min-h-[480px] md:border-b-0 md:border-r">
-              <PracticePaperAnim />
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-paper via-paper/40 to-transparent" />
-              <div className="pointer-events-none relative z-10 flex h-full flex-col justify-end px-6 py-12 md:px-10 md:py-16">
+            <div className="flex flex-col border-b border-white/10 md:border-b-0 md:border-r">
+              <div className="px-6 pt-12 pb-6 md:px-10 md:pt-16 md:pb-8">
                 <BrandLogo size="xs" glow />
                 <div className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-gold">
                   Students
@@ -363,6 +361,9 @@ export default function Landing() {
                   Timed attempts, negative marking, and solution walkthroughs for NEET &amp; JEE.
                   Tap the bubbles to mark answers on the live sheet.
                 </p>
+              </div>
+              <div className="relative min-h-[340px] flex-1 overflow-hidden md:min-h-[380px]">
+                <PracticePaperAnim />
               </div>
             </div>
             <div className="relative min-h-[300px] overflow-hidden">
