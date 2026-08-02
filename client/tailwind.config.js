@@ -118,7 +118,7 @@ export default {
         "title-rise": "title-rise 0.9s ease-out both",
         "intro-title": "intro-title 1.2s cubic-bezier(0.22, 1, 0.36, 1) both",
         "gold-pulse": "gold-pulse 2.8s ease-out infinite",
-        "ring-spin": "ring-spin 12s linear infinite",
+        "ring-spin": "ring-spin 7.5s linear infinite",
         float: "float 7s ease-in-out infinite",
         "ken-burns": "ken-burns 24s ease-out forwards",
         "orbit-slow": "orbit-slow 36s linear infinite",

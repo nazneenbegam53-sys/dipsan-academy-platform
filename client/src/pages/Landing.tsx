@@ -4,6 +4,11 @@ import { useAuth } from "../context/AuthContext";
 import { BrandLogo } from "../components/BrandLogo";
 import { NotificationBell } from "../components/NotificationBell";
 import { SupportButton } from "../components/SupportButton";
+import {
+  SubjectFunFactPanel,
+  SubjectNav,
+  type SubjectKey,
+} from "../components/SubjectFunFacts";
 
 type Phase = "intro" | "settle" | "ready";
 
@@ -44,6 +49,8 @@ export default function Landing() {
   const { user, logout } = useAuth();
   const [phase, setPhase] = useState<Phase>("intro");
   const [orbitDone, setOrbitDone] = useState(false);
+  const [funSubject, setFunSubject] = useState<SubjectKey | null>(null);
+  const [funKey, setFunKey] = useState(0);
 
   useEffect(() => {
     const settleTimer = window.setTimeout(() => setPhase("settle"), 1800);
@@ -288,17 +295,23 @@ export default function Landing() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-8 border-t border-white/10 pt-6 text-[11px] uppercase tracking-[0.22em] text-bronze">
-              <span>Physics</span>
-              <span className="h-1 w-1 rounded-full bg-aurora" />
-              <span>Chemistry</span>
-              <span className="h-1 w-1 rounded-full bg-gold" />
-              <span>Maths</span>
-              <span className="h-1 w-1 rounded-full bg-aurora" />
-              <span>Biology</span>
-            </div>
+            <SubjectNav
+              active={funSubject}
+              onSelect={(s) => {
+                setFunSubject(s);
+                setFunKey((k) => k + 1);
+              }}
+            />
           </div>
         </section>
+
+        {funSubject && (
+          <SubjectFunFactPanel
+            key={`${funSubject}-${funKey}`}
+            subject={funSubject}
+            onClose={() => setFunSubject(null)}
+          />
+        )}
 
         <section className="relative overflow-hidden border-t border-white/10 bg-coal">
           <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-20 md:grid-cols-2 md:px-10 md:py-24">
