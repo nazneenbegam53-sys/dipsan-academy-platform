@@ -6,15 +6,17 @@ import { Button } from "../components/ui";
 
 type Phase = "intro" | "settle" | "ready";
 
-// Broad NEET/JEE imagery — physics, maths, classroom (not chem/bio only)
+// Eye-catchy physics-themed imagery (no chalkboards)
 const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=2400&q=80"; // physics / equations
-const MATH_IMAGE =
-  "https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=1600&q=80"; // mathematics
+  "https://images.unsplash.com/photo-1517976487492-5750f3195933?auto=format&fit=crop&w=2400&q=80"; // rocket launch
+const PHYSICS_IMAGE =
+  "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1600&q=80"; // nebula / cosmos
 const STUDY_IMAGE =
   "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=1600&q=80"; // exam writing desk
 const CLASS_IMAGE =
   "https://images.unsplash.com/photo-1580894732444-8ecded7900cd?auto=format&fit=crop&w=1600&q=80"; // classroom
+const SPACE_IMAGE =
+  "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1600&q=80"; // earth / orbit
 
 export default function Landing() {
   const { user, logout } = useAuth();
@@ -66,7 +68,7 @@ export default function Landing() {
         <section className="relative min-h-[100svh] overflow-hidden">
           <img
             src={HERO_IMAGE}
-            alt="Physics and equations"
+            alt="Rocket launch — physics in motion"
             className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
           />
           {/* Lighter overlay so type stays readable */}
@@ -198,8 +200,8 @@ export default function Landing() {
               style={{ animationDelay: "0.12s" }}
             >
               <img
-                src={MATH_IMAGE}
-                alt="Mathematics"
+                src={PHYSICS_IMAGE}
+                alt="Cosmos and physics"
                 className="h-[340px] w-full object-cover md:h-[400px]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-paper via-transparent to-transparent" />
@@ -258,9 +260,9 @@ export default function Landing() {
 
         <section className="relative overflow-hidden border-t border-white/10 bg-coal">
           <img
-            src={HERO_IMAGE}
+            src={SPACE_IMAGE}
             alt=""
-            className="absolute inset-0 h-full w-full object-cover opacity-20"
+            className="absolute inset-0 h-full w-full object-cover opacity-25"
           />
           <div className="absolute inset-0 bg-paper/70" />
           <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-8 px-6 py-20 text-center md:px-10">
