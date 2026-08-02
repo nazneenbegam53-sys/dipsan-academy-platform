@@ -35,9 +35,21 @@ export default {
           "100%": { opacity: "1" },
         },
         "logo-enter": {
-          "0%": { opacity: "0", transform: "scale(0.55)", filter: "blur(12px)" },
-          "60%": { opacity: "1", filter: "blur(0)" },
-          "100%": { opacity: "1", transform: "scale(1)", filter: "blur(0)" },
+          "0%": {
+            opacity: "0",
+            transform: "scale(0.35) rotate(-18deg)",
+            filter: "blur(18px)",
+          },
+          "55%": {
+            opacity: "1",
+            transform: "scale(1.08) rotate(3deg)",
+            filter: "blur(0)",
+          },
+          "100%": {
+            opacity: "1",
+            transform: "scale(1) rotate(0deg)",
+            filter: "blur(0)",
+          },
         },
         "title-rise": {
           "0%": { opacity: "0", transform: "translateY(24px)" },
@@ -82,12 +94,12 @@ export default {
         "letter-in": {
           "0%": {
             opacity: "0",
-            transform: "translateY(32px) scale(0.85)",
-            filter: "blur(8px)",
+            transform: "translateY(36px) rotateX(65deg) scale(0.9)",
+            filter: "blur(10px)",
           },
           "100%": {
             opacity: "1",
-            transform: "translateY(0) scale(1)",
+            transform: "translateY(0) rotateX(0deg) scale(1)",
             filter: "blur(0)",
           },
         },
@@ -100,8 +112,22 @@ export default {
           "100%": { transform: "rotate(360deg)" },
         },
         "crest-face": {
-          "0%": { transform: "rotate(0deg)" },
-          "100%": { transform: "rotate(-360deg)" },
+          "0%": { transform: "rotate(0deg) scale(0.88)" },
+          "50%": { transform: "rotate(-180deg) scale(1.06)" },
+          "100%": { transform: "rotate(-360deg) scale(1)" },
+        },
+        "intro-bloom": {
+          "0%": { opacity: "0", transform: "scale(0.5)" },
+          "45%": { opacity: "0.9", transform: "scale(1.15)" },
+          "100%": { opacity: "0.55", transform: "scale(1)" },
+        },
+        "intro-arc": {
+          "0%": { strokeDashoffset: "920" },
+          "100%": { strokeDashoffset: "0" },
+        },
+        "underline-grow": {
+          "0%": { transform: "scaleX(0)", opacity: "0" },
+          "100%": { transform: "scaleX(1)", opacity: "1" },
         },
         shimmer: {
           "0%": { backgroundPosition: "0% 50%" },
@@ -111,7 +137,7 @@ export default {
       animation: {
         "fade-up": "fade-up 0.75s ease-out both",
         "fade-in": "fade-in 0.65s ease-out both",
-        "logo-enter": "logo-enter 1.35s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "logo-enter": "logo-enter 1.55s cubic-bezier(0.16, 1, 0.3, 1) both",
         "title-rise": "title-rise 0.9s ease-out both",
         "intro-title": "intro-title 1.15s cubic-bezier(0.16, 1, 0.3, 1) both",
         "gold-pulse": "gold-pulse 2.8s ease-out infinite",
@@ -119,13 +145,16 @@ export default {
         float: "float 7s ease-in-out infinite",
         "ken-burns": "ken-burns 24s ease-out forwards",
         "orbit-slow": "orbit-slow 36s linear infinite",
-        "pulse-ring": "pulse-ring 2.2s ease-out infinite",
+        "pulse-ring": "pulse-ring 2.8s ease-out infinite",
         "orbit-tilt": "orbit-tilt 14s linear infinite",
         "star-twinkle": "star-twinkle 2.8s ease-in-out infinite",
-        "letter-in": "letter-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "letter-in": "letter-in 0.85s cubic-bezier(0.16, 1, 0.3, 1) both",
         "letter-glow": "letter-glow 3.5s ease-in-out infinite",
-        "crest-orbit": "crest-orbit 2.75s cubic-bezier(0.4, 0.05, 0.2, 1) both",
-        "crest-face": "crest-face 2.75s cubic-bezier(0.4, 0.05, 0.2, 1) both",
+        "crest-orbit": "crest-orbit 3.1s cubic-bezier(0.45, 0.05, 0.2, 1) both",
+        "crest-face": "crest-face 3.1s cubic-bezier(0.45, 0.05, 0.2, 1) both",
+        "intro-bloom": "intro-bloom 1.8s ease-out both",
+        "intro-arc": "intro-arc 1.7s cubic-bezier(0.4, 0, 0.2, 1) both",
+        "underline-grow": "underline-grow 0.9s cubic-bezier(0.16, 1, 0.3, 1) both",
         shimmer: "shimmer 5s linear infinite",
         "logo-drift": "float 16s ease-in-out infinite",
         "logo-drift-delayed": "float 20s ease-in-out infinite reverse",
