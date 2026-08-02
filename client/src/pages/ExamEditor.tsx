@@ -20,7 +20,7 @@ const emptyQuestion = () => ({
 });
 
 const fieldClass =
-  "w-full rounded-xl px-3 py-2 text-sm bg-white text-ink mt-1 border border-ink/10 outline-none focus:border-gold focus:ring-2 focus:ring-gold/20";
+  "w-full rounded-xl px-3 py-2 text-sm bg-charcoal text-mist mt-1 border border-gold/25 outline-none focus:border-gold focus:ring-2 focus:ring-gold/20";
 
 export default function ExamEditor() {
   const { examId } = useParams();
@@ -177,7 +177,7 @@ export default function ExamEditor() {
       <div className="mx-auto max-w-6xl animate-fade-up px-6 py-8 pr-20">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="font-display text-3xl font-semibold text-ink">
+            <h1 className="font-display text-3xl font-semibold text-mist">
               {isNew ? "Create Exam" : "Edit Exam"}
             </h1>
             <p className="text-sm text-bronze">Add question and solution images as needed</p>
@@ -191,7 +191,7 @@ export default function ExamEditor() {
 
         <div className="grid gap-6 lg:grid-cols-3">
           <Card className="h-fit p-6 lg:col-span-1 animate-fade-up">
-            <div className="mb-4 font-semibold text-ink">Exam details</div>
+            <div className="mb-4 font-semibold text-mist">Exam details</div>
             <label className="text-xs font-semibold text-bronze">Title</label>
             <input
               value={exam.title}
@@ -277,7 +277,7 @@ export default function ExamEditor() {
             )}
 
             <Card className="animate-fade-up p-6" style={{ animationDelay: "0.08s" } as React.CSSProperties}>
-              <div className="mb-1 font-semibold text-ink">
+              <div className="mb-1 font-semibold text-mist">
                 {editingId ? "Editing question" : "Add a question"}
               </div>
               <div className="mb-4 text-xs text-bronze">
@@ -287,7 +287,7 @@ export default function ExamEditor() {
               <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-bronze">
                 Question image
               </div>
-              <label className="mb-4 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-ink/15 bg-soft/60 py-6">
+              <label className="mb-4 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gold/15 bg-soft/60 py-6">
                 {uploading === "question" ? (
                   <span className="text-xs text-bronze">Uploading…</span>
                 ) : form.imageUrl ? (
@@ -329,7 +329,7 @@ export default function ExamEditor() {
                       className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                         form.correctOptionIndex === i
                           ? "bg-emerald-600 text-white"
-                          : "border border-ink/10 bg-soft text-bronze"
+                          : "border border-gold/10 bg-soft text-bronze"
                       }`}
                     >
                       {"ABCD"[i]}
@@ -338,8 +338,8 @@ export default function ExamEditor() {
                       value={opt}
                       onChange={(e) => updateOption(i, e.target.value)}
                       placeholder={`Option ${"ABCD"[i]}`}
-                      className={`flex-1 rounded-xl border bg-white px-3 py-2 text-sm ${
-                        form.correctOptionIndex === i ? "border-emerald-500" : "border-ink/10"
+                      className={`flex-1 rounded-xl border bg-charcoal px-3 py-2 text-sm ${
+                        form.correctOptionIndex === i ? "border-emerald-500" : "border-gold/10"
                       }`}
                     />
                   </div>
@@ -429,7 +429,7 @@ export default function ExamEditor() {
 
             {questions.length > 0 && (
               <Card className="animate-fade-up p-6" style={{ animationDelay: "0.12s" } as React.CSSProperties}>
-                <div className="mb-4 font-semibold text-ink">Question bank ({questions.length})</div>
+                <div className="mb-4 font-semibold text-mist">Question bank ({questions.length})</div>
                 <div className="space-y-3">
                   {questions.map((q, i) => (
                     <div
@@ -446,7 +446,7 @@ export default function ExamEditor() {
                         )}
                         <div className="min-w-0">
                           <div className="mb-0.5 font-mono text-xs text-orange-600">Q{i + 1}</div>
-                          <div className="max-w-sm truncate text-sm text-ink">{q.text}</div>
+                          <div className="max-w-sm truncate text-sm text-mist">{q.text}</div>
                           {q.explanationImageUrl && (
                             <div className="mt-1 text-[11px] text-bronze">Has solution image</div>
                           )}
@@ -455,7 +455,7 @@ export default function ExamEditor() {
                       <div className="flex shrink-0 gap-1.5">
                         <button
                           onClick={() => editQuestion(q)}
-                          className="rounded-full border border-ink/15 bg-white p-2 text-xs"
+                          className="rounded-full border border-gold/15 bg-charcoal p-2 text-xs"
                         >
                           Edit
                         </button>

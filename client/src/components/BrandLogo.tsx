@@ -5,47 +5,78 @@ export function BrandLogo({
   to = "/",
   showWordmark = false,
   className = "",
-  rounded = false,
+  rounded = true,
+  glow = false,
+  spinRing = false,
 }: {
-  size?: "xs" | "sm" | "md" | "lg" | "hero";
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "hero";
   to?: string | null;
   showWordmark?: boolean;
   className?: string;
   rounded?: boolean;
+  glow?: boolean;
+  spinRing?: boolean;
 }) {
   const sizes = {
-    xs: "h-9 w-9",
-    sm: "h-11 w-11",
-    md: "h-14 w-14",
-    lg: "h-20 w-20",
-    hero: "h-36 w-36 md:h-44 md:w-44",
+    xs: "h-10 w-10",
+    sm: "h-12 w-12",
+    md: "h-16 w-16",
+    lg: "h-24 w-24",
+    xl: "h-32 w-32",
+    hero: "h-[min(58vw,300px)] w-[min(58vw,300px)] md:h-[340px] md:w-[340px]",
+  };
+
+  const wordSizes = {
+    xs: "text-sm",
+    sm: "text-base",
+    md: "text-lg",
+    lg: "text-xl",
+    xl: "text-2xl",
+    hero: "text-3xl",
   };
 
   const img = (
-    <img
-      src="/dipsan-logo.png"
-      alt="Dipsan Academy"
-      className={`${sizes[size]} object-contain ${rounded ? "rounded-full" : ""} ${className}`}
-    />
+    <span className={`relative inline-flex shrink-0 ${glow ? "animate-gold-pulse rounded-full" : ""}`}>
+      {spinRing && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -inset-1.5 rounded-full animate-ring-spin"
+          style={{
+            background:
+              "conic-gradient(from 0deg, transparent 0%, #D4AF37 25%, transparent 50%, #F3E5B5 75%, transparent 100%)",
+            mask: "radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px))",
+            WebkitMask:
+              "radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px))",
+          }}
+        />
+      )}
+      <img
+        src="/dipsan-logo.png"
+        alt="Dipsan Academy"
+        className={`${sizes[size]} object-contain ${rounded ? "rounded-full" : ""} ${className}`}
+      />
+    </span>
   );
 
+  const wordmark = showWordmark ? (
+    <span className={`font-display font-semibold tracking-wide gold-text ${wordSizes[size]}`}>
+      Dipsan Academy
+    </span>
+  ) : null;
+
   if (to === null) {
-    return showWordmark ? (
-      <div className="flex items-center gap-3">
+    return (
+      <div className="inline-flex items-center gap-3">
         {img}
-        <span className="font-display text-lg font-semibold tracking-wide text-ink">Dipsan Academy</span>
+        {wordmark}
       </div>
-    ) : (
-      img
     );
   }
 
   return (
-    <Link to={to} className="inline-flex items-center gap-3 transition hover:opacity-80">
+    <Link to={to} className="inline-flex items-center gap-3 transition hover:opacity-90">
       {img}
-      {showWordmark && (
-        <span className="font-display text-lg font-semibold tracking-wide text-ink">Dipsan Academy</span>
-      )}
+      {wordmark}
     </Link>
   );
 }

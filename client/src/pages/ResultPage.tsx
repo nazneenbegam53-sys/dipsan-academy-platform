@@ -178,7 +178,7 @@ export default function ResultPage() {
       <div className="mx-auto max-w-3xl animate-fade-up px-6 py-10 pr-20">
         <div className="mb-6 text-center">
           <Badge tone="ink">RESULT</Badge>
-          <div className="mt-4 font-display text-5xl font-semibold text-ink">
+          <div className="mt-4 font-display text-5xl font-semibold text-mist">
             {attempt.score}
             <span className="text-2xl text-bronze"> / {attempt.totalMarks}</span>
           </div>
@@ -208,7 +208,7 @@ export default function ResultPage() {
           </Button>
         </div>
 
-        <h2 className="mb-3 font-semibold text-ink">Answer review</h2>
+        <h2 className="mb-3 font-semibold text-mist">Answer review</h2>
         <div className="space-y-4">
           {exam.questions.map((q: Question, i) => {
             const answers = attempt.answers || {};
@@ -217,17 +217,17 @@ export default function ResultPage() {
             return (
               <Card key={q._id} className="animate-fade-up p-5" style={{ animationDelay: `${i * 0.04}s` } as React.CSSProperties}>
                 <div className="mb-2 font-mono text-xs text-orange-600">QUESTION {i + 1}</div>
-                <div className="mb-3 text-sm font-medium text-ink">{q.text}</div>
+                <div className="mb-3 text-sm font-medium text-mist">{q.text}</div>
                 {q.imageUrl && (
                   <img
                     src={q.imageUrl}
                     alt=""
-                    className="mb-3 max-h-64 rounded-lg border border-ink/10"
+                    className="mb-3 max-h-64 rounded-lg border border-gold/10"
                   />
                 )}
                 <div className="space-y-2">
                   {q.options.map((opt, oi) => {
-                    let cls = "border border-ink/15";
+                    let cls = "border border-gold/15";
                     if (oi === q.correctOptionIndex) cls = "border border-emerald-500 bg-emerald-50";
                     if (selected === oi && oi !== q.correctOptionIndex)
                       cls = "border border-red-500 bg-red-50";
@@ -243,7 +243,7 @@ export default function ResultPage() {
                   )}
                 </div>
                 {(q.explanation || q.explanationImageUrl) && (
-                  <div className="mt-3 rounded-xl border-l-4 border-gold bg-champagne/50 px-3 py-2 text-xs text-ink/80">
+                  <div className="mt-3 rounded-xl border-l-4 border-gold bg-gold/10 px-3 py-2 text-xs text-champagne/80">
                     {q.explanation && (
                       <div>
                         <span className="font-semibold">Explanation: </span>
@@ -254,7 +254,7 @@ export default function ResultPage() {
                       <img
                         src={q.explanationImageUrl}
                         alt="Solution"
-                        className="mt-2 max-h-56 rounded-lg border border-ink/10"
+                        className="mt-2 max-h-56 rounded-lg border border-gold/10"
                       />
                     )}
                   </div>
