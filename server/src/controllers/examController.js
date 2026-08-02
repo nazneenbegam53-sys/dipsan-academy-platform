@@ -2,6 +2,7 @@ const Exam = require("../models/Exam");
 const Question = require("../models/Question");
 const Attempt = require("../models/Attempt");
 const { asyncHandler } = require("../middleware/errorHandler");
+const { notifyStudents, notifyUser } = require("../utils/notify");
 
 // Teacher: list exams they created
 const listMyExams = asyncHandler(async (req, res) => {
@@ -55,6 +56,15 @@ const createExam = asyncHandler(async (req, res) => {
     title, subject, durationMinutes, instructions, defaultMarks, defaultNegativeMarks, passingMarks, antiCheat,
     createdBy: req.user._id,
   });
+
+  await notifyUser(req.user._id, {
+    type: "exam-created",
+    title: "Exam created",
+    message: `"${exam.title}" (${exam.subject}) was created successfully.`,
+    link: `/teacher/exam/${exam._id}/edit`,
+    meta: { examId: exam._id, subject: exam.subject, title: exam.title },
+  });
+
   res.status(201).json({ exam });
 });
 
@@ -112,6 +122,17 @@ const setStatus = asyncHandler(async (req, res) => {
   }
   exam.status = status;
   await exam.save();
+
+  if (status === "published") {
+    await notifyStudents({
+      type: "exam-published",
+      title: "New exam available",
+      message: `"${exam.title}" (${exam.subject}) is ready to attempt.`,
+      link: `/student/exam/${exam._id}/instructions`,
+      meta: { examId: exam._id, subject: exam.subject, title: exam.title },
+    });
+  }
+
   res.json({ exam });
 });
 
