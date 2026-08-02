@@ -444,9 +444,16 @@ export default function Landing() {
         </section>
 
         <footer className="border-t border-white/10 bg-paper px-6 py-8 md:px-10">
-          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
-            <BrandLogo size="sm" showWordmark glow />
-            <span className="text-xs tracking-wide text-bronze">Online examination platform</span>
+          <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-4 sm:grid-cols-3">
+            <div className="flex justify-center sm:justify-start">
+              <BrandLogo size="sm" showWordmark glow />
+            </div>
+            <p className="text-center text-xs tracking-wide text-bronze">
+              © {new Date().getFullYear()} Dipsan Academy. All rights reserved.
+            </p>
+            <span className="text-center text-xs tracking-wide text-bronze sm:text-right">
+              Online examination platform
+            </span>
           </div>
         </footer>
       </div>
