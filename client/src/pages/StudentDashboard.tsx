@@ -6,6 +6,7 @@ import { Exam, Attempt } from "../types";
 import { Button, Badge, Spinner, PageShell, AppHeader, Card } from "../components/ui";
 import { BrandLogo } from "../components/BrandLogo";
 import { NotificationBell } from "../components/NotificationBell";
+import { SupportButton } from "../components/SupportButton";
 
 type ExamAttemptGroup = {
   examId: string;
@@ -69,6 +70,7 @@ export default function StudentDashboard() {
           subtitle={user?.className || "Student dashboard"}
           actions={
             <>
+              <SupportButton />
               <NotificationBell />
               <Link to="/">
                 <Button variant="ghost">Home</Button>

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { BrandLogo } from "../components/BrandLogo";
 import { NotificationBell } from "../components/NotificationBell";
+import { SupportButton } from "../components/SupportButton";
 
 type Phase = "intro" | "settle" | "ready";
 
@@ -130,6 +131,7 @@ export default function Landing() {
           phase === "ready" ? "opacity-100 scale-100" : "opacity-0 scale-75"
         }`}
       >
+        <SupportButton />
         {user && <NotificationBell />}
         <BrandLogo size="sm" glow spinRing />
       </div>

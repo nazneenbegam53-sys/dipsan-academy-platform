@@ -6,6 +6,7 @@ import { Exam } from "../types";
 import { Button, Badge, Spinner, PageShell, Card, AppHeader } from "../components/ui";
 import { BrandLogo } from "../components/BrandLogo";
 import { NotificationBell } from "../components/NotificationBell";
+import { SupportButton } from "../components/SupportButton";
 
 interface DashboardSummary {
   examCount: number;
@@ -63,6 +64,7 @@ export default function TeacherDashboard() {
           subtitle="Teacher dashboard"
           actions={
             <>
+              <SupportButton />
               <NotificationBell />
               <Link to="/">
                 <Button variant="ghost">Home</Button>
