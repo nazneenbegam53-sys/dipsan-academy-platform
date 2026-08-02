@@ -6,6 +6,7 @@ import { NotificationBell } from "../components/NotificationBell";
 import { PracticePaperAnim } from "../components/PracticePaperAnim";
 import { PrecisionPressureLab } from "../components/PrecisionPressureLab";
 import { SupportButton } from "../components/SupportButton";
+import { TeachersPublishAnim } from "../components/TeachersPublishAnim";
 import {
   SubjectFunFactInline,
   SubjectNav,
@@ -16,7 +17,6 @@ type Phase = "intro" | "settle" | "ready";
 
 // Local subject imagery — physics on hero; math in the mid section
 const HERO_IMAGE = "/hero/rocket.jpg";
-const MATH_IMAGE = "/hero/math.jpg";
 const SPACE_IMAGE = "/hero/earth.jpg";
 
 function AnimatedLetters({
@@ -366,14 +366,8 @@ export default function Landing() {
                 <PracticePaperAnim />
               </div>
             </div>
-            <div className="relative min-h-[300px] overflow-hidden">
-              <img
-                src={MATH_IMAGE}
-                alt="Equations on paper — mathematics"
-                className="absolute inset-0 h-full w-full object-cover opacity-40"
-              />
-              <div className="absolute inset-0 bg-paper/60" />
-              <div className="relative px-6 py-16 md:px-10 md:py-20">
+            <div className="flex flex-col">
+              <div className="px-6 pt-12 pb-6 md:px-10 md:pt-16 md:pb-8">
                 <BrandLogo size="xs" glow />
                 <div className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-gold">
                   Teachers
@@ -383,7 +377,11 @@ export default function Landing() {
                 </h3>
                 <p className="mt-3 max-w-sm leading-relaxed text-bronze">
                   Build image-rich papers, then inspect results and question accuracy with clarity.
+                  Tap Publish, then inspect the accuracy bars.
                 </p>
+              </div>
+              <div className="relative min-h-[340px] flex-1 overflow-hidden md:min-h-[380px]">
+                <TeachersPublishAnim />
               </div>
             </div>
           </div>
