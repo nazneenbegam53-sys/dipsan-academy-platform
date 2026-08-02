@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { BrandLogo } from "../components/BrandLogo";
 import { NotificationBell } from "../components/NotificationBell";
+import { PrecisionPressureLab } from "../components/PrecisionPressureLab";
 import { SupportButton } from "../components/SupportButton";
 import {
   SubjectFunFactInline,
@@ -12,9 +13,8 @@ import {
 
 type Phase = "intro" | "settle" | "ready";
 
-// Local subject imagery — physics on hero; chem / bio / math in the mid sections
+// Local subject imagery — physics on hero; bio / math in the mid sections
 const HERO_IMAGE = "/hero/rocket.jpg";
-const SCIENCE_IMAGE = "/hero/science.jpg";
 const BIOLOGY_IMAGE = "/hero/biology.jpg";
 const MATH_IMAGE = "/hero/math.jpg";
 const SPACE_IMAGE = "/hero/earth.jpg";
@@ -320,7 +320,7 @@ export default function Landing() {
         </section>
 
         <section className="relative overflow-hidden border-t border-white/10 bg-coal">
-          <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-20 md:grid-cols-2 md:px-10 md:py-24">
+          <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-16 md:grid-cols-2 md:px-10 md:py-24">
             <div className="animate-fade-up">
               <div className="mb-4 flex items-center gap-3">
                 <BrandLogo size="xs" glow />
@@ -337,22 +337,12 @@ export default function Landing() {
                 Every mock mirrors exam-day pressure — question palette, marking scheme, and instant
                 feedback when the clock hits zero.
               </p>
+              <p className="mt-4 text-sm text-bronze/80">
+                Try the live clock on the right — pause it, mark questions, feel the pressure drop into
+                precision.
+              </p>
             </div>
-            <div
-              className="relative overflow-hidden rounded-3xl gold-border-glow animate-fade-up"
-              style={{ animationDelay: "0.12s" }}
-            >
-              <img
-                src={SCIENCE_IMAGE}
-                alt="Science and engineering in practice"
-                className="h-[340px] w-full object-cover md:h-[400px]"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-paper via-transparent to-transparent" />
-              <div className="absolute bottom-5 left-5 flex items-center gap-3">
-                <BrandLogo size="xs" />
-                <span className="font-display text-lg text-mist">Precision over pressure.</span>
-              </div>
-            </div>
+            <PrecisionPressureLab />
           </div>
         </section>
 
