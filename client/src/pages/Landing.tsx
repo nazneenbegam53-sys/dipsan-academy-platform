@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { BrandLogo } from "../components/BrandLogo";
-import { FreeBodyScrollSection } from "../components/FreeBodyScrollSection";
+import { NotificationBell } from "../components/NotificationBell";
 
 type Phase = "intro" | "settle" | "ready";
 
@@ -126,25 +126,28 @@ export default function Landing() {
       </div>
 
       <div
-        className={`fixed right-5 top-5 z-40 transition-all duration-700 md:right-8 md:top-6 ${
+        className={`fixed right-5 top-5 z-40 flex items-center gap-3 transition-all duration-700 md:right-8 md:top-6 ${
           phase === "ready" ? "opacity-100 scale-100" : "opacity-0 scale-75"
         }`}
       >
+        {user && <NotificationBell />}
         <BrandLogo size="sm" glow spinRing />
       </div>
 
       {user && (
         <div
-          className={`fixed left-5 top-5 z-40 transition-all duration-700 md:left-8 md:top-6 ${
+          className={`fixed left-5 top-5 z-40 flex items-center gap-3 transition-all duration-700 md:left-8 md:top-6 ${
             phase === "ready" ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
           }`}
         >
-          <p className="font-display text-lg font-semibold tracking-wide text-mist md:text-xl">
-            Hi, <span className="gold-text">{firstName}</span>
-          </p>
-          <p className="text-[10px] uppercase tracking-[0.22em] text-bronze">
-            {user.role === "teacher" ? "Teacher" : "Student"}
-          </p>
+          <div>
+            <p className="font-display text-lg font-semibold tracking-wide text-mist md:text-xl">
+              Hi, <span className="gold-text">{firstName}</span>
+            </p>
+            <p className="text-[10px] uppercase tracking-[0.22em] text-bronze">
+              {user.role === "teacher" ? "Teacher" : "Student"}
+            </p>
+          </div>
         </div>
       )}
 
@@ -294,8 +297,6 @@ export default function Landing() {
             </div>
           </div>
         </section>
-
-        <FreeBodyScrollSection />
 
         <section className="relative overflow-hidden border-t border-white/10 bg-coal">
           <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-20 md:grid-cols-2 md:px-10 md:py-24">
