@@ -947,16 +947,19 @@ export function SubjectNav({
   const items: SubjectKey[] = ["physics", "chemistry", "maths", "biology"];
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-3 md:gap-5">
+    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 md:gap-5">
       {items.map((key, i) => {
         const meta = SUBJECT_META[key];
         const isActive = active === key;
         return (
-          <div key={key} className="flex items-center gap-1.5 sm:gap-3 md:gap-5">
+          <div key={key} className="flex items-center gap-2 sm:gap-3 md:gap-5">
             {i > 0 && (
               <span
-                className="hidden h-1 w-1 rounded-full sm:block"
-                style={{ background: i % 2 === 0 ? "#5EC8C0" : "#D4B06A" }}
+                className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
+                style={{
+                  background: i % 2 === 0 ? "#5EC8C0" : "#D4B06A",
+                  boxShadow: i % 2 === 0 ? "0 0 8px rgba(94,200,192,0.7)" : "0 0 8px rgba(212,176,106,0.7)",
+                }}
                 aria-hidden
               />
             )}
