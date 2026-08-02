@@ -208,8 +208,8 @@ export default function Landing() {
 
                 {phase === "ready" && (
                   <div
-                    key={`crest-${orbitRun}-${orbitDone ? "rest" : "run"}`}
-                    className={`pointer-events-none absolute inset-0 z-20 ${
+                    key={`crest-orbit-${orbitRun}`}
+                    className={`pointer-events-none absolute inset-0 z-40 ${
                       orbitDone ? "" : "animate-crest-orbit"
                     }`}
                     onAnimationEnd={(e) => {
@@ -217,24 +217,24 @@ export default function Landing() {
                     }}
                   >
                     {/* Logo rides the rim; counter-spin keeps it upright (no tilt/scale) */}
-                    <div className="pointer-events-auto absolute left-1/2 top-0 z-30 -translate-x-1/2 -translate-y-1/2">
+                    <button
+                      type="button"
+                      aria-label="Send logo around the orbit"
+                      className="pointer-events-auto absolute left-1/2 top-0 z-50 -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-full border-0 bg-transparent p-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOrbitDone(false);
+                        setOrbitRun((n) => n + 1);
+                      }}
+                    >
                       <div className={orbitDone ? "animate-float" : "animate-crest-face"}>
-                        <BrandLogo
-                          to={null}
-                          size="xl"
-                          glow
-                          spinRing={orbitDone}
-                          onClick={() => {
-                            setOrbitDone(false);
-                            setOrbitRun((n) => n + 1);
-                          }}
-                        />
+                        <BrandLogo to={null} size="xl" glow spinRing={orbitDone} />
                       </div>
-                    </div>
+                    </button>
                   </div>
                 )}
 
-                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center px-4 pt-14 sm:px-8 sm:pt-16">
+                <div className="pointer-events-none absolute inset-0 z-30 flex flex-col items-center justify-center px-4 pt-14 sm:px-8 sm:pt-16">
                   <h1 className="relative z-10 font-display text-[clamp(1.85rem,7.5vw,4.75rem)] font-semibold leading-[0.95] tracking-tight">
                     {phase === "ready" ? (
                       <>
@@ -259,7 +259,7 @@ export default function Landing() {
                   </p>
 
                   <div
-                    className="mt-4 flex animate-fade-up flex-wrap items-center justify-center gap-2 sm:mt-7 sm:gap-3"
+                    className="pointer-events-auto mt-4 flex animate-fade-up flex-wrap items-center justify-center gap-2 sm:mt-7 sm:gap-3"
                     style={{ animationDelay: "0.7s" }}
                   >
                     {user ? (
