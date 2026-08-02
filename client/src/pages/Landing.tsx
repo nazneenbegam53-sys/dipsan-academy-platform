@@ -5,7 +5,7 @@ import { BrandLogo } from "../components/BrandLogo";
 import { NotificationBell } from "../components/NotificationBell";
 import { PracticePaperAnim } from "../components/PracticePaperAnim";
 import { PrecisionPressureLab } from "../components/PrecisionPressureLab";
-import { ReadyHallAnim } from "../components/ReadyHallAnim";
+import { ReadyFocusClock } from "../components/ReadyFocusClock";
 import { SupportButton } from "../components/SupportButton";
 import { TeachersPublishAnim } from "../components/TeachersPublishAnim";
 import {
@@ -397,7 +397,7 @@ export default function Landing() {
             }}
             aria-hidden
           />
-          <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center px-6 pt-16 pb-10 text-center md:px-10 md:pt-20 md:pb-12">
+          <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center px-6 py-16 text-center md:px-10 md:py-20">
             <BrandLogo size="lg" glow spinRing />
             <h2 className="mt-8 font-display text-4xl font-semibold text-mist md:text-5xl">
               Ready when you are.
@@ -405,6 +405,9 @@ export default function Landing() {
             <p className="mt-3 max-w-md text-bronze">
               Enter the hall with focus — and the clock ahead.
             </p>
+            <div className="mt-6 w-full px-2">
+              <ReadyFocusClock />
+            </div>
             {user ? (
               <div className="mt-8 flex flex-wrap justify-center gap-3">
                 <Link
@@ -437,9 +440,6 @@ export default function Landing() {
                 </Link>
               </div>
             )}
-            <div className="mt-10 w-full max-w-3xl text-left">
-              <ReadyHallAnim />
-            </div>
           </div>
         </section>
 
