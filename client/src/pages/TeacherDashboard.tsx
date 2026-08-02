@@ -54,7 +54,9 @@ export default function TeacherDashboard() {
 
   return (
     <PageShell>
-      <div className="fixed right-5 top-5 z-20 md:right-8 md:top-6">
+      <div className="fixed right-3 top-3 z-30 flex flex-nowrap items-center gap-1.5 sm:right-5 sm:top-5 sm:gap-2.5 md:right-8 md:top-6">
+        <NotificationBell />
+        <SupportButton />
         <BrandLogo size="sm" glow spinRing />
       </div>
 
@@ -64,8 +66,6 @@ export default function TeacherDashboard() {
           subtitle="Teacher dashboard"
           actions={
             <>
-              <SupportButton />
-              <NotificationBell />
               <Link to="/">
                 <Button variant="ghost">Home</Button>
               </Link>
