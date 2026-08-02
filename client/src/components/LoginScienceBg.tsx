@@ -1,509 +1,434 @@
 import { useEffect, useRef } from "react";
+import * as THREE from "three";
+
+const TEAL = 0x5ec8c0;
+const GOLD = 0xd4b06a;
+const CHAMP = 0xf0e0b8;
+const EMBER = 0xe07a5f;
+const INK = 0x07121c;
+
+function makeGlowSprite(color: number, size = 128) {
+  const c = document.createElement("canvas");
+  c.width = size;
+  c.height = size;
+  const g = c.getContext("2d")!;
+  const grd = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  const hex = `#${color.toString(16).padStart(6, "0")}`;
+  grd.addColorStop(0, hex);
+  grd.addColorStop(0.35, hex + "88");
+  grd.addColorStop(1, "rgba(0,0,0,0)");
+  g.fillStyle = grd;
+  g.fillRect(0, 0, size, size);
+  const tex = new THREE.CanvasTexture(c);
+  const mat = new THREE.SpriteMaterial({
+    map: tex,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  });
+  return new THREE.Sprite(mat);
+}
+
+function createDNA(): THREE.Group {
+  const group = new THREE.Group();
+  const pairs = 22;
+  const height = 7.5;
+  const radius = 0.85;
+  const turns = 2.6;
+  const backboneA: THREE.Vector3[] = [];
+  const backboneB: THREE.Vector3[] = [];
+
+  for (let i = 0; i < pairs; i++) {
+    const u = i / (pairs - 1);
+    const y = -height / 2 + u * height;
+    const ang = u * turns * Math.PI * 2;
+    const a = new THREE.Vector3(Math.cos(ang) * radius, y, Math.sin(ang) * radius);
+    const b = new THREE.Vector3(Math.cos(ang + Math.PI) * radius, y, Math.sin(ang + Math.PI) * radius);
+    backboneA.push(a);
+    backboneB.push(b);
+
+    const rungGeo = new THREE.CylinderGeometry(0.04, 0.04, a.distanceTo(b), 6);
+    const rungMat = new THREE.MeshStandardMaterial({
+      color: i % 2 === 0 ? TEAL : EMBER,
+      emissive: i % 2 === 0 ? TEAL : EMBER,
+      emissiveIntensity: 0.35,
+      metalness: 0.2,
+      roughness: 0.4,
+    });
+    const rung = new THREE.Mesh(rungGeo, rungMat);
+    rung.position.copy(a).add(b).multiplyScalar(0.5);
+    rung.lookAt(b);
+    rung.rotateX(Math.PI / 2);
+    group.add(rung);
+
+    for (const p of [a, b]) {
+      const node = new THREE.Mesh(
+        new THREE.SphereGeometry(0.12, 12, 12),
+        new THREE.MeshStandardMaterial({
+          color: p === a ? TEAL : EMBER,
+          emissive: p === a ? TEAL : EMBER,
+          emissiveIntensity: 0.5,
+        })
+      );
+      node.position.copy(p);
+      group.add(node);
+    }
+  }
+
+  const tubeMatA = new THREE.MeshStandardMaterial({
+    color: TEAL,
+    emissive: TEAL,
+    emissiveIntensity: 0.25,
+    metalness: 0.3,
+    roughness: 0.35,
+  });
+  const tubeMatB = new THREE.MeshStandardMaterial({
+    color: EMBER,
+    emissive: EMBER,
+    emissiveIntensity: 0.25,
+    metalness: 0.3,
+    roughness: 0.35,
+  });
+  const curveA = new THREE.CatmullRomCurve3(backboneA);
+  const curveB = new THREE.CatmullRomCurve3(backboneB);
+  group.add(new THREE.Mesh(new THREE.TubeGeometry(curveA, 64, 0.06, 8, false), tubeMatA));
+  group.add(new THREE.Mesh(new THREE.TubeGeometry(curveB, 64, 0.06, 8, false), tubeMatB));
+  return group;
+}
+
+function createMolecule(): THREE.Group {
+  const group = new THREE.Group();
+  const R = 1.1;
+  const positions: THREE.Vector3[] = [];
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2;
+    positions.push(new THREE.Vector3(Math.cos(a) * R, Math.sin(a) * R, 0));
+  }
+  positions.push(new THREE.Vector3(R + 0.9, 0.1, 0.2));
+  positions.push(new THREE.Vector3(-(R + 0.9), -0.15, -0.15));
+  positions.push(new THREE.Vector3(0.2, R + 0.85, 0.1));
+
+  const colors = [GOLD, TEAL, GOLD, TEAL, GOLD, TEAL, EMBER, CHAMP, TEAL];
+  const bonds: [number, number][] = [
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [3, 4],
+    [4, 5],
+    [5, 0],
+    [0, 6],
+    [3, 7],
+    [4, 8],
+  ];
+
+  for (const [i, j] of bonds) {
+    const a = positions[i]!;
+    const b = positions[j]!;
+    const geo = new THREE.CylinderGeometry(0.05, 0.05, a.distanceTo(b), 8);
+    const mat = new THREE.MeshStandardMaterial({
+      color: CHAMP,
+      emissive: GOLD,
+      emissiveIntensity: 0.15,
+      metalness: 0.4,
+      roughness: 0.4,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.copy(a).add(b).multiplyScalar(0.5);
+    mesh.lookAt(b);
+    mesh.rotateX(Math.PI / 2);
+    group.add(mesh);
+  }
+
+  positions.forEach((p, i) => {
+    const col = colors[i] ?? GOLD;
+    const atom = new THREE.Mesh(
+      new THREE.SphereGeometry(i < 6 ? 0.28 : 0.22, 16, 16),
+      new THREE.MeshStandardMaterial({
+        color: col,
+        emissive: col,
+        emissiveIntensity: 0.4,
+        metalness: 0.35,
+        roughness: 0.3,
+      })
+    );
+    atom.position.copy(p);
+    group.add(atom);
+    const glow = makeGlowSprite(col);
+    glow.scale.setScalar(1.1);
+    glow.position.copy(p);
+    group.add(glow);
+  });
+
+  return group;
+}
+
+function createAtom(): THREE.Group {
+  const group = new THREE.Group();
+  const nucleus = new THREE.Mesh(
+    new THREE.SphereGeometry(0.35, 24, 24),
+    new THREE.MeshStandardMaterial({
+      color: GOLD,
+      emissive: GOLD,
+      emissiveIntensity: 0.7,
+      metalness: 0.5,
+      roughness: 0.25,
+    })
+  );
+  group.add(nucleus);
+  const coreGlow = makeGlowSprite(GOLD);
+  coreGlow.scale.setScalar(2.2);
+  group.add(coreGlow);
+
+  const orbitData = [
+    { rx: 1.4, ry: 0.55, color: TEAL, speed: 1.1 },
+    { rx: 1.9, ry: 0.7, color: GOLD, speed: -0.75 },
+    { rx: 2.4, ry: 0.9, color: CHAMP, speed: 0.55 },
+  ];
+
+  for (const o of orbitData) {
+    const curve = new THREE.EllipseCurve(0, 0, o.rx, o.ry, 0, Math.PI * 2, false, 0);
+    const pts = curve.getPoints(64).map((p) => new THREE.Vector3(p.x, p.y, 0));
+    const loop = new THREE.LineLoop(
+      new THREE.BufferGeometry().setFromPoints(pts),
+      new THREE.LineBasicMaterial({ color: o.color, transparent: true, opacity: 0.45 })
+    );
+    group.add(loop);
+
+    const electron = new THREE.Mesh(
+      new THREE.SphereGeometry(0.12, 12, 12),
+      new THREE.MeshStandardMaterial({
+        color: o.color,
+        emissive: o.color,
+        emissiveIntensity: 0.8,
+      })
+    );
+    electron.userData = { rx: o.rx, ry: o.ry, speed: o.speed, phase: Math.random() * Math.PI * 2 };
+    group.add(electron);
+
+    const eg = makeGlowSprite(o.color);
+    eg.scale.setScalar(0.7);
+    electron.add(eg);
+  }
+
+  return group;
+}
 
 /**
- * Eye-catching STEM fusion field for login —
- * Physics orbits, Chemistry molecules, Math geometry, Biology DNA
- * woven into one living scene. Cursor steers the nexus.
+ * Full WebGL 3D STEM scene behind the login form.
  */
 export function LoginScienceBg() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d", { alpha: false });
-    if (!ctx) return;
+    const mount = mountRef.current;
+    if (!mount) return;
 
-    let raf = 0;
-    let running = true;
-    let w = 0;
-    let h = 0;
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(INK, 0.045);
+    scene.background = new THREE.Color(INK);
 
-    const pointer = { x: 0.5, y: 0.45, tx: 0.5, ty: 0.45 };
-    const sparks: { x: number; y: number; vx: number; vy: number; life: number; c: number }[] = [];
+    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+    camera.position.set(0, 0.6, 11);
 
-    const TEAL = "#5EC8C0";
-    const GOLD = "#D4B06A";
-    const CHAMP = "#F0E0B8";
-    const EMBER = "#E07A5F";
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setClearColor(INK, 1);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    mount.appendChild(renderer.domElement);
+    Object.assign(renderer.domElement.style, {
+      position: "fixed",
+      inset: "0",
+      width: "100%",
+      height: "100%",
+      zIndex: "0",
+      pointerEvents: "none",
+    });
+
+    // Lights
+    scene.add(new THREE.AmbientLight(0x6a8090, 0.55));
+    const key = new THREE.PointLight(TEAL, 2.2, 40);
+    key.position.set(-4, 3, 6);
+    scene.add(key);
+    const fill = new THREE.PointLight(GOLD, 1.8, 40);
+    fill.position.set(5, -2, 4);
+    scene.add(fill);
+    const rim = new THREE.DirectionalLight(CHAMP, 0.6);
+    rim.position.set(0, 4, -6);
+    scene.add(rim);
+
+    // Floor grid (subtle lab plane)
+    const grid = new THREE.GridHelper(40, 40, 0x1a3040, 0x122030);
+    grid.position.y = -4.2;
+    scene.add(grid);
+
+    // STEM objects
+    const dna = createDNA();
+    dna.position.set(-4.2, 0.2, -1);
+    dna.rotation.z = -0.25;
+    scene.add(dna);
+
+    const molecule = createMolecule();
+    molecule.position.set(4.4, 1.1, -0.5);
+    scene.add(molecule);
+
+    const atom = createAtom();
+    atom.position.set(0, 0.3, -2.5);
+    scene.add(atom);
+
+    // Math: icosahedron + torus knot
+    const ico = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(1.1, 0),
+      new THREE.MeshStandardMaterial({
+        color: TEAL,
+        emissive: TEAL,
+        emissiveIntensity: 0.2,
+        wireframe: true,
+        metalness: 0.5,
+        roughness: 0.3,
+      })
+    );
+    ico.position.set(3.2, -2.2, 0.5);
+    scene.add(ico);
+
+    const knot = new THREE.Mesh(
+      new THREE.TorusKnotGeometry(0.7, 0.18, 100, 16),
+      new THREE.MeshStandardMaterial({
+        color: GOLD,
+        emissive: GOLD,
+        emissiveIntensity: 0.25,
+        metalness: 0.6,
+        roughness: 0.25,
+      })
+    );
+    knot.position.set(-3.4, -2.4, 1);
+    scene.add(knot);
+
+    // Floating particles
+    const pCount = 400;
+    const pGeo = new THREE.BufferGeometry();
+    const pPos = new Float32Array(pCount * 3);
+    for (let i = 0; i < pCount; i++) {
+      pPos[i * 3] = (Math.random() - 0.5) * 28;
+      pPos[i * 3 + 1] = (Math.random() - 0.5) * 16;
+      pPos[i * 3 + 2] = (Math.random() - 0.5) * 20 - 2;
+    }
+    pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
+    const points = new THREE.Points(
+      pGeo,
+      new THREE.PointsMaterial({
+        color: CHAMP,
+        size: 0.05,
+        transparent: true,
+        opacity: 0.7,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      })
+    );
+    scene.add(points);
+
+    // Connecting energy lines (DNA ↔ atom ↔ molecule)
+    const lineMat = new THREE.LineBasicMaterial({
+      color: TEAL,
+      transparent: true,
+      opacity: 0.25,
+    });
+    const linkGeo = new THREE.BufferGeometry().setFromPoints([
+      dna.position.clone(),
+      atom.position.clone(),
+      molecule.position.clone(),
+      knot.position.clone(),
+      ico.position.clone(),
+      dna.position.clone(),
+    ]);
+    const links = new THREE.Line(linkGeo, lineMat);
+    scene.add(links);
+
+    const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
+    function onMove(e: PointerEvent) {
+      pointer.tx = (e.clientX / window.innerWidth) * 2 - 1;
+      pointer.ty = -(e.clientY / window.innerHeight) * 2 + 1;
+    }
 
     function resize() {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      w = window.innerWidth;
-      h = window.innerHeight;
-      canvas!.width = Math.floor(w * dpr);
-      canvas!.height = Math.floor(h * dpr);
-      canvas!.style.width = `${w}px`;
-      canvas!.style.height = `${h}px`;
-      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx!.fillStyle = "#07121c";
-      ctx!.fillRect(0, 0, w, h);
-    }
-
-    function onMove(e: PointerEvent) {
-      pointer.tx = e.clientX / Math.max(1, w);
-      pointer.ty = e.clientY / Math.max(1, h);
-    }
-
-    function onDown(e: PointerEvent) {
-      const target = e.target as HTMLElement | null;
-      if (target?.closest?.("form, a, button, input, label, .luxury-panel")) return;
-      for (let i = 0; i < 40; i++) {
-        const a = Math.random() * Math.PI * 2;
-        const sp = 1.5 + Math.random() * 4;
-        sparks.push({
-          x: e.clientX,
-          y: e.clientY,
-          vx: Math.cos(a) * sp,
-          vy: Math.sin(a) * sp,
-          life: 1,
-          c: Math.random(),
-        });
-      }
-    }
-
-    function disc(x: number, y: number, r: number, fill: string) {
-      ctx!.beginPath();
-      ctx!.arc(x, y, r, 0, Math.PI * 2);
-      ctx!.fillStyle = fill;
-      ctx!.fill();
-    }
-
-    function ring(x: number, y: number, r: number, stroke: string, lw = 1.5) {
-      ctx!.beginPath();
-      ctx!.arc(x, y, r, 0, Math.PI * 2);
-      ctx!.strokeStyle = stroke;
-      ctx!.lineWidth = lw;
-      ctx!.stroke();
-    }
-
-    function label(text: string, x: number, y: number, color: string) {
-      ctx!.save();
-      ctx!.font = "600 10px ui-sans-serif, system-ui, sans-serif";
-      const tw = ctx!.measureText(text).width;
-      const padX = 10;
-      const rw = tw + padX * 2;
-      const rh = 18;
-      const rx = x - rw / 2;
-      const ry = y - rh / 2;
-      ctx!.fillStyle = "rgba(7,18,28,0.55)";
-      ctx!.strokeStyle = color;
-      ctx!.lineWidth = 1;
-      ctx!.beginPath();
-      if (typeof ctx!.roundRect === "function") {
-        ctx!.roundRect(rx, ry, rw, rh, 9);
-      } else {
-        ctx!.rect(rx, ry, rw, rh);
-      }
-      ctx!.fill();
-      ctx!.stroke();
-      ctx!.fillStyle = color;
-      ctx!.textAlign = "center";
-      ctx!.textBaseline = "middle";
-      ctx!.fillText(text, x, y + 0.5);
-      ctx!.restore();
-    }
-
-    /** Biology — DNA double helix */
-    function drawDNA(cx: number, cy: number, t: number, parallax: number) {
-      const len = Math.min(h * 0.62, 420);
-      const amp = 28;
-      const turns = 3.2;
-      const pairs = 18;
-      ctx!.save();
-      ctx!.translate(cx + parallax, cy);
-      ctx!.rotate(-0.18);
-
-      for (let i = 0; i < pairs; i++) {
-        const u = i / (pairs - 1);
-        const y = -len / 2 + u * len;
-        const phase = u * turns * Math.PI * 2 + t * 1.1;
-        const x1 = Math.cos(phase) * amp;
-        const x2 = Math.cos(phase + Math.PI) * amp;
-        const z1 = Math.sin(phase);
-        const z2 = Math.sin(phase + Math.PI);
-        const a1 = 0.35 + (z1 + 1) * 0.3;
-        const a2 = 0.35 + (z2 + 1) * 0.3;
-
-        // base pair rung
-        ctx!.strokeStyle = `rgba(94, 200, 192, ${0.25 + 0.25 * Math.max(z1, z2)})`;
-        ctx!.lineWidth = 2;
-        ctx!.beginPath();
-        ctx!.moveTo(x1, y);
-        ctx!.lineTo(x2, y);
-        ctx!.stroke();
-
-        disc(x1, y, 3.2, `rgba(94, 200, 192, ${a1})`);
-        disc(x2, y, 3.2, `rgba(224, 122, 95, ${a2})`);
-      }
-
-      // backbone ribbons
-      for (const side of [0, Math.PI]) {
-        ctx!.beginPath();
-        for (let i = 0; i <= 60; i++) {
-          const u = i / 60;
-          const y = -len / 2 + u * len;
-          const phase = u * turns * Math.PI * 2 + t * 1.1 + side;
-          const x = Math.cos(phase) * amp;
-          if (i === 0) ctx!.moveTo(x, y);
-          else ctx!.lineTo(x, y);
-        }
-        ctx!.strokeStyle = side === 0 ? "rgba(94,200,192,0.65)" : "rgba(224,122,95,0.55)";
-        ctx!.lineWidth = 2.4;
-        ctx!.stroke();
-      }
-      ctx!.restore();
-      label("BIOLOGY", cx + parallax, cy - len / 2 - 24, TEAL);
-    }
-
-    /** Chemistry — rotating molecule (hex + satellites) */
-    function drawMolecule(cx: number, cy: number, t: number, parallax: number) {
-      ctx!.save();
-      ctx!.translate(cx + parallax, cy);
-      ctx!.rotate(t * 0.35);
-
-      const R = 52;
-      const atoms: { x: number; y: number; r: number; c: string }[] = [];
-      for (let i = 0; i < 6; i++) {
-        const a = (i / 6) * Math.PI * 2;
-        atoms.push({
-          x: Math.cos(a) * R,
-          y: Math.sin(a) * R,
-          r: 7,
-          c: i % 2 === 0 ? GOLD : TEAL,
-        });
-      }
-      // satellite groups
-      atoms.push({ x: R + 34, y: 0, r: 5.5, c: EMBER });
-      atoms.push({ x: -(R + 34), y: 8, r: 5.5, c: CHAMP });
-      atoms.push({ x: 10, y: -(R + 32), r: 5, c: TEAL });
-
-      // bonds
-      ctx!.strokeStyle = "rgba(240,224,184,0.45)";
-      ctx!.lineWidth = 2;
-      for (let i = 0; i < 6; i++) {
-        const a = atoms[i]!;
-        const b = atoms[(i + 1) % 6]!;
-        ctx!.beginPath();
-        ctx!.moveTo(a.x, a.y);
-        ctx!.lineTo(b.x, b.y);
-        ctx!.stroke();
-      }
-      // double-bond hint on two edges
-      for (const i of [0, 3]) {
-        const a = atoms[i]!;
-        const b = atoms[(i + 1) % 6]!;
-        const ox = -(b.y - a.y) * 0.04;
-        const oy = (b.x - a.x) * 0.04;
-        ctx!.beginPath();
-        ctx!.moveTo(a.x + ox, a.y + oy);
-        ctx!.lineTo(b.x + ox, b.y + oy);
-        ctx!.strokeStyle = "rgba(212,176,106,0.5)";
-        ctx!.stroke();
-      }
-      ctx!.beginPath();
-      ctx!.moveTo(atoms[0]!.x, atoms[0]!.y);
-      ctx!.lineTo(atoms[6]!.x, atoms[6]!.y);
-      ctx!.moveTo(atoms[3]!.x, atoms[3]!.y);
-      ctx!.lineTo(atoms[7]!.x, atoms[7]!.y);
-      ctx!.moveTo(atoms[4]!.x, atoms[4]!.y);
-      ctx!.lineTo(atoms[8]!.x, atoms[8]!.y);
-      ctx!.strokeStyle = "rgba(224,122,95,0.45)";
-      ctx!.stroke();
-
-      for (const a of atoms) {
-        disc(a.x, a.y, a.r + 4, a.c === GOLD ? "rgba(212,176,106,0.15)" : "rgba(94,200,192,0.12)");
-        disc(a.x, a.y, a.r, a.c);
-      }
-      ctx!.restore();
-      label("CHEMISTRY", cx + parallax, cy - 92, GOLD);
-    }
-
-    /** Physics — Rutherford orbits + photon */
-    function drawPhysics(cx: number, cy: number, t: number) {
-      // nucleus
-      disc(cx, cy, 10, GOLD);
-      disc(cx, cy, 4, CHAMP);
-      ring(cx, cy, 18, "rgba(212,176,106,0.4)", 1.5);
-
-      const orbits = [
-        { rx: 70, ry: 28, rot: 0.4, speed: 1.2, color: TEAL },
-        { rx: 100, ry: 40, rot: -0.7, speed: -0.75, color: GOLD },
-        { rx: 135, ry: 52, rot: 1.1, speed: 0.5, color: CHAMP },
-      ];
-
-      for (let i = 0; i < orbits.length; i++) {
-        const o = orbits[i]!;
-        ctx!.save();
-        ctx!.translate(cx, cy);
-        ctx!.rotate(o.rot + t * 0.08 * (i + 1));
-        ctx!.beginPath();
-        ctx!.ellipse(0, 0, o.rx, o.ry, 0, 0, Math.PI * 2);
-        ctx!.strokeStyle = o.color === TEAL ? "rgba(94,200,192,0.35)" : o.color === GOLD ? "rgba(212,176,106,0.3)" : "rgba(240,224,184,0.25)";
-        ctx!.lineWidth = 1.5;
-        ctx!.stroke();
-        const ang = t * o.speed * Math.PI * 2;
-        const ex = Math.cos(ang) * o.rx;
-        const ey = Math.sin(ang) * o.ry;
-        disc(ex, ey, 4.5, o.color);
-        disc(ex, ey, 9, o.color === TEAL ? "rgba(94,200,192,0.2)" : "rgba(212,176,106,0.18)");
-        ctx!.restore();
-      }
-
-      // photon streak
-      const px = cx + Math.cos(t * 1.4) * 160;
-      const py = cy + Math.sin(t * 1.4) * 40 - 80;
-      ctx!.strokeStyle = "rgba(240,224,184,0.55)";
-      ctx!.lineWidth = 2;
-      ctx!.beginPath();
-      ctx!.moveTo(px - 18, py);
-      ctx!.lineTo(px + 18, py);
-      ctx!.stroke();
-      for (let k = -1; k <= 1; k++) {
-        ctx!.beginPath();
-        ctx!.moveTo(px + 10, py);
-        ctx!.lineTo(px + 16, py + k * 6);
-        ctx!.stroke();
-      }
-      label("PHYSICS", cx, cy + 168, CHAMP);
-    }
-
-    /** Math — golden spiral + polyhedron + symbols */
-    function drawMath(cx: number, cy: number, t: number, parallax: number) {
-      ctx!.save();
-      ctx!.translate(cx + parallax, cy);
-
-      // golden spiral
-      ctx!.beginPath();
-      let first = true;
-      for (let i = 0; i <= 120; i++) {
-        const u = i / 120;
-        const ang = u * Math.PI * 3.2 + t * 0.2;
-        const rad = 6 * Math.pow(1.25, u * 10);
-        const x = Math.cos(ang) * rad;
-        const y = Math.sin(ang) * rad;
-        if (first) {
-          ctx!.moveTo(x, y);
-          first = false;
-        } else ctx!.lineTo(x, y);
-      }
-      ctx!.strokeStyle = "rgba(212,176,106,0.7)";
-      ctx!.lineWidth = 2;
-      ctx!.stroke();
-
-      // rotating wire octahedron
-      ctx!.save();
-      ctx!.rotate(t * 0.55);
-      const s = 36;
-      const verts = [
-        [0, -s, 0],
-        [0, s, 0],
-        [s, 0, 0],
-        [-s, 0, 0],
-        [0, 0, s],
-        [0, 0, -s],
-      ] as const;
-      const edges = [
-        [0, 2],
-        [0, 3],
-        [0, 4],
-        [0, 5],
-        [1, 2],
-        [1, 3],
-        [1, 4],
-        [1, 5],
-        [2, 4],
-        [4, 3],
-        [3, 5],
-        [5, 2],
-      ];
-      const rotY = t * 0.7;
-      const proj = verts.map(([x, y, z]) => {
-        const xr = x * Math.cos(rotY) + z * Math.sin(rotY);
-        const zr = -x * Math.sin(rotY) + z * Math.cos(rotY);
-        const scale = 1.1 + zr / 80;
-        return [xr * scale, y * scale] as const;
-      });
-      ctx!.strokeStyle = "rgba(94,200,192,0.55)";
-      ctx!.lineWidth = 1.5;
-      for (const [a, b] of edges) {
-        const p = proj[a]!;
-        const q = proj[b]!;
-        ctx!.beginPath();
-        ctx!.moveTo(p[0], p[1]);
-        ctx!.lineTo(q[0], q[1]);
-        ctx!.stroke();
-      }
-      ctx!.restore();
-
-      // floating math glyphs
-      ctx!.fillStyle = "rgba(240,224,184,0.55)";
-      ctx!.font = "16px Georgia, 'Times New Roman', serif";
-      const glyphs = ["∑", "π", "∞", "∫", "Δ"];
-      for (let i = 0; i < glyphs.length; i++) {
-        const a = t * 0.6 + (i / glyphs.length) * Math.PI * 2;
-        const x = Math.cos(a) * 78;
-        const y = Math.sin(a) * 42;
-        ctx!.fillText(glyphs[i]!, x - 6, y + 6);
-      }
-      ctx!.restore();
-      label("MATHEMATICS", cx + parallax, cy + 100, GOLD);
-    }
-
-    /** Energy filaments linking the four domains to the nexus */
-    function drawFilaments(
-      nexus: { x: number; y: number },
-      nodes: { x: number; y: number; c: string }[],
-      t: number
-    ) {
-      for (const n of nodes) {
-        ctx!.beginPath();
-        const mx = (nexus.x + n.x) / 2 + Math.sin(t * 2 + n.x * 0.01) * 20;
-        const my = (nexus.y + n.y) / 2 + Math.cos(t * 1.6 + n.y * 0.01) * 16;
-        ctx!.moveTo(nexus.x, nexus.y);
-        ctx!.quadraticCurveTo(mx, my, n.x, n.y);
-        ctx!.strokeStyle = n.c;
-        ctx!.globalAlpha = 0.35 + 0.15 * Math.sin(t * 3 + n.x);
-        ctx!.lineWidth = 1.5;
-        ctx!.stroke();
-        ctx!.globalAlpha = 1;
-
-        // traveling bead
-        const u = (t * 0.35 + (n.x + n.y) * 0.001) % 1;
-        const bx = (1 - u) * (1 - u) * nexus.x + 2 * (1 - u) * u * mx + u * u * n.x;
-        const by = (1 - u) * (1 - u) * nexus.y + 2 * (1 - u) * u * my + u * u * n.y;
-        disc(bx, by, 3, n.c);
-      }
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h, false);
     }
 
     resize();
-    const start = performance.now();
-
-    function frame(now: number) {
-      if (!running) return;
-      const t = (now - start) / 1000;
-      pointer.x += (pointer.tx - pointer.x) * 0.07;
-      pointer.y += (pointer.ty - pointer.y) * 0.07;
-
-      const parallaxX = (pointer.x - 0.5) * 40;
-      const parallaxY = (pointer.y - 0.5) * 28;
-
-      // rich backdrop
-      ctx!.fillStyle = "#07121c";
-      ctx!.fillRect(0, 0, w, h);
-
-      const wash = ctx!.createRadialGradient(
-        w * pointer.x,
-        h * pointer.y,
-        40,
-        w * 0.5,
-        h * 0.45,
-        Math.max(w, h) * 0.75
-      );
-      wash.addColorStop(0, "rgba(94,200,192,0.14)");
-      wash.addColorStop(0.4, "rgba(212,176,106,0.07)");
-      wash.addColorStop(1, "rgba(7,18,28,0)");
-      ctx!.fillStyle = wash;
-      ctx!.fillRect(0, 0, w, h);
-
-      // star dust
-      ctx!.fillStyle = "rgba(240,224,184,0.35)";
-      for (let i = 0; i < 40; i++) {
-        const sx = ((i * 97 + t * 8) % (w + 40)) - 20;
-        const sy = (i * 53 + Math.sin(t + i) * 10) % h;
-        ctx!.fillRect(sx, sy, i % 5 === 0 ? 2 : 1, i % 5 === 0 ? 2 : 1);
-      }
-
-      const isNarrow = w < 720;
-      const nexus = { x: w * 0.5 + parallaxX * 0.3, y: h * (isNarrow ? 0.36 : 0.44) + parallaxY * 0.3 };
-      const bio = {
-        x: w * (isNarrow ? 0.22 : 0.18) + parallaxX * 0.6,
-        y: h * (isNarrow ? 0.62 : 0.48) + parallaxY * 0.4,
-      };
-      const chem = {
-        x: w * (isNarrow ? 0.78 : 0.82) + parallaxX * 0.5,
-        y: h * (isNarrow ? 0.28 : 0.38) + parallaxY * 0.35,
-      };
-      const math = {
-        x: w * (isNarrow ? 0.72 : 0.72) + parallaxX * 0.45,
-        y: h * (isNarrow ? 0.72 : 0.72) + parallaxY * 0.4,
-      };
-
-      // draw order: filaments under, emblems, physics center on top-ish
-      drawFilaments(nexus, [
-        { x: bio.x, y: bio.y, c: "rgba(94,200,192,0.7)" },
-        { x: chem.x, y: chem.y, c: "rgba(212,176,106,0.7)" },
-        { x: math.x, y: math.y, c: "rgba(240,224,184,0.65)" },
-      ], t);
-
-      drawDNA(bio.x, bio.y, t, 0);
-      drawMolecule(chem.x, chem.y, t, 0);
-      drawMath(math.x, math.y, t, 0);
-      drawPhysics(nexus.x, nexus.y, t);
-
-      // fusion title under nexus orbits
-      ctx!.save();
-      ctx!.font = "600 9px ui-sans-serif, system-ui, sans-serif";
-      ctx!.fillStyle = "rgba(157,176,192,0.7)";
-      ctx!.textAlign = "center";
-      ctx!.fillText("PHYSICS  ·  CHEMISTRY  ·  MATHEMATICS  ·  BIOLOGY", nexus.x, nexus.y + 198);
-      ctx!.restore();
-
-      // click sparks
-      for (let i = sparks.length - 1; i >= 0; i--) {
-        const s = sparks[i]!;
-        s.x += s.vx;
-        s.y += s.vy;
-        s.vy += 0.04;
-        s.life -= 0.018;
-        if (s.life <= 0) {
-          sparks.splice(i, 1);
-          continue;
-        }
-        const col =
-          s.c < 0.33 ? TEAL : s.c < 0.66 ? GOLD : s.c < 0.85 ? CHAMP : EMBER;
-        disc(s.x, s.y, 2.2 * s.life + 0.5, col);
-      }
-
-      // vignette for card readability
-      const vig = ctx!.createRadialGradient(
-        w * 0.5,
-        h * 0.48,
-        Math.min(w, h) * 0.1,
-        w * 0.5,
-        h * 0.5,
-        Math.max(w, h) * 0.7
-      );
-      vig.addColorStop(0, "rgba(7,18,28,0.08)");
-      vig.addColorStop(0.5, "rgba(7,18,28,0.28)");
-      vig.addColorStop(1, "rgba(7,18,28,0.78)");
-      ctx!.fillStyle = vig;
-      ctx!.fillRect(0, 0, w, h);
-
-      raf = requestAnimationFrame(frame);
-    }
-
     window.addEventListener("resize", resize);
     window.addEventListener("pointermove", onMove, { passive: true });
-    window.addEventListener("pointerdown", onDown, { passive: true });
-    raf = requestAnimationFrame(frame);
+
+    let raf = 0;
+    const clock = new THREE.Clock();
+    let alive = true;
+
+    function tick() {
+      if (!alive) return;
+      const t = clock.getElapsedTime();
+      pointer.x += (pointer.tx - pointer.x) * 0.05;
+      pointer.y += (pointer.ty - pointer.y) * 0.05;
+
+      dna.rotation.y = t * 0.35;
+      molecule.rotation.y = t * 0.55;
+      molecule.rotation.x = Math.sin(t * 0.4) * 0.25;
+      atom.rotation.y = t * 0.25;
+      atom.rotation.x = t * 0.12;
+      ico.rotation.x = t * 0.4;
+      ico.rotation.y = t * 0.55;
+      knot.rotation.x = t * 0.6;
+      knot.rotation.y = t * 0.35;
+      points.rotation.y = t * 0.03;
+
+      // Orbit electrons
+      atom.children.forEach((child) => {
+        const d = child.userData as { rx?: number; ry?: number; speed?: number; phase?: number };
+        if (d.rx != null && d.ry != null && d.speed != null) {
+          const ang = t * d.speed + (d.phase ?? 0);
+          child.position.set(Math.cos(ang) * d.rx, Math.sin(ang) * d.ry, Math.sin(ang * 0.5) * 0.2);
+        }
+      });
+
+      // Camera parallax orbit
+      const camR = 11;
+      camera.position.x = Math.sin(pointer.x * 0.45) * camR * 0.22;
+      camera.position.y = 0.6 + pointer.y * 0.9;
+      camera.position.z = camR - Math.abs(pointer.x) * 0.8;
+      camera.lookAt(atom.position.x * 0.3, 0.2, -1);
+
+      key.intensity = 2.0 + Math.sin(t * 2) * 0.3;
+      fill.intensity = 1.6 + Math.cos(t * 1.6) * 0.25;
+
+      renderer.render(scene, camera);
+      raf = requestAnimationFrame(tick);
+    }
+    raf = requestAnimationFrame(tick);
 
     return () => {
-      running = false;
+      alive = false;
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerdown", onDown);
+      renderer.dispose();
+      mount.removeChild(renderer.domElement);
+      scene.traverse((obj) => {
+        if (obj instanceof THREE.Mesh || obj instanceof THREE.Line || obj instanceof THREE.Points) {
+          obj.geometry?.dispose();
+          const mat = obj.material;
+          if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
+          else mat?.dispose();
+        }
+        if (obj instanceof THREE.Sprite) {
+          obj.material.map?.dispose();
+          obj.material.dispose();
+        }
+      });
     };
   }, []);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      className="pointer-events-none fixed inset-0 z-0"
-      aria-hidden
-    />
-  );
+  return <div ref={mountRef} className="pointer-events-none fixed inset-0 z-0" aria-hidden />;
 }
 
 export default LoginScienceBg;
