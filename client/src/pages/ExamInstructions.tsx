@@ -37,34 +37,34 @@ export default function ExamInstructions() {
       </div>
       <Card className="p-8 w-full max-w-lg">
         <Badge tone="marigold">{exam.subject}</Badge>
-        <h1 className="font-display text-3xl font-semibold text-ink mt-3 mb-4">{exam.title}</h1>
+        <h1 className="font-display text-3xl font-semibold text-mist mt-3 mb-4">{exam.title}</h1>
 
         <div className="grid grid-cols-3 gap-3 mb-5">
-          <div className="rounded-sm bg-paper border border-ink/10 p-3 text-center">
+          <div className="rounded-sm bg-paper border border-gold/10 p-3 text-center">
             <div className="font-display text-lg font-semibold text-gold">{exam.questionCount ?? exam.questions.length}</div>
             <div className="text-xs text-bronze">Questions</div>
           </div>
-          <div className="rounded-sm bg-paper border border-ink/10 p-3 text-center">
+          <div className="rounded-sm bg-paper border border-gold/10 p-3 text-center">
             <div className="font-display text-lg font-semibold text-gold">{exam.durationMinutes}</div>
             <div className="text-xs text-bronze">Minutes</div>
           </div>
-          <div className="rounded-sm bg-paper border border-ink/10 p-3 text-center">
+          <div className="rounded-sm bg-paper border border-gold/10 p-3 text-center">
             <div className="font-display text-lg font-semibold text-gold">+{exam.defaultMarks}/&minus;{exam.defaultNegativeMarks}</div>
             <div className="text-xs text-bronze">Marking</div>
           </div>
         </div>
 
-        <div className="text-sm mb-5 rounded-sm p-4 bg-paper border border-ink/10 text-bronze whitespace-pre-line">
+        <div className="text-sm mb-5 rounded-sm p-4 bg-paper border border-gold/10 text-bronze whitespace-pre-line">
           {exam.instructions || "Answer all questions within the time limit. Negative marking applies to wrong answers. There is no penalty for unattempted questions."}
         </div>
 
         {exam.antiCheat?.requireFullscreen && (
-          <div className="text-xs mb-5 rounded-sm p-3 bg-gold/10 border border-gold/30 text-ink">
+          <div className="text-xs mb-5 rounded-sm p-3 bg-gold/10 border border-gold/30 text-mist">
             This test requests fullscreen mode and monitors tab-switching. Switching away from the test window may be logged as a violation.
           </div>
         )}
 
-        <label className="flex items-center gap-2 mb-5 text-sm text-ink cursor-pointer">
+        <label className="flex items-center gap-2 mb-5 text-sm text-mist cursor-pointer">
           <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="accent-gold" />
           I have read the instructions and I&apos;m ready to begin.
         </label>

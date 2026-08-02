@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { api } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { Exam } from "../types";
-import { Button, Badge, Spinner, PageShell, Card } from "../components/ui";
+import { Button, Badge, Spinner, PageShell, Card, AppHeader } from "../components/ui";
 import { BrandLogo } from "../components/BrandLogo";
 
 interface DashboardSummary {
@@ -53,35 +53,31 @@ export default function TeacherDashboard() {
   return (
     <PageShell>
       <div className="fixed right-5 top-5 z-20 md:right-8 md:top-6">
-        <BrandLogo size="xs" rounded />
+        <BrandLogo size="sm" glow spinRing />
       </div>
 
       <div className="mx-auto max-w-6xl animate-fade-up px-6 py-10 pr-20">
-        <header className="mb-10 flex flex-wrap items-end justify-between gap-4 border-b border-ink/10 pb-8">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-bronze">
-              Dipsan Academy
-            </p>
-            <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-ink md:text-4xl">
-              Welcome, {user?.name}
-            </h1>
-            <p className="mt-1 text-sm text-bronze">Teacher dashboard</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="ghost" onClick={logout}>
-              Log out
-            </Button>
-            <Button variant="ghost" onClick={load}>
-              Refresh
-            </Button>
-            <Button variant="accent" onClick={() => navigate("/teacher/exam/new")}>
-              + New exam
-            </Button>
-          </div>
-        </header>
+        <AppHeader
+          title={`Welcome, ${user?.name}`}
+          subtitle="Teacher dashboard"
+          actions={
+            <>
+              <Link to="/">
+                <Button variant="ghost">Home</Button>
+              </Link>
+              <Button variant="ghost" onClick={logout}>
+                Log out
+              </Button>
+              <Button variant="ghost" onClick={load}>
+                Refresh
+              </Button>
+              <Button onClick={() => navigate("/teacher/exam/new")}>+ New exam</Button>
+            </>
+          }
+        />
 
         {summary && (
-          <div className="mb-12 grid grid-cols-2 gap-6 border-y border-ink/10 py-8 sm:grid-cols-4">
+          <div className="mb-12 grid grid-cols-2 gap-6 border-y border-gold/15 py-8 sm:grid-cols-4">
             {[
               { label: "Exams", value: summary.examCount },
               { label: "Published", value: summary.publishedCount },
@@ -96,7 +92,7 @@ export default function TeacherDashboard() {
                 <div className="text-xs font-semibold uppercase tracking-wide text-bronze">
                   {stat.label}
                 </div>
-                <div className="mt-1 font-display text-3xl font-semibold text-ink">{stat.value}</div>
+                <div className="mt-1 font-display text-3xl font-semibold text-gold">{stat.value}</div>
               </div>
             ))}
           </div>
@@ -105,11 +101,11 @@ export default function TeacherDashboard() {
         {loading && exams.length === 0 ? (
           <Spinner />
         ) : exams.length === 0 ? (
-          <p className="border-t border-ink/10 pt-8 text-sm text-bronze">
+          <p className="border-t border-gold/15 pt-8 text-sm text-bronze">
             No exams yet — create your first one.
           </p>
         ) : (
-          <ul className="divide-y divide-ink/8 border-y border-ink/10">
+          <ul className="divide-y divide-gold/10 border-y border-gold/15">
             {exams.map((e, i) => (
               <li
                 key={e._id}
@@ -122,7 +118,7 @@ export default function TeacherDashboard() {
                     <Badge tone={e.status === "published" ? "success" : "ink"}>{e.status}</Badge>
                     <Badge tone="signal">{e.submissionCount ?? 0} submissions</Badge>
                   </div>
-                  <div className="font-display text-xl font-semibold text-ink">{e.title}</div>
+                  <div className="font-display text-xl font-semibold text-mist">{e.title}</div>
                   <div className="mt-1 text-xs text-bronze">
                     {e.questionCount ?? e.questions?.length ?? 0} questions · {e.totalMarks} marks
                   </div>
@@ -131,10 +127,7 @@ export default function TeacherDashboard() {
                   <Button variant="ghost" onClick={() => navigate(`/teacher/exam/${e._id}/edit`)}>
                     Edit
                   </Button>
-                  <Button
-                    variant="accent"
-                    onClick={() => navigate(`/teacher/exam/${e._id}/results`)}
-                  >
+                  <Button onClick={() => navigate(`/teacher/exam/${e._id}/results`)}>
                     Submissions ({e.submissionCount ?? 0})
                   </Button>
                   <Button
@@ -159,10 +152,15 @@ export default function TeacherDashboard() {
         )}
 
         {confirmDeleteId && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 px-6">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 px-6">
             <Card className="w-full max-w-sm animate-fade-up p-7">
-              <div className="font-display text-xl font-semibold text-ink">Delete this exam?</div>
-              <div className="mt-2 text-sm text-bronze">
+              <div className="mb-3 flex justify-center">
+                <BrandLogo size="sm" glow />
+              </div>
+              <div className="text-center font-display text-xl font-semibold text-mist">
+                Delete this exam?
+              </div>
+              <div className="mt-2 text-center text-sm text-bronze">
                 Questions will be removed too. Existing results stay on record. This can&apos;t be
                 undone.
               </div>
