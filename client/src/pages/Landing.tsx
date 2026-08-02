@@ -154,8 +154,7 @@ export default function Landing() {
           />
 
           <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-6xl flex-col px-6 pb-12 pt-8 md:px-10">
-            <nav className="flex items-center justify-between gap-4 pr-16">
-              <BrandLogo size="sm" showWordmark glow />
+            <nav className="flex items-center justify-end gap-4 pr-16">
               <div className="flex items-center gap-2 sm:gap-3">
                 {user ? (
                   <>
