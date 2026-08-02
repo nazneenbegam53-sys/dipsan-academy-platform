@@ -188,17 +188,21 @@ export default function ResultPage() {
         </div>
 
         <div className="mb-7 grid grid-cols-3 gap-3">
-          <Card className="border-none bg-emerald-50 p-4 text-center">
-            <div className="text-xs text-emerald-700">CORRECT</div>
-            <div className="text-xl font-bold text-emerald-700">{attempt.correctCount}</div>
+          <Card className="border border-emerald-400/40 bg-emerald-500/15 p-4 text-center">
+            <div className="text-xs font-semibold uppercase tracking-wide text-emerald-300">
+              Correct
+            </div>
+            <div className="mt-1 text-xl font-bold text-emerald-200">{attempt.correctCount}</div>
           </Card>
-          <Card className="border-none bg-red-50 p-4 text-center">
-            <div className="text-xs text-red-700">WRONG</div>
-            <div className="text-xl font-bold text-red-700">{attempt.wrongCount}</div>
+          <Card className="border border-red-400/40 bg-red-500/15 p-4 text-center">
+            <div className="text-xs font-semibold uppercase tracking-wide text-red-300">Wrong</div>
+            <div className="mt-1 text-xl font-bold text-red-200">{attempt.wrongCount}</div>
           </Card>
-          <Card className="border-none bg-soft p-4 text-center">
-            <div className="text-xs text-bronze">UNATTEMPTED</div>
-            <div className="text-xl font-bold text-bronze">{attempt.unattemptedCount}</div>
+          <Card className="border border-white/15 bg-white/5 p-4 text-center">
+            <div className="text-xs font-semibold uppercase tracking-wide text-bronze">
+              Unattempted
+            </div>
+            <div className="mt-1 text-xl font-bold text-mist">{attempt.unattemptedCount}</div>
           </Card>
         </div>
 
@@ -227,19 +231,44 @@ export default function ResultPage() {
                 )}
                 <div className="space-y-2">
                   {q.options.map((opt, oi) => {
-                    let cls = "border border-gold/15";
-                    if (oi === q.correctOptionIndex) cls = "border border-emerald-500 bg-emerald-50";
-                    if (selected === oi && oi !== q.correctOptionIndex)
-                      cls = "border border-red-500 bg-red-50";
+                    const isCorrect = oi === q.correctOptionIndex;
+                    const isWrongPick =
+                      selected === oi && oi !== q.correctOptionIndex;
+                    let cls =
+                      "border border-white/15 bg-white/5 text-mist";
+                    let label = "";
+                    if (isCorrect) {
+                      cls =
+                        "border border-emerald-400/70 bg-emerald-500/20 text-emerald-100";
+                      label = "Correct";
+                    }
+                    if (isWrongPick) {
+                      cls = "border border-red-400/70 bg-red-500/20 text-red-100";
+                      label = "Your answer";
+                    }
                     return (
-                      <div key={oi} className={`rounded-lg px-3 py-2 text-sm ${cls}`}>
+                      <div
+                        key={oi}
+                        className={`flex flex-wrap items-center rounded-lg px-3 py-2.5 text-sm ${cls}`}
+                      >
                         <span className="mr-1.5 font-semibold">{"ABCD"[oi]}.</span>
-                        {opt}
+                        <span className="flex-1">{opt}</span>
+                        {label && (
+                          <span
+                            className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                              isWrongPick
+                                ? "bg-red-400/25 text-red-200"
+                                : "bg-emerald-400/25 text-emerald-200"
+                            }`}
+                          >
+                            {label}
+                          </span>
+                        )}
                       </div>
                     );
                   })}
                   {(selected === undefined || selected === null) && (
-                    <div className="text-xs text-bronze/70">Not attempted</div>
+                    <div className="text-xs text-bronze">Not attempted</div>
                   )}
                 </div>
                 {(q.explanation || q.explanationImageUrl) && (
