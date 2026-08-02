@@ -1,5 +1,4 @@
 import { ReactNode, CSSProperties } from "react";
-import { BrandLogo } from "./BrandLogo";
 
 export function Button({
   children,
@@ -131,17 +130,11 @@ export function AppHeader({
 }) {
   return (
     <header className="mb-10 flex flex-wrap items-end justify-between gap-4 border-b border-white/10 pb-8">
-      <div className="flex items-center gap-4">
-        <BrandLogo size="md" glow spinRing showWordmark={false} />
-        <div>
-          <p className="font-display text-sm font-semibold tracking-[0.18em] gold-text">
-            DIPSAN ACADEMY
-          </p>
-          <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight text-mist md:text-4xl">
-            {title}
-          </h1>
-          {subtitle && <p className="mt-1 text-sm text-bronze">{subtitle}</p>}
-        </div>
+      <div>
+        <h1 className="font-display text-3xl font-semibold tracking-tight text-mist md:text-4xl">
+          {title}
+        </h1>
+        {subtitle && <p className="mt-1 text-sm text-bronze">{subtitle}</p>}
       </div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </header>
