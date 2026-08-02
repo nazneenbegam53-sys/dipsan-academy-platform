@@ -45,8 +45,8 @@ export default function Landing() {
   const [orbitDone, setOrbitDone] = useState(false);
 
   useEffect(() => {
-    const settleTimer = window.setTimeout(() => setPhase("settle"), 2000);
-    const readyTimer = window.setTimeout(() => setPhase("ready"), 3400);
+    const settleTimer = window.setTimeout(() => setPhase("settle"), 2200);
+    const readyTimer = window.setTimeout(() => setPhase("ready"), 3800);
     return () => {
       window.clearTimeout(settleTimer);
       window.clearTimeout(readyTimer);
@@ -82,20 +82,53 @@ export default function Landing() {
           }}
         />
 
-        <div className="relative flex flex-col items-center px-6">
-          <div className="relative flex items-center justify-center">
+        <div className="relative flex flex-col items-center px-6" style={{ perspective: "900px" }}>
+          <div className="relative flex h-[min(70vw,360px)] w-[min(70vw,360px)] items-center justify-center">
+            {/* Soft aurora bloom */}
             <span
               aria-hidden
-              className="absolute h-[min(72vw,380px)] w-[min(72vw,380px)] rounded-full border border-aurora/25 animate-pulse-ring"
+              className="absolute h-[70%] w-[70%] rounded-full bg-[radial-gradient(circle,rgba(94,200,192,0.35)_0%,rgba(212,176,106,0.18)_40%,transparent_70%)] animate-intro-bloom blur-2xl"
+            />
+
+            {/* Drawn gold/aurora arc */}
+            <svg
+              aria-hidden
+              className="absolute inset-0 h-full w-full -rotate-90"
+              viewBox="0 0 320 320"
+              fill="none"
+            >
+              <circle
+                cx="160"
+                cy="160"
+                r="146"
+                stroke="rgba(94,200,192,0.35)"
+                strokeWidth="1"
+                className="animate-intro-arc"
+                style={{ strokeDasharray: 920 }}
+              />
+              <circle
+                cx="160"
+                cy="160"
+                r="132"
+                stroke="rgba(212,176,106,0.45)"
+                strokeWidth="1.5"
+                className="animate-intro-arc"
+                style={{ strokeDasharray: 830, animationDelay: "0.2s" }}
+              />
+            </svg>
+
+            <span
+              aria-hidden
+              className="absolute h-[min(72vw,380px)] w-[min(72vw,380px)] rounded-full border border-aurora/20 animate-pulse-ring"
             />
             <span
               aria-hidden
-              className="absolute h-[min(72vw,380px)] w-[min(72vw,380px)] rounded-full border border-gold/20 animate-pulse-ring"
-              style={{ animationDelay: "0.7s" }}
+              className="absolute h-[min(72vw,380px)] w-[min(72vw,380px)] rounded-full border border-gold/15 animate-pulse-ring"
+              style={{ animationDelay: "0.85s" }}
             />
             <span
               aria-hidden
-              className="absolute h-[min(58vw,300px)] w-[min(58vw,300px)] rounded-full border border-aurora/15"
+              className="absolute h-[88%] w-[88%] rounded-full border border-aurora/15"
               style={{
                 transform: "rotateX(68deg)",
                 animation: "orbit-tilt 14s linear infinite",
@@ -103,7 +136,7 @@ export default function Landing() {
             />
             <span
               aria-hidden
-              className="absolute h-[min(46vw,240px)] w-[min(46vw,240px)] rounded-full border border-gold/20"
+              className="absolute h-[70%] w-[70%] rounded-full border border-gold/20"
               style={{
                 transform: "rotateX(68deg)",
                 animation: "orbit-tilt 9s linear infinite reverse",
@@ -111,16 +144,16 @@ export default function Landing() {
             />
             <span
               aria-hidden
-              className="absolute -left-8 top-10 h-1.5 w-1.5 rounded-full bg-aurora shadow-[0_0_10px_rgba(94,200,192,0.9)] animate-star-twinkle"
+              className="absolute -left-6 top-12 h-1.5 w-1.5 rounded-full bg-aurora shadow-[0_0_10px_rgba(94,200,192,0.9)] animate-star-twinkle"
             />
             <span
               aria-hidden
-              className="absolute -right-6 bottom-14 h-1 w-1 rounded-full bg-champagne animate-star-twinkle"
+              className="absolute -right-4 bottom-16 h-1 w-1 rounded-full bg-champagne animate-star-twinkle"
               style={{ animationDelay: "0.9s" }}
             />
             <span
               aria-hidden
-              className="absolute right-0 top-0 h-1.5 w-1.5 rounded-full bg-gold/80 animate-star-twinkle"
+              className="absolute right-2 top-4 h-1.5 w-1.5 rounded-full bg-gold/80 animate-star-twinkle"
               style={{ animationDelay: "1.4s" }}
             />
             <div className="relative z-10 animate-float">
@@ -128,11 +161,19 @@ export default function Landing() {
             </div>
           </div>
 
-          <h2 className="mt-10 text-center font-display text-3xl font-semibold tracking-[0.12em] gold-text animate-letter-glow md:text-5xl">
-            <AnimatedLetters text="DIPSAN" delay={0.35} stagger={0.07} />
+          <h2
+            className="mt-10 text-center font-display text-3xl font-semibold tracking-[0.12em] gold-text animate-letter-glow md:text-5xl"
+            style={{ transformStyle: "preserve-3d" }}
+          >
+            <AnimatedLetters text="DIPSAN" delay={0.45} stagger={0.08} />
             <span className="mx-2 inline-block w-2" aria-hidden />
-            <AnimatedLetters text="ACADEMY" delay={0.78} stagger={0.065} />
+            <AnimatedLetters text="ACADEMY" delay={0.95} stagger={0.07} />
           </h2>
+          <span
+            aria-hidden
+            className="mt-4 h-px w-28 origin-center bg-gradient-to-r from-transparent via-gold/70 to-transparent animate-underline-grow"
+            style={{ animationDelay: "1.55s" }}
+          />
 
           <p
             className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] uppercase tracking-[0.32em] text-aurora/90"
@@ -143,7 +184,7 @@ export default function Landing() {
                 {wi > 0 && (
                   <span className="h-1 w-1 rounded-full bg-gold/70" aria-hidden />
                 )}
-                <AnimatedLetters text={word} delay={1.35 + wi * 0.22} stagger={0.04} />
+                <AnimatedLetters text={word} delay={1.7 + wi * 0.2} stagger={0.045} />
               </span>
             ))}
           </p>
@@ -227,7 +268,7 @@ export default function Landing() {
             </nav>
 
             <div className="mb-auto mt-auto flex flex-col items-center py-10 text-center">
-              {/* Brand circle: crest orbits the ring, then lands in the middle */}
+              {/* Brand circle: crest stays on the orbit and rests at top-center (middle of ring) */}
               <div className="relative mx-auto aspect-square w-[min(92vw,560px)]">
                 <div
                   aria-hidden
@@ -238,42 +279,32 @@ export default function Landing() {
                   className="absolute inset-[7%] rounded-full border border-gold/15"
                 />
 
-                {phase === "ready" && !orbitDone && (
+                {phase === "ready" && (
                   <div
-                    key="crest-orbit-run"
-                    className="absolute inset-0 z-20 animate-crest-orbit"
+                    key={orbitDone ? "crest-rest" : "crest-orbit-run"}
+                    className={`absolute inset-0 z-20 ${orbitDone ? "" : "animate-crest-orbit"}`}
                     onAnimationEnd={(e) => {
                       if (e.target === e.currentTarget) setOrbitDone(true);
                     }}
                   >
                     <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
-                      <div className="animate-crest-face">
+                      <div className={orbitDone ? "animate-float" : "animate-crest-face"}>
                         <BrandLogo to={null} size="xl" glow spinRing />
                       </div>
                     </div>
                   </div>
                 )}
 
-                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-8">
-                  <div className="mb-4 flex h-32 w-32 shrink-0 items-center justify-center sm:mb-5 sm:h-36 sm:w-36">
-                    {phase === "ready" && orbitDone && (
-                      <div className="animate-fade-in">
-                        <div className="animate-float">
-                          <BrandLogo to={null} size="xl" glow spinRing />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-8 pt-10">
                   <h1 className="font-display text-[clamp(2.4rem,9vw,4.75rem)] font-semibold leading-[0.95] tracking-tight">
                     {phase === "ready" ? (
                       <>
                         <span className="gold-text">
-                          <AnimatedLetters text="Dipsan" delay={0.15} stagger={0.06} />
+                          <AnimatedLetters text="Dipsan" delay={0.2} stagger={0.06} />
                         </span>
                         <br />
                         <span className="text-mist">
-                          <AnimatedLetters text="Academy" delay={0.5} stagger={0.055} />
+                          <AnimatedLetters text="Academy" delay={0.55} stagger={0.055} />
                         </span>
                       </>
                     ) : (
