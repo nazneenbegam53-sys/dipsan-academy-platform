@@ -42,6 +42,7 @@ function AnimatedLetters({
 export default function Landing() {
   const { user, logout } = useAuth();
   const [phase, setPhase] = useState<Phase>("intro");
+  const [orbitDone, setOrbitDone] = useState(false);
 
   useEffect(() => {
     const settleTimer = window.setTimeout(() => setPhase("settle"), 2000);
@@ -51,6 +52,10 @@ export default function Landing() {
       window.clearTimeout(readyTimer);
     };
   }, []);
+
+  useEffect(() => {
+    if (phase === "ready") setOrbitDone(false);
+  }, [phase]);
 
   const firstName = user?.name?.trim().split(/\s+/)[0] || "";
 
@@ -184,16 +189,7 @@ export default function Landing() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,rgba(7,18,28,0.6)_100%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_70%,rgba(94,200,192,0.16),transparent_50%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_75%_25%,rgba(212,176,106,0.12),transparent_45%)]" />
-          {/* Physics orbit rings */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute left-1/2 top-[42%] h-[min(70vw,520px)] w-[min(70vw,520px)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-aurora/30 animate-orbit-slow"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute left-1/2 top-[42%] h-[min(52vw,380px)] w-[min(52vw,380px)] -translate-x-1/2 -translate-y-1/2 rotate-12 rounded-full border border-gold/20 animate-orbit-slow"
-            style={{ animationDirection: "reverse", animationDuration: "48s" }}
-          />
+          {/* Soft outer atmosphere — main brand circle is in the hero composition */}
           <div
             aria-hidden
             className="pointer-events-none absolute left-[18%] top-[28%] h-2 w-2 rounded-full bg-aurora/80 shadow-[0_0_14px_rgba(94,200,192,0.9)] animate-float"
@@ -205,11 +201,7 @@ export default function Landing() {
           />
 
           <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-6xl flex-col px-6 pb-12 pt-8 md:px-10">
-            <nav
-              className={`flex items-center gap-4 ${
-                user ? "justify-end pr-16" : "justify-end pr-16"
-              }`}
-            >
+            <nav className="flex items-center justify-end gap-4 pr-16">
               <div className="flex items-center gap-2 sm:gap-3">
                 {user ? (
                   <>
@@ -234,74 +226,106 @@ export default function Landing() {
               </div>
             </nav>
 
-            <div className="mb-auto mt-auto flex flex-col items-center py-16 text-center">
-              <div className="mb-8 animate-float">
-                <BrandLogo to={null} size="xl" glow spinRing />
-              </div>
+            <div className="mb-auto mt-auto flex flex-col items-center py-10 text-center">
+              {/* Brand circle: crest orbits the ring, then lands at the top */}
+              <div className="relative mx-auto aspect-square w-[min(92vw,560px)]">
+                <div
+                  aria-hidden
+                  className="absolute inset-0 rounded-full border border-aurora/35 shadow-[0_0_60px_rgba(94,200,192,0.12)]"
+                />
+                <div
+                  aria-hidden
+                  className="absolute inset-[7%] rounded-full border border-gold/15"
+                />
 
-              <h1 className="font-display text-[clamp(3rem,11vw,5.75rem)] font-semibold leading-[0.95] tracking-tight">
-                {phase === "ready" ? (
-                  <>
-                    <span className="gold-text">
-                      <AnimatedLetters text="Dipsan" delay={0.05} stagger={0.06} />
-                    </span>
-                    <br />
-                    <span className="text-mist">
-                      <AnimatedLetters text="Academy" delay={0.4} stagger={0.055} />
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <span className="gold-text">Dipsan</span>
-                    <br />
-                    <span className="text-mist">Academy</span>
-                  </>
+                {phase === "ready" && !orbitDone && (
+                  <div
+                    key="crest-orbit-run"
+                    className="absolute inset-0 animate-crest-orbit"
+                    onAnimationEnd={(e) => {
+                      if (e.target === e.currentTarget) setOrbitDone(true);
+                    }}
+                  >
+                    <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
+                      <div className="animate-crest-face">
+                        <BrandLogo to={null} size="xl" glow spinRing />
+                      </div>
+                    </div>
+                  </div>
                 )}
-              </h1>
 
-              <p
-                className="mt-6 max-w-lg animate-fade-up text-base leading-relaxed text-bronze md:text-lg"
-                style={{ animationDelay: "0.25s" }}
-              >
-                NEET &amp; JEE mocks — timed, scored, and reviewed the moment you submit.
-              </p>
-
-              <div
-                className="mt-10 flex animate-fade-up flex-wrap items-center justify-center gap-3"
-                style={{ animationDelay: "0.38s" }}
-              >
-                {user ? (
-                  <>
-                    <Link
-                      to={user.role === "teacher" ? "/teacher" : "/student"}
-                      className="inline-flex items-center rounded-full bg-gold px-8 py-3.5 text-sm font-bold tracking-wide text-ink transition hover:bg-champagne"
-                    >
-                      Go to dashboard
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={logout}
-                      className="inline-flex items-center rounded-full border border-white/25 bg-white/5 px-8 py-3.5 text-sm font-semibold tracking-wide text-mist transition hover:border-gold hover:text-gold"
-                    >
-                      Log out
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      to="/login"
-                      className="inline-flex items-center rounded-full bg-gold px-8 py-3.5 text-sm font-bold tracking-wide text-ink transition hover:bg-champagne"
-                    >
-                      Log in
-                    </Link>
-                    <Link
-                      to="/register"
-                      className="inline-flex items-center rounded-full border border-white/25 bg-white/5 px-8 py-3.5 text-sm font-semibold tracking-wide text-mist transition hover:border-gold hover:text-gold"
-                    >
-                      Sign up
-                    </Link>
-                  </>
+                {phase === "ready" && orbitDone && (
+                  <div className="absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1/2 animate-float">
+                    <BrandLogo to={null} size="xl" glow spinRing />
+                  </div>
                 )}
+
+                <div className="absolute inset-0 flex flex-col items-center justify-center px-8 pb-2 pt-16 sm:pt-20">
+                  <h1 className="font-display text-[clamp(2.4rem,9vw,4.75rem)] font-semibold leading-[0.95] tracking-tight">
+                    {phase === "ready" ? (
+                      <>
+                        <span className="gold-text">
+                          <AnimatedLetters text="Dipsan" delay={0.15} stagger={0.06} />
+                        </span>
+                        <br />
+                        <span className="text-mist">
+                          <AnimatedLetters text="Academy" delay={0.5} stagger={0.055} />
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="gold-text">Dipsan</span>
+                        <br />
+                        <span className="text-mist">Academy</span>
+                      </>
+                    )}
+                  </h1>
+
+                  <p
+                    className="mt-5 max-w-md animate-fade-up text-sm leading-relaxed text-bronze md:text-base"
+                    style={{ animationDelay: "0.55s" }}
+                  >
+                    NEET &amp; JEE mocks — timed, scored, and reviewed the moment you submit.
+                  </p>
+
+                  <div
+                    className="mt-7 flex animate-fade-up flex-wrap items-center justify-center gap-3"
+                    style={{ animationDelay: "0.7s" }}
+                  >
+                    {user ? (
+                      <>
+                        <Link
+                          to={user.role === "teacher" ? "/teacher" : "/student"}
+                          className="inline-flex items-center rounded-full bg-gold px-8 py-3.5 text-sm font-bold tracking-wide text-ink transition hover:bg-champagne"
+                        >
+                          Go to dashboard
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={logout}
+                          className="inline-flex items-center rounded-full border border-white/25 bg-white/5 px-8 py-3.5 text-sm font-semibold tracking-wide text-mist transition hover:border-gold hover:text-gold"
+                        >
+                          Log out
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <Link
+                          to="/login"
+                          className="inline-flex items-center rounded-full bg-gold px-8 py-3.5 text-sm font-bold tracking-wide text-ink transition hover:bg-champagne"
+                        >
+                          Log in
+                        </Link>
+                        <Link
+                          to="/register"
+                          className="inline-flex items-center rounded-full border border-white/25 bg-white/5 px-8 py-3.5 text-sm font-semibold tracking-wide text-mist transition hover:border-gold hover:text-gold"
+                        >
+                          Sign up
+                        </Link>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
