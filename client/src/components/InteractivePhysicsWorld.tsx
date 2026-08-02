@@ -1,5 +1,6 @@
 import {
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -797,6 +798,10 @@ export function InteractivePhysicsWorld() {
   // At exactly 1.0, stay on last diagram fully drawn
   const localProgress = progress >= 0.999 ? 1 : local;
   const activeIndex = progress >= 0.999 ? 4 : diagramIndex;
+
+  useEffect(() => {
+    setSelected(null);
+  }, [activeIndex]);
 
   // Slide offsets: active at 0, previous exits left, next waits right
   const offsets = [0, 1, 2, 3, 4].map((i) => {
