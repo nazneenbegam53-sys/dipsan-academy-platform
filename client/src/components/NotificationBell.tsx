@@ -71,23 +71,26 @@ export function NotificationBell() {
           setOpen((v) => !v);
           if (!open) load();
         }}
-        className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-mist transition hover:border-aurora/40 hover:text-aurora"
+        className="relative inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-3.5 py-2 text-mist transition hover:border-gold hover:bg-gold/20"
         aria-label="Notifications"
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path
-            d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        {unread > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-ember px-1 text-[10px] font-bold text-white">
-            {unread > 9 ? "9+" : unread}
-          </span>
-        )}
+        <span className="relative inline-flex h-5 w-5 items-center justify-center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path
+              d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          {unread > 0 && (
+            <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-ember px-1 text-[10px] font-bold text-white">
+              {unread > 9 ? "9+" : unread}
+            </span>
+          )}
+        </span>
+        <span className="text-xs font-semibold tracking-wide text-champagne">Alerts</span>
       </button>
 
       {open && (
