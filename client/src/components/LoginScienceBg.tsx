@@ -1,434 +1,361 @@
 import { useEffect, useRef } from "react";
-import * as THREE from "three";
-
-const TEAL = 0x5ec8c0;
-const GOLD = 0xd4b06a;
-const CHAMP = 0xf0e0b8;
-const EMBER = 0xe07a5f;
-const INK = 0x07121c;
-
-function makeGlowSprite(color: number, size = 128) {
-  const c = document.createElement("canvas");
-  c.width = size;
-  c.height = size;
-  const g = c.getContext("2d")!;
-  const grd = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-  const hex = `#${color.toString(16).padStart(6, "0")}`;
-  grd.addColorStop(0, hex);
-  grd.addColorStop(0.35, hex + "88");
-  grd.addColorStop(1, "rgba(0,0,0,0)");
-  g.fillStyle = grd;
-  g.fillRect(0, 0, size, size);
-  const tex = new THREE.CanvasTexture(c);
-  const mat = new THREE.SpriteMaterial({
-    map: tex,
-    transparent: true,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-  });
-  return new THREE.Sprite(mat);
-}
-
-function createDNA(): THREE.Group {
-  const group = new THREE.Group();
-  const pairs = 22;
-  const height = 7.5;
-  const radius = 0.85;
-  const turns = 2.6;
-  const backboneA: THREE.Vector3[] = [];
-  const backboneB: THREE.Vector3[] = [];
-
-  for (let i = 0; i < pairs; i++) {
-    const u = i / (pairs - 1);
-    const y = -height / 2 + u * height;
-    const ang = u * turns * Math.PI * 2;
-    const a = new THREE.Vector3(Math.cos(ang) * radius, y, Math.sin(ang) * radius);
-    const b = new THREE.Vector3(Math.cos(ang + Math.PI) * radius, y, Math.sin(ang + Math.PI) * radius);
-    backboneA.push(a);
-    backboneB.push(b);
-
-    const rungGeo = new THREE.CylinderGeometry(0.04, 0.04, a.distanceTo(b), 6);
-    const rungMat = new THREE.MeshStandardMaterial({
-      color: i % 2 === 0 ? TEAL : EMBER,
-      emissive: i % 2 === 0 ? TEAL : EMBER,
-      emissiveIntensity: 0.35,
-      metalness: 0.2,
-      roughness: 0.4,
-    });
-    const rung = new THREE.Mesh(rungGeo, rungMat);
-    rung.position.copy(a).add(b).multiplyScalar(0.5);
-    rung.lookAt(b);
-    rung.rotateX(Math.PI / 2);
-    group.add(rung);
-
-    for (const p of [a, b]) {
-      const node = new THREE.Mesh(
-        new THREE.SphereGeometry(0.12, 12, 12),
-        new THREE.MeshStandardMaterial({
-          color: p === a ? TEAL : EMBER,
-          emissive: p === a ? TEAL : EMBER,
-          emissiveIntensity: 0.5,
-        })
-      );
-      node.position.copy(p);
-      group.add(node);
-    }
-  }
-
-  const tubeMatA = new THREE.MeshStandardMaterial({
-    color: TEAL,
-    emissive: TEAL,
-    emissiveIntensity: 0.25,
-    metalness: 0.3,
-    roughness: 0.35,
-  });
-  const tubeMatB = new THREE.MeshStandardMaterial({
-    color: EMBER,
-    emissive: EMBER,
-    emissiveIntensity: 0.25,
-    metalness: 0.3,
-    roughness: 0.35,
-  });
-  const curveA = new THREE.CatmullRomCurve3(backboneA);
-  const curveB = new THREE.CatmullRomCurve3(backboneB);
-  group.add(new THREE.Mesh(new THREE.TubeGeometry(curveA, 64, 0.06, 8, false), tubeMatA));
-  group.add(new THREE.Mesh(new THREE.TubeGeometry(curveB, 64, 0.06, 8, false), tubeMatB));
-  return group;
-}
-
-function createMolecule(): THREE.Group {
-  const group = new THREE.Group();
-  const R = 1.1;
-  const positions: THREE.Vector3[] = [];
-  for (let i = 0; i < 6; i++) {
-    const a = (i / 6) * Math.PI * 2;
-    positions.push(new THREE.Vector3(Math.cos(a) * R, Math.sin(a) * R, 0));
-  }
-  positions.push(new THREE.Vector3(R + 0.9, 0.1, 0.2));
-  positions.push(new THREE.Vector3(-(R + 0.9), -0.15, -0.15));
-  positions.push(new THREE.Vector3(0.2, R + 0.85, 0.1));
-
-  const colors = [GOLD, TEAL, GOLD, TEAL, GOLD, TEAL, EMBER, CHAMP, TEAL];
-  const bonds: [number, number][] = [
-    [0, 1],
-    [1, 2],
-    [2, 3],
-    [3, 4],
-    [4, 5],
-    [5, 0],
-    [0, 6],
-    [3, 7],
-    [4, 8],
-  ];
-
-  for (const [i, j] of bonds) {
-    const a = positions[i]!;
-    const b = positions[j]!;
-    const geo = new THREE.CylinderGeometry(0.05, 0.05, a.distanceTo(b), 8);
-    const mat = new THREE.MeshStandardMaterial({
-      color: CHAMP,
-      emissive: GOLD,
-      emissiveIntensity: 0.15,
-      metalness: 0.4,
-      roughness: 0.4,
-    });
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.copy(a).add(b).multiplyScalar(0.5);
-    mesh.lookAt(b);
-    mesh.rotateX(Math.PI / 2);
-    group.add(mesh);
-  }
-
-  positions.forEach((p, i) => {
-    const col = colors[i] ?? GOLD;
-    const atom = new THREE.Mesh(
-      new THREE.SphereGeometry(i < 6 ? 0.28 : 0.22, 16, 16),
-      new THREE.MeshStandardMaterial({
-        color: col,
-        emissive: col,
-        emissiveIntensity: 0.4,
-        metalness: 0.35,
-        roughness: 0.3,
-      })
-    );
-    atom.position.copy(p);
-    group.add(atom);
-    const glow = makeGlowSprite(col);
-    glow.scale.setScalar(1.1);
-    glow.position.copy(p);
-    group.add(glow);
-  });
-
-  return group;
-}
-
-function createAtom(): THREE.Group {
-  const group = new THREE.Group();
-  const nucleus = new THREE.Mesh(
-    new THREE.SphereGeometry(0.35, 24, 24),
-    new THREE.MeshStandardMaterial({
-      color: GOLD,
-      emissive: GOLD,
-      emissiveIntensity: 0.7,
-      metalness: 0.5,
-      roughness: 0.25,
-    })
-  );
-  group.add(nucleus);
-  const coreGlow = makeGlowSprite(GOLD);
-  coreGlow.scale.setScalar(2.2);
-  group.add(coreGlow);
-
-  const orbitData = [
-    { rx: 1.4, ry: 0.55, color: TEAL, speed: 1.1 },
-    { rx: 1.9, ry: 0.7, color: GOLD, speed: -0.75 },
-    { rx: 2.4, ry: 0.9, color: CHAMP, speed: 0.55 },
-  ];
-
-  for (const o of orbitData) {
-    const curve = new THREE.EllipseCurve(0, 0, o.rx, o.ry, 0, Math.PI * 2, false, 0);
-    const pts = curve.getPoints(64).map((p) => new THREE.Vector3(p.x, p.y, 0));
-    const loop = new THREE.LineLoop(
-      new THREE.BufferGeometry().setFromPoints(pts),
-      new THREE.LineBasicMaterial({ color: o.color, transparent: true, opacity: 0.45 })
-    );
-    group.add(loop);
-
-    const electron = new THREE.Mesh(
-      new THREE.SphereGeometry(0.12, 12, 12),
-      new THREE.MeshStandardMaterial({
-        color: o.color,
-        emissive: o.color,
-        emissiveIntensity: 0.8,
-      })
-    );
-    electron.userData = { rx: o.rx, ry: o.ry, speed: o.speed, phase: Math.random() * Math.PI * 2 };
-    group.add(electron);
-
-    const eg = makeGlowSprite(o.color);
-    eg.scale.setScalar(0.7);
-    electron.add(eg);
-  }
-
-  return group;
-}
 
 /**
- * Full WebGL 3D STEM scene behind the login form.
+ * 2D interactive science background for login —
+ * DNA, molecule, orbits, and math glyphs react to the pointer.
+ * No WebGL / 3D.
  */
 export function LoginScienceBg() {
-  const mountRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const mount = mountRef.current;
-    if (!mount) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-    const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(INK, 0.045);
-    scene.background = new THREE.Color(INK);
+    let w = 0;
+    let h = 0;
+    let raf = 0;
+    let alive = true;
 
-    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
-    camera.position.set(0, 0.6, 11);
+    const pointer = { x: 0.5, y: 0.45, tx: 0.5, ty: 0.45 };
+    const ripples: { x: number; y: number; t: number }[] = [];
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.setClearColor(INK, 1);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    mount.appendChild(renderer.domElement);
-    Object.assign(renderer.domElement.style, {
-      position: "fixed",
-      inset: "0",
-      width: "100%",
-      height: "100%",
-      zIndex: "0",
-      pointerEvents: "none",
-    });
-
-    // Lights
-    scene.add(new THREE.AmbientLight(0x6a8090, 0.55));
-    const key = new THREE.PointLight(TEAL, 2.2, 40);
-    key.position.set(-4, 3, 6);
-    scene.add(key);
-    const fill = new THREE.PointLight(GOLD, 1.8, 40);
-    fill.position.set(5, -2, 4);
-    scene.add(fill);
-    const rim = new THREE.DirectionalLight(CHAMP, 0.6);
-    rim.position.set(0, 4, -6);
-    scene.add(rim);
-
-    // Floor grid (subtle lab plane)
-    const grid = new THREE.GridHelper(40, 40, 0x1a3040, 0x122030);
-    grid.position.y = -4.2;
-    scene.add(grid);
-
-    // STEM objects
-    const dna = createDNA();
-    dna.position.set(-4.2, 0.2, -1);
-    dna.rotation.z = -0.25;
-    scene.add(dna);
-
-    const molecule = createMolecule();
-    molecule.position.set(4.4, 1.1, -0.5);
-    scene.add(molecule);
-
-    const atom = createAtom();
-    atom.position.set(0, 0.3, -2.5);
-    scene.add(atom);
-
-    // Math: icosahedron + torus knot
-    const ico = new THREE.Mesh(
-      new THREE.IcosahedronGeometry(1.1, 0),
-      new THREE.MeshStandardMaterial({
-        color: TEAL,
-        emissive: TEAL,
-        emissiveIntensity: 0.2,
-        wireframe: true,
-        metalness: 0.5,
-        roughness: 0.3,
-      })
-    );
-    ico.position.set(3.2, -2.2, 0.5);
-    scene.add(ico);
-
-    const knot = new THREE.Mesh(
-      new THREE.TorusKnotGeometry(0.7, 0.18, 100, 16),
-      new THREE.MeshStandardMaterial({
-        color: GOLD,
-        emissive: GOLD,
-        emissiveIntensity: 0.25,
-        metalness: 0.6,
-        roughness: 0.25,
-      })
-    );
-    knot.position.set(-3.4, -2.4, 1);
-    scene.add(knot);
-
-    // Floating particles
-    const pCount = 400;
-    const pGeo = new THREE.BufferGeometry();
-    const pPos = new Float32Array(pCount * 3);
-    for (let i = 0; i < pCount; i++) {
-      pPos[i * 3] = (Math.random() - 0.5) * 28;
-      pPos[i * 3 + 1] = (Math.random() - 0.5) * 16;
-      pPos[i * 3 + 2] = (Math.random() - 0.5) * 20 - 2;
-    }
-    pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
-    const points = new THREE.Points(
-      pGeo,
-      new THREE.PointsMaterial({
-        color: CHAMP,
-        size: 0.05,
-        transparent: true,
-        opacity: 0.7,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-      })
-    );
-    scene.add(points);
-
-    // Connecting energy lines (DNA ↔ atom ↔ molecule)
-    const lineMat = new THREE.LineBasicMaterial({
-      color: TEAL,
-      transparent: true,
-      opacity: 0.25,
-    });
-    const linkGeo = new THREE.BufferGeometry().setFromPoints([
-      dna.position.clone(),
-      atom.position.clone(),
-      molecule.position.clone(),
-      knot.position.clone(),
-      ico.position.clone(),
-      dna.position.clone(),
-    ]);
-    const links = new THREE.Line(linkGeo, lineMat);
-    scene.add(links);
-
-    const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
-    function onMove(e: PointerEvent) {
-      pointer.tx = (e.clientX / window.innerWidth) * 2 - 1;
-      pointer.ty = -(e.clientY / window.innerHeight) * 2 + 1;
-    }
+    const TEAL = "#5EC8C0";
+    const GOLD = "#D4B06A";
+    const CHAMP = "#F0E0B8";
+    const EMBER = "#E07A5F";
 
     function resize() {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h, false);
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = window.innerWidth;
+      h = window.innerHeight;
+      canvas!.width = Math.floor(w * dpr);
+      canvas!.height = Math.floor(h * dpr);
+      canvas!.style.width = `${w}px`;
+      canvas!.style.height = `${h}px`;
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function onMove(e: PointerEvent) {
+      pointer.tx = e.clientX / Math.max(1, w);
+      pointer.ty = e.clientY / Math.max(1, h);
+    }
+
+    function onDown(e: PointerEvent) {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest?.("form, a, button, input, label, .luxury-panel")) return;
+      ripples.push({ x: e.clientX, y: e.clientY, t: performance.now() });
+      if (ripples.length > 8) ripples.shift();
+    }
+
+    function disc(x: number, y: number, r: number, fill: string) {
+      ctx!.beginPath();
+      ctx!.arc(x, y, r, 0, Math.PI * 2);
+      ctx!.fillStyle = fill;
+      ctx!.fill();
+    }
+
+    function drawDNA(cx: number, cy: number, t: number) {
+      const pairs = 16;
+      const len = Math.min(h * 0.55, 340);
+      const amp = 26;
+      for (let i = 0; i < pairs; i++) {
+        const u = i / (pairs - 1);
+        const y = cy - len / 2 + u * len;
+        const phase = u * Math.PI * 5.2 + t * 1.2;
+        const x1 = cx + Math.cos(phase) * amp;
+        const x2 = cx + Math.cos(phase + Math.PI) * amp;
+        ctx!.strokeStyle = "rgba(94,200,192,0.35)";
+        ctx!.lineWidth = 1.8;
+        ctx!.beginPath();
+        ctx!.moveTo(x1, y);
+        ctx!.lineTo(x2, y);
+        ctx!.stroke();
+        disc(x1, y, 3.2, TEAL);
+        disc(x2, y, 3.2, EMBER);
+      }
+      for (const side of [0, Math.PI]) {
+        ctx!.beginPath();
+        for (let i = 0; i <= 48; i++) {
+          const u = i / 48;
+          const y = cy - len / 2 + u * len;
+          const phase = u * Math.PI * 5.2 + t * 1.2 + side;
+          const x = cx + Math.cos(phase) * amp;
+          if (i === 0) ctx!.moveTo(x, y);
+          else ctx!.lineTo(x, y);
+        }
+        ctx!.strokeStyle = side === 0 ? "rgba(94,200,192,0.7)" : "rgba(224,122,95,0.6)";
+        ctx!.lineWidth = 2.2;
+        ctx!.stroke();
+      }
+      ctx!.fillStyle = "rgba(94,200,192,0.7)";
+      ctx!.font = "600 10px ui-sans-serif, system-ui, sans-serif";
+      ctx!.textAlign = "center";
+      ctx!.fillText("BIOLOGY", cx, cy - len / 2 - 18);
+    }
+
+    function drawMolecule(cx: number, cy: number, t: number) {
+      const R = 48;
+      const atoms: { x: number; y: number; c: string; r: number }[] = [];
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2 + t * 0.4;
+        atoms.push({
+          x: cx + Math.cos(a) * R,
+          y: cy + Math.sin(a) * R,
+          c: i % 2 === 0 ? GOLD : TEAL,
+          r: 7,
+        });
+      }
+      const satA = t * 0.4;
+      atoms.push({ x: cx + Math.cos(satA) * (R + 36), y: cy + Math.sin(satA) * (R + 36), c: EMBER, r: 5.5 });
+      atoms.push({
+        x: cx + Math.cos(satA + Math.PI) * (R + 36),
+        y: cy + Math.sin(satA + Math.PI) * (R + 36),
+        c: CHAMP,
+        r: 5.5,
+      });
+
+      ctx!.strokeStyle = "rgba(240,224,184,0.45)";
+      ctx!.lineWidth = 2;
+      for (let i = 0; i < 6; i++) {
+        const a = atoms[i]!;
+        const b = atoms[(i + 1) % 6]!;
+        ctx!.beginPath();
+        ctx!.moveTo(a.x, a.y);
+        ctx!.lineTo(b.x, b.y);
+        ctx!.stroke();
+      }
+      ctx!.beginPath();
+      ctx!.moveTo(atoms[0]!.x, atoms[0]!.y);
+      ctx!.lineTo(atoms[6]!.x, atoms[6]!.y);
+      ctx!.moveTo(atoms[3]!.x, atoms[3]!.y);
+      ctx!.lineTo(atoms[7]!.x, atoms[7]!.y);
+      ctx!.strokeStyle = "rgba(224,122,95,0.45)";
+      ctx!.stroke();
+
+      for (const a of atoms) {
+        disc(a.x, a.y, a.r + 5, a.c === GOLD ? "rgba(212,176,106,0.15)" : "rgba(94,200,192,0.12)");
+        disc(a.x, a.y, a.r, a.c);
+      }
+      ctx!.fillStyle = "rgba(212,176,106,0.75)";
+      ctx!.font = "600 10px ui-sans-serif, system-ui, sans-serif";
+      ctx!.textAlign = "center";
+      ctx!.fillText("CHEMISTRY", cx, cy - R - 40);
+    }
+
+    function drawAtom(cx: number, cy: number, t: number) {
+      disc(cx, cy, 9, GOLD);
+      disc(cx, cy, 3.5, CHAMP);
+      const orbits = [
+        { rx: 58, ry: 22, speed: 1.15, color: TEAL },
+        { rx: 86, ry: 32, speed: -0.7, color: GOLD },
+        { rx: 116, ry: 42, speed: 0.48, color: CHAMP },
+      ];
+      for (let i = 0; i < orbits.length; i++) {
+        const o = orbits[i]!;
+        ctx!.save();
+        ctx!.translate(cx, cy);
+        ctx!.rotate(i * 0.9 + t * 0.1);
+        ctx!.beginPath();
+        ctx!.ellipse(0, 0, o.rx, o.ry, 0, 0, Math.PI * 2);
+        ctx!.strokeStyle =
+          o.color === TEAL ? "rgba(94,200,192,0.4)" : o.color === GOLD ? "rgba(212,176,106,0.35)" : "rgba(240,224,184,0.3)";
+        ctx!.lineWidth = 1.4;
+        ctx!.stroke();
+        const ang = t * o.speed * Math.PI * 2;
+        disc(Math.cos(ang) * o.rx, Math.sin(ang) * o.ry, 4.2, o.color);
+        ctx!.restore();
+      }
+      ctx!.fillStyle = "rgba(240,224,184,0.75)";
+      ctx!.font = "600 10px ui-sans-serif, system-ui, sans-serif";
+      ctx!.textAlign = "center";
+      ctx!.fillText("PHYSICS", cx, cy + 140);
+    }
+
+    function drawMath(cx: number, cy: number, t: number) {
+      // golden spiral
+      ctx!.beginPath();
+      for (let i = 0; i <= 90; i++) {
+        const u = i / 90;
+        const ang = u * Math.PI * 3 + t * 0.25;
+        const rad = 5 * Math.pow(1.22, u * 9);
+        const x = cx + Math.cos(ang) * rad;
+        const y = cy + Math.sin(ang) * rad;
+        if (i === 0) ctx!.moveTo(x, y);
+        else ctx!.lineTo(x, y);
+      }
+      ctx!.strokeStyle = "rgba(212,176,106,0.65)";
+      ctx!.lineWidth = 1.8;
+      ctx!.stroke();
+
+      // hex wire
+      ctx!.beginPath();
+      for (let i = 0; i <= 6; i++) {
+        const a = (i / 6) * Math.PI * 2 + t * 0.5;
+        const x = cx + Math.cos(a) * 36;
+        const y = cy + Math.sin(a) * 36;
+        if (i === 0) ctx!.moveTo(x, y);
+        else ctx!.lineTo(x, y);
+      }
+      ctx!.strokeStyle = "rgba(94,200,192,0.5)";
+      ctx!.lineWidth = 1.4;
+      ctx!.stroke();
+
+      ctx!.fillStyle = "rgba(240,224,184,0.55)";
+      ctx!.font = "15px Georgia, serif";
+      const glyphs = ["∑", "π", "∞", "∫", "Δ"];
+      for (let i = 0; i < glyphs.length; i++) {
+        const a = t * 0.55 + (i / glyphs.length) * Math.PI * 2;
+        ctx!.fillText(glyphs[i]!, cx + Math.cos(a) * 58 - 5, cy + Math.sin(a) * 34 + 5);
+      }
+
+      ctx!.fillStyle = "rgba(212,176,106,0.75)";
+      ctx!.font = "600 10px ui-sans-serif, system-ui, sans-serif";
+      ctx!.textAlign = "center";
+      ctx!.fillText("MATHEMATICS", cx, cy + 78);
+    }
+
+    function drawLink(ax: number, ay: number, bx: number, by: number, t: number, color: string) {
+      const mx = (ax + bx) / 2 + Math.sin(t * 2 + ax * 0.01) * 18;
+      const my = (ay + by) / 2 + Math.cos(t * 1.5 + ay * 0.01) * 14;
+      ctx!.beginPath();
+      ctx!.moveTo(ax, ay);
+      ctx!.quadraticCurveTo(mx, my, bx, by);
+      ctx!.strokeStyle = color;
+      ctx!.globalAlpha = 0.3;
+      ctx!.lineWidth = 1.4;
+      ctx!.stroke();
+      ctx!.globalAlpha = 1;
+      const u = (t * 0.4 + ax * 0.001) % 1;
+      const px = (1 - u) * (1 - u) * ax + 2 * (1 - u) * u * mx + u * u * bx;
+      const py = (1 - u) * (1 - u) * ay + 2 * (1 - u) * u * my + u * u * by;
+      disc(px, py, 2.5, color);
     }
 
     resize();
+    const start = performance.now();
+
+    function frame(now: number) {
+      if (!alive) return;
+      const t = (now - start) / 1000;
+      pointer.x += (pointer.tx - pointer.x) * 0.08;
+      pointer.y += (pointer.ty - pointer.y) * 0.08;
+
+      const px = (pointer.x - 0.5) * 36;
+      const py = (pointer.y - 0.5) * 24;
+
+      ctx!.fillStyle = "#07121c";
+      ctx!.fillRect(0, 0, w, h);
+
+      const wash = ctx!.createRadialGradient(
+        pointer.x * w,
+        pointer.y * h,
+        30,
+        w * 0.5,
+        h * 0.45,
+        Math.max(w, h) * 0.7
+      );
+      wash.addColorStop(0, "rgba(94,200,192,0.12)");
+      wash.addColorStop(0.45, "rgba(212,176,106,0.06)");
+      wash.addColorStop(1, "rgba(7,18,28,0)");
+      ctx!.fillStyle = wash;
+      ctx!.fillRect(0, 0, w, h);
+
+      // soft grid that bends slightly toward cursor
+      ctx!.strokeStyle = "rgba(157,176,192,0.05)";
+      ctx!.lineWidth = 1;
+      const gap = 52;
+      for (let x = 0; x < w; x += gap) {
+        ctx!.beginPath();
+        for (let y = 0; y <= h; y += 10) {
+          const dx = x - pointer.x * w;
+          const dy = y - pointer.y * h;
+          const d = Math.sqrt(dx * dx + dy * dy) + 1;
+          const bend = 40 / (d * 0.025 + 1);
+          const xx = x + (dx / d) * bend;
+          if (y === 0) ctx!.moveTo(xx, y);
+          else ctx!.lineTo(xx, y);
+        }
+        ctx!.stroke();
+      }
+
+      const narrow = w < 720;
+      const atom = { x: w * 0.5 + px * 0.35, y: h * (narrow ? 0.34 : 0.42) + py * 0.35 };
+      const bio = { x: w * (narrow ? 0.2 : 0.16) + px * 0.7, y: h * (narrow ? 0.58 : 0.48) + py * 0.5 };
+      const chem = { x: w * (narrow ? 0.8 : 0.84) + px * 0.55, y: h * (narrow ? 0.28 : 0.36) + py * 0.4 };
+      const math = { x: w * 0.74 + px * 0.5, y: h * 0.72 + py * 0.45 };
+
+      drawLink(atom.x, atom.y, bio.x, bio.y, t, TEAL);
+      drawLink(atom.x, atom.y, chem.x, chem.y, t, GOLD);
+      drawLink(atom.x, atom.y, math.x, math.y, t, CHAMP);
+
+      drawDNA(bio.x, bio.y, t);
+      drawMolecule(chem.x, chem.y, t);
+      drawMath(math.x, math.y, t);
+      drawAtom(atom.x, atom.y, t);
+
+      // formula dust near cursor
+      ctx!.fillStyle = "rgba(240,224,184,0.22)";
+      ctx!.font = "11px ui-monospace, monospace";
+      const dust = ["E=mc²", "F=ma", "H₂O", "πr²", "ΔG", "DNA"];
+      for (let i = 0; i < dust.length; i++) {
+        const a = t * 0.3 + i;
+        const dx = pointer.x * w + Math.cos(a) * (90 + i * 18);
+        const dy = pointer.y * h + Math.sin(a * 1.3) * (60 + i * 12);
+        ctx!.globalAlpha = 0.2 + 0.15 * Math.sin(t + i);
+        ctx!.fillText(dust[i]!, dx, dy);
+      }
+      ctx!.globalAlpha = 1;
+
+      // click ripples
+      for (let i = ripples.length - 1; i >= 0; i--) {
+        const r = ripples[i]!;
+        const age = (now - r.t) / 1200;
+        if (age >= 1) {
+          ripples.splice(i, 1);
+          continue;
+        }
+        ctx!.beginPath();
+        ctx!.arc(r.x, r.y, 12 + age * 120, 0, Math.PI * 2);
+        ctx!.strokeStyle = `rgba(94,200,192,${0.4 * (1 - age)})`;
+        ctx!.lineWidth = 1.5;
+        ctx!.stroke();
+      }
+
+      // vignette for form readability
+      const vig = ctx!.createRadialGradient(w * 0.5, h * 0.48, Math.min(w, h) * 0.12, w * 0.5, h * 0.5, Math.max(w, h) * 0.7);
+      vig.addColorStop(0, "rgba(7,18,28,0.1)");
+      vig.addColorStop(0.55, "rgba(7,18,28,0.35)");
+      vig.addColorStop(1, "rgba(7,18,28,0.78)");
+      ctx!.fillStyle = vig;
+      ctx!.fillRect(0, 0, w, h);
+
+      raf = requestAnimationFrame(frame);
+    }
+
     window.addEventListener("resize", resize);
     window.addEventListener("pointermove", onMove, { passive: true });
-
-    let raf = 0;
-    const clock = new THREE.Clock();
-    let alive = true;
-
-    function tick() {
-      if (!alive) return;
-      const t = clock.getElapsedTime();
-      pointer.x += (pointer.tx - pointer.x) * 0.05;
-      pointer.y += (pointer.ty - pointer.y) * 0.05;
-
-      dna.rotation.y = t * 0.35;
-      molecule.rotation.y = t * 0.55;
-      molecule.rotation.x = Math.sin(t * 0.4) * 0.25;
-      atom.rotation.y = t * 0.25;
-      atom.rotation.x = t * 0.12;
-      ico.rotation.x = t * 0.4;
-      ico.rotation.y = t * 0.55;
-      knot.rotation.x = t * 0.6;
-      knot.rotation.y = t * 0.35;
-      points.rotation.y = t * 0.03;
-
-      // Orbit electrons
-      atom.children.forEach((child) => {
-        const d = child.userData as { rx?: number; ry?: number; speed?: number; phase?: number };
-        if (d.rx != null && d.ry != null && d.speed != null) {
-          const ang = t * d.speed + (d.phase ?? 0);
-          child.position.set(Math.cos(ang) * d.rx, Math.sin(ang) * d.ry, Math.sin(ang * 0.5) * 0.2);
-        }
-      });
-
-      // Camera parallax orbit
-      const camR = 11;
-      camera.position.x = Math.sin(pointer.x * 0.45) * camR * 0.22;
-      camera.position.y = 0.6 + pointer.y * 0.9;
-      camera.position.z = camR - Math.abs(pointer.x) * 0.8;
-      camera.lookAt(atom.position.x * 0.3, 0.2, -1);
-
-      key.intensity = 2.0 + Math.sin(t * 2) * 0.3;
-      fill.intensity = 1.6 + Math.cos(t * 1.6) * 0.25;
-
-      renderer.render(scene, camera);
-      raf = requestAnimationFrame(tick);
-    }
-    raf = requestAnimationFrame(tick);
+    window.addEventListener("pointerdown", onDown, { passive: true });
+    raf = requestAnimationFrame(frame);
 
     return () => {
       alive = false;
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointermove", onMove);
-      renderer.dispose();
-      mount.removeChild(renderer.domElement);
-      scene.traverse((obj) => {
-        if (obj instanceof THREE.Mesh || obj instanceof THREE.Line || obj instanceof THREE.Points) {
-          obj.geometry?.dispose();
-          const mat = obj.material;
-          if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
-          else mat?.dispose();
-        }
-        if (obj instanceof THREE.Sprite) {
-          obj.material.map?.dispose();
-          obj.material.dispose();
-        }
-      });
+      window.removeEventListener("pointerdown", onDown);
     };
   }, []);
 
-  return <div ref={mountRef} className="pointer-events-none fixed inset-0 z-0" aria-hidden />;
+  return (
+    <canvas
+      ref={canvasRef}
+      className="pointer-events-none fixed inset-0 z-0"
+      aria-hidden
+    />
+  );
 }
 
 export default LoginScienceBg;
