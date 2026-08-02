@@ -145,33 +145,103 @@ export function LoginScienceBg() {
       ctx!.fillText("CHEMISTRY", cx, cy - R - 40);
     }
 
-    function drawAtom(cx: number, cy: number, t: number) {
-      disc(cx, cy, 9, GOLD);
-      disc(cx, cy, 3.5, CHAMP);
+    function drawPhysics(cx: number, cy: number, t: number) {
+      // Atom nucleus + electron orbits
+      disc(cx, cy - 8, 8, GOLD);
+      disc(cx, cy - 8, 3, CHAMP);
       const orbits = [
-        { rx: 58, ry: 22, speed: 1.15, color: TEAL },
-        { rx: 86, ry: 32, speed: -0.7, color: GOLD },
-        { rx: 116, ry: 42, speed: 0.48, color: CHAMP },
+        { rx: 42, ry: 16, speed: 1.2, color: TEAL },
+        { rx: 62, ry: 24, speed: -0.75, color: GOLD },
+        { rx: 82, ry: 32, speed: 0.5, color: CHAMP },
       ];
       for (let i = 0; i < orbits.length; i++) {
         const o = orbits[i]!;
         ctx!.save();
-        ctx!.translate(cx, cy);
-        ctx!.rotate(i * 0.9 + t * 0.1);
+        ctx!.translate(cx, cy - 8);
+        ctx!.rotate(i * 0.85 + t * 0.12);
         ctx!.beginPath();
         ctx!.ellipse(0, 0, o.rx, o.ry, 0, 0, Math.PI * 2);
         ctx!.strokeStyle =
-          o.color === TEAL ? "rgba(94,200,192,0.4)" : o.color === GOLD ? "rgba(212,176,106,0.35)" : "rgba(240,224,184,0.3)";
-        ctx!.lineWidth = 1.4;
+          o.color === TEAL
+            ? "rgba(94,200,192,0.55)"
+            : o.color === GOLD
+              ? "rgba(212,176,106,0.5)"
+              : "rgba(240,224,184,0.4)";
+        ctx!.lineWidth = 1.5;
         ctx!.stroke();
         const ang = t * o.speed * Math.PI * 2;
-        disc(Math.cos(ang) * o.rx, Math.sin(ang) * o.ry, 4.2, o.color);
+        disc(Math.cos(ang) * o.rx, Math.sin(ang) * o.ry, 4, o.color);
         ctx!.restore();
       }
-      ctx!.fillStyle = "rgba(240,224,184,0.75)";
+
+      // Pendulum (classic mechanics)
+      const pivotX = cx + 100;
+      const pivotY = cy - 50;
+      const swing = Math.sin(t * 1.8) * 0.55;
+      const plen = 70;
+      const bobX = pivotX + Math.sin(swing) * plen;
+      const bobY = pivotY + Math.cos(swing) * plen;
+      disc(pivotX, pivotY, 3, CHAMP);
+      ctx!.strokeStyle = "rgba(240,224,184,0.55)";
+      ctx!.lineWidth = 1.6;
+      ctx!.beginPath();
+      ctx!.moveTo(pivotX, pivotY);
+      ctx!.lineTo(bobX, bobY);
+      ctx!.stroke();
+      disc(bobX, bobY, 8, TEAL);
+      disc(bobX, bobY, 14, "rgba(94,200,192,0.15)");
+
+      // Traveling sine wave
+      ctx!.beginPath();
+      const waveY = cy + 78;
+      const waveX0 = cx - 90;
+      for (let i = 0; i <= 120; i++) {
+        const x = waveX0 + i * 1.7;
+        const y = waveY + Math.sin(i * 0.14 + t * 3) * 12;
+        if (i === 0) ctx!.moveTo(x, y);
+        else ctx!.lineTo(x, y);
+      }
+      ctx!.strokeStyle = "rgba(94,200,192,0.65)";
+      ctx!.lineWidth = 1.8;
+      ctx!.stroke();
+
+      // Force vector F →
+      const fx = cx - 70;
+      const fy = cy + 40;
+      ctx!.strokeStyle = "rgba(224,122,95,0.75)";
+      ctx!.fillStyle = "rgba(224,122,95,0.85)";
+      ctx!.lineWidth = 2;
+      ctx!.beginPath();
+      ctx!.moveTo(fx, fy);
+      ctx!.lineTo(fx + 50, fy);
+      ctx!.stroke();
+      ctx!.beginPath();
+      ctx!.moveTo(fx + 50, fy);
+      ctx!.lineTo(fx + 42, fy - 5);
+      ctx!.lineTo(fx + 42, fy + 5);
+      ctx!.closePath();
+      ctx!.fill();
+      ctx!.font = "600 11px ui-monospace, monospace";
+      ctx!.fillText("F = ma", fx, fy - 10);
+
+      // Photon tick
+      const phx = cx + 70 + Math.cos(t * 2) * 20;
+      const phy = cy - 70 + Math.sin(t * 2) * 8;
+      ctx!.strokeStyle = "rgba(240,224,184,0.7)";
+      ctx!.lineWidth = 2;
+      ctx!.beginPath();
+      ctx!.moveTo(phx - 14, phy);
+      ctx!.lineTo(phx + 14, phy);
+      ctx!.moveTo(phx + 8, phy);
+      ctx!.lineTo(phx + 14, phy - 5);
+      ctx!.moveTo(phx + 8, phy);
+      ctx!.lineTo(phx + 14, phy + 5);
+      ctx!.stroke();
+
+      ctx!.fillStyle = "rgba(240,224,184,0.9)";
       ctx!.font = "600 10px ui-sans-serif, system-ui, sans-serif";
       ctx!.textAlign = "center";
-      ctx!.fillText("PHYSICS", cx, cy + 140);
+      ctx!.fillText("PHYSICS", cx, cy - 100);
     }
 
     function drawMath(cx: number, cy: number, t: number) {
@@ -282,19 +352,33 @@ export function LoginScienceBg() {
       }
 
       const narrow = w < 720;
-      const atom = { x: w * 0.5 + px * 0.35, y: h * (narrow ? 0.34 : 0.42) + py * 0.35 };
-      const bio = { x: w * (narrow ? 0.2 : 0.16) + px * 0.7, y: h * (narrow ? 0.58 : 0.48) + py * 0.5 };
-      const chem = { x: w * (narrow ? 0.8 : 0.84) + px * 0.55, y: h * (narrow ? 0.28 : 0.36) + py * 0.4 };
-      const math = { x: w * 0.74 + px * 0.5, y: h * 0.72 + py * 0.45 };
+      // Physics sits top-left — clear of the centered login card
+      const phys = {
+        x: w * (narrow ? 0.28 : 0.2) + px * 0.55,
+        y: h * (narrow ? 0.2 : 0.22) + py * 0.35,
+      };
+      const bio = {
+        x: w * (narrow ? 0.18 : 0.14) + px * 0.7,
+        y: h * (narrow ? 0.62 : 0.58) + py * 0.45,
+      };
+      const chem = {
+        x: w * (narrow ? 0.8 : 0.84) + px * 0.55,
+        y: h * (narrow ? 0.26 : 0.3) + py * 0.4,
+      };
+      const math = {
+        x: w * (narrow ? 0.76 : 0.8) + px * 0.5,
+        y: h * (narrow ? 0.72 : 0.7) + py * 0.45,
+      };
 
-      drawLink(atom.x, atom.y, bio.x, bio.y, t, TEAL);
-      drawLink(atom.x, atom.y, chem.x, chem.y, t, GOLD);
-      drawLink(atom.x, atom.y, math.x, math.y, t, CHAMP);
+      drawLink(phys.x, phys.y, bio.x, bio.y, t, TEAL);
+      drawLink(phys.x, phys.y, chem.x, chem.y, t, GOLD);
+      drawLink(chem.x, chem.y, math.x, math.y, t, CHAMP);
+      drawLink(bio.x, bio.y, math.x, math.y, t, "rgba(224,122,95,0.7)");
 
       drawDNA(bio.x, bio.y, t);
       drawMolecule(chem.x, chem.y, t);
       drawMath(math.x, math.y, t);
-      drawAtom(atom.x, atom.y, t);
+      drawPhysics(phys.x, phys.y, t);
 
       // formula dust near cursor
       ctx!.fillStyle = "rgba(240,224,184,0.22)";
@@ -324,11 +408,18 @@ export function LoginScienceBg() {
         ctx!.stroke();
       }
 
-      // vignette for form readability
-      const vig = ctx!.createRadialGradient(w * 0.5, h * 0.48, Math.min(w, h) * 0.12, w * 0.5, h * 0.5, Math.max(w, h) * 0.7);
-      vig.addColorStop(0, "rgba(7,18,28,0.1)");
-      vig.addColorStop(0.55, "rgba(7,18,28,0.35)");
-      vig.addColorStop(1, "rgba(7,18,28,0.78)");
+      // vignette — keep corners brighter so science emblems stay visible
+      const vig = ctx!.createRadialGradient(
+        w * 0.5,
+        h * 0.48,
+        Math.min(w, h) * 0.08,
+        w * 0.5,
+        h * 0.5,
+        Math.max(w, h) * 0.72
+      );
+      vig.addColorStop(0, "rgba(7,18,28,0.45)");
+      vig.addColorStop(0.45, "rgba(7,18,28,0.22)");
+      vig.addColorStop(1, "rgba(7,18,28,0.55)");
       ctx!.fillStyle = vig;
       ctx!.fillRect(0, 0, w, h);
 
