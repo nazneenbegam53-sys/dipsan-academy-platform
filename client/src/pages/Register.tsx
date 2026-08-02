@@ -30,10 +30,14 @@ export default function Register() {
     setLoading(true);
     try {
       await register({ ...form, role });
-      navigate("/");
+      try {
+        sessionStorage.setItem("dipsan_intro_done", "1");
+      } catch {
+        /* ignore */
+      }
+      navigate("/", { replace: true });
     } catch (err: any) {
       setError(err.message || "Registration failed.");
-    } finally {
       setLoading(false);
     }
   }

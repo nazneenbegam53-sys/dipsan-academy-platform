@@ -309,6 +309,10 @@ export function LoginScienceBg() {
 
     function frame(now: number) {
       if (!alive) return;
+      if (typeof document !== "undefined" && document.hidden) {
+        raf = requestAnimationFrame(frame);
+        return;
+      }
       const t = (now - start) / 1000;
       pointer.x += (pointer.tx - pointer.x) * 0.08;
       pointer.y += (pointer.ty - pointer.y) * 0.08;
