@@ -51,6 +51,7 @@ export default function Landing() {
   const { user, logout } = useAuth();
   const [phase, setPhase] = useState<Phase>("intro");
   const [orbitDone, setOrbitDone] = useState(false);
+  const [orbitRun, setOrbitRun] = useState(0);
   const [funSubject, setFunSubject] = useState<SubjectKey | null>(null);
   const [funKey, setFunKey] = useState(0);
 
@@ -112,7 +113,7 @@ export default function Landing() {
             />
 
             <div className="relative z-10">
-              <BrandLogo to={null} size="hero" glow tapSpin className="animate-logo-enter" />
+              <BrandLogo to={null} size="hero" glow className="animate-logo-enter" />
             </div>
           </div>
 
@@ -143,7 +144,7 @@ export default function Landing() {
       >
         <NotificationBell />
         <SupportButton />
-        <BrandLogo size="sm" glow spinRing tapSpin />
+        <BrandLogo size="sm" glow spinRing />
       </div>
 
       {user && (
@@ -207,7 +208,7 @@ export default function Landing() {
 
                 {phase === "ready" && (
                   <div
-                    key={orbitDone ? "crest-rest" : "crest-orbit-run"}
+                    key={`crest-${orbitRun}-${orbitDone ? "rest" : "run"}`}
                     className={`pointer-events-none absolute inset-0 z-20 ${
                       orbitDone ? "" : "animate-crest-orbit"
                     }`}
@@ -216,14 +217,17 @@ export default function Landing() {
                     }}
                   >
                     {/* Logo rides the rim; counter-spin keeps it upright (no tilt/scale) */}
-                    <div className="absolute left-1/2 top-0 z-30 -translate-x-1/2 -translate-y-1/2 pointer-events-auto">
+                    <div className="pointer-events-auto absolute left-1/2 top-0 z-30 -translate-x-1/2 -translate-y-1/2">
                       <div className={orbitDone ? "animate-float" : "animate-crest-face"}>
                         <BrandLogo
                           to={null}
                           size="xl"
                           glow
                           spinRing={orbitDone}
-                          tapSpin
+                          onClick={() => {
+                            setOrbitDone(false);
+                            setOrbitRun((n) => n + 1);
+                          }}
                         />
                       </div>
                     </div>
@@ -319,7 +323,7 @@ export default function Landing() {
           <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-20 md:grid-cols-2 md:px-10 md:py-24">
             <div className="animate-fade-up">
               <div className="mb-4 flex items-center gap-3">
-                <BrandLogo size="xs" glow tapSpin />
+                <BrandLogo size="xs" glow />
                 <span className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
                   The experience
                 </span>
@@ -345,7 +349,7 @@ export default function Landing() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-paper via-transparent to-transparent" />
               <div className="absolute bottom-5 left-5 flex items-center gap-3">
-                <BrandLogo size="xs" tapSpin />
+                <BrandLogo size="xs" />
                 <span className="font-display text-lg text-mist">Precision over pressure.</span>
               </div>
             </div>
@@ -362,7 +366,7 @@ export default function Landing() {
               />
               <div className="absolute inset-0 bg-paper/55" />
               <div className="relative px-6 py-16 md:px-10 md:py-20">
-                <BrandLogo size="xs" glow tapSpin />
+                <BrandLogo size="xs" glow />
                 <div className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-gold">
                   Students
                 </div>
@@ -382,7 +386,7 @@ export default function Landing() {
               />
               <div className="absolute inset-0 bg-paper/60" />
               <div className="relative px-6 py-16 md:px-10 md:py-20">
-                <BrandLogo size="xs" glow tapSpin />
+                <BrandLogo size="xs" glow />
                 <div className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-gold">
                   Teachers
                 </div>
@@ -405,7 +409,7 @@ export default function Landing() {
           />
           <div className="pointer-events-none absolute inset-0 bg-paper/70" />
           <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center gap-8 px-6 py-20 text-center md:px-10">
-            <BrandLogo size="lg" glow spinRing tapSpin />
+            <BrandLogo size="lg" glow spinRing />
             <h2 className="font-display text-4xl font-semibold text-mist md:text-5xl">
               Ready when you are.
             </h2>
@@ -447,7 +451,7 @@ export default function Landing() {
 
         <footer className="border-t border-white/10 bg-paper px-6 py-8 md:px-10">
           <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
-            <BrandLogo size="sm" showWordmark glow tapSpin />
+            <BrandLogo size="sm" showWordmark glow />
             <span className="text-xs tracking-wide text-bronze">Online examination platform</span>
           </div>
         </footer>

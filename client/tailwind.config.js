@@ -106,11 +106,6 @@ export default {
           "0%": { transform: "scaleX(0)", opacity: "0" },
           "100%": { transform: "scaleX(1)", opacity: "1" },
         },
-        "logo-tap-spin": {
-          "0%": { transform: "rotate(0deg) scale(1)" },
-          "40%": { transform: "rotate(200deg) scale(1.06)" },
-          "100%": { transform: "rotate(360deg) scale(1)" },
-        },
         shimmer: {
           "0%": { backgroundPosition: "0% 50%" },
           "100%": { backgroundPosition: "100% 50%" },
@@ -137,7 +132,6 @@ export default {
         "intro-bloom": "intro-bloom 1.5s ease-out both",
         "intro-ring": "intro-ring 1.35s cubic-bezier(0.22, 1, 0.36, 1) both",
         "underline-grow": "underline-grow 0.85s cubic-bezier(0.22, 1, 0.36, 1) both",
-        "logo-tap-spin": "logo-tap-spin 0.9s cubic-bezier(0.22, 1, 0.36, 1) both",
         shimmer: "shimmer 5s linear infinite",
         "logo-drift": "float 16s ease-in-out infinite",
         "logo-drift-delayed": "float 20s ease-in-out infinite reverse",
