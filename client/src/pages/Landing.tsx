@@ -13,22 +13,50 @@ const BIOLOGY_IMAGE = "/hero/biology.jpg";
 const MATH_IMAGE = "/hero/math.jpg";
 const SPACE_IMAGE = "/hero/earth.jpg";
 
+function AnimatedLetters({
+  text,
+  className = "",
+  delay = 0,
+  stagger = 0.045,
+}: {
+  text: string;
+  className?: string;
+  delay?: number;
+  stagger?: number;
+}) {
+  return (
+    <span className={`inline-flex flex-wrap justify-center ${className}`} aria-label={text}>
+      {text.split("").map((ch, i) => (
+        <span
+          key={`${ch}-${i}`}
+          className="inline-block animate-letter-in"
+          style={{ animationDelay: `${delay + i * stagger}s` }}
+        >
+          {ch === " " ? "\u00A0" : ch}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 export default function Landing() {
   const { user, logout } = useAuth();
   const [phase, setPhase] = useState<Phase>("intro");
 
   useEffect(() => {
-    const settleTimer = window.setTimeout(() => setPhase("settle"), 1600);
-    const readyTimer = window.setTimeout(() => setPhase("ready"), 2800);
+    const settleTimer = window.setTimeout(() => setPhase("settle"), 2000);
+    const readyTimer = window.setTimeout(() => setPhase("ready"), 3400);
     return () => {
       window.clearTimeout(settleTimer);
       window.clearTimeout(readyTimer);
     };
   }, []);
 
+  const firstName = user?.name?.trim().split(/\s+/)[0] || "";
+
   return (
     <div className="relative min-h-screen overflow-x-hidden science-atmosphere text-mist">
-      {/* Crest intro — orbital science reveal */}
+      {/* Crest intro — orbital science + letter reveal */}
       <div
         className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-[900ms] ease-out ${
           phase === "ready" ? "pointer-events-none opacity-0 scale-110" : "opacity-100 scale-100"
@@ -49,7 +77,7 @@ export default function Landing() {
           }}
         />
 
-        <div className="relative flex flex-col items-center">
+        <div className="relative flex flex-col items-center px-6">
           <div className="relative flex items-center justify-center">
             <span
               aria-hidden
@@ -94,17 +122,25 @@ export default function Landing() {
               <BrandLogo to={null} size="hero" glow spinRing className="animate-logo-enter" />
             </div>
           </div>
+
+          <h2 className="mt-10 text-center font-display text-3xl font-semibold tracking-[0.12em] gold-text animate-letter-glow md:text-5xl">
+            <AnimatedLetters text="DIPSAN" delay={0.35} stagger={0.07} />
+            <span className="mx-2 inline-block w-2" aria-hidden />
+            <AnimatedLetters text="ACADEMY" delay={0.78} stagger={0.065} />
+          </h2>
+
           <p
-            className="mt-10 font-display text-3xl font-semibold tracking-[0.18em] gold-text animate-intro-title md:text-4xl"
-            style={{ animationDelay: "0.45s" }}
+            className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] uppercase tracking-[0.32em] text-aurora/90"
+            aria-label="Science Precision Practice"
           >
-            DIPSAN ACADEMY
-          </p>
-          <p
-            className="mt-3 animate-fade-up text-[11px] uppercase tracking-[0.35em] text-aurora/90"
-            style={{ animationDelay: "0.85s" }}
-          >
-            Science · Precision · Practice
+            {["Science", "Precision", "Practice"].map((word, wi) => (
+              <span key={word} className="inline-flex items-center gap-3">
+                {wi > 0 && (
+                  <span className="h-1 w-1 rounded-full bg-gold/70" aria-hidden />
+                )}
+                <AnimatedLetters text={word} delay={1.35 + wi * 0.22} stagger={0.04} />
+              </span>
+            ))}
           </p>
         </div>
       </div>
@@ -116,6 +152,21 @@ export default function Landing() {
       >
         <BrandLogo size="sm" glow spinRing />
       </div>
+
+      {user && (
+        <div
+          className={`fixed left-5 top-5 z-40 transition-all duration-700 md:left-8 md:top-6 ${
+            phase === "ready" ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
+          }`}
+        >
+          <p className="font-display text-lg font-semibold tracking-wide text-mist md:text-xl">
+            Hi, <span className="gold-text">{firstName}</span>
+          </p>
+          <p className="text-[10px] uppercase tracking-[0.22em] text-bronze">
+            {user.role === "teacher" ? "Teacher" : "Student"}
+          </p>
+        </div>
+      )}
 
       <div
         className={`relative z-10 transition-opacity duration-700 ${
@@ -154,7 +205,11 @@ export default function Landing() {
           />
 
           <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-6xl flex-col px-6 pb-12 pt-8 md:px-10">
-            <nav className="flex items-center justify-end gap-4 pr-16">
+            <nav
+              className={`flex items-center gap-4 ${
+                user ? "justify-end pr-16" : "justify-end pr-16"
+              }`}
+            >
               <div className="flex items-center gap-2 sm:gap-3">
                 {user ? (
                   <>
@@ -185,14 +240,23 @@ export default function Landing() {
               </div>
 
               <h1 className="font-display text-[clamp(3rem,11vw,5.75rem)] font-semibold leading-[0.95] tracking-tight">
-                <span className="inline-block animate-title-rise gold-text">Dipsan</span>
-                <br />
-                <span
-                  className="inline-block animate-title-rise text-mist"
-                  style={{ animationDelay: "0.12s" }}
-                >
-                  Academy
-                </span>
+                {phase === "ready" ? (
+                  <>
+                    <span className="gold-text">
+                      <AnimatedLetters text="Dipsan" delay={0.05} stagger={0.06} />
+                    </span>
+                    <br />
+                    <span className="text-mist">
+                      <AnimatedLetters text="Academy" delay={0.4} stagger={0.055} />
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="gold-text">Dipsan</span>
+                    <br />
+                    <span className="text-mist">Academy</span>
+                  </>
+                )}
               </h1>
 
               <p
@@ -347,9 +411,7 @@ export default function Landing() {
             <h2 className="font-display text-4xl font-semibold text-mist md:text-5xl">
               Ready when you are.
             </h2>
-            <p className="max-w-md text-bronze">
-              Enter the hall with focus — and the clock ahead.
-            </p>
+            <p className="max-w-md text-bronze">Enter the hall with focus — and the clock ahead.</p>
             {user ? (
               <div className="flex flex-wrap justify-center gap-3">
                 <Link
