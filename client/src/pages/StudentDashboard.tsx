@@ -60,7 +60,7 @@ export default function StudentDashboard() {
 
   return (
     <PageShell>
-      <div className="fixed right-2 top-2 z-[60] flex flex-nowrap items-center gap-1.5 sm:right-5 sm:top-5 sm:gap-2 md:right-8 md:top-6">
+      <div className="fixed right-2 top-2 z-[80] flex flex-nowrap items-center gap-2 sm:right-5 sm:top-5 md:right-8 md:top-6">
         <NotificationBell />
         <SupportButton />
         <BrandLogo size="sm" glow spinRing />

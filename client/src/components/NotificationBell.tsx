@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { api } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
 export interface AppNotification {
   _id: string;
@@ -13,6 +14,7 @@ export interface AppNotification {
 }
 
 export function NotificationBell() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<AppNotification[]>([]);
@@ -20,6 +22,11 @@ export function NotificationBell() {
   const panelRef = useRef<HTMLDivElement>(null);
 
   const load = useCallback(() => {
+    if (!user) {
+      setItems([]);
+      setUnread(0);
+      return;
+    }
     api
       .get<{ notifications: AppNotification[]; unreadCount: number }>("/notifications")
       .then((r) => {
@@ -27,13 +34,14 @@ export function NotificationBell() {
         setUnread(r.unreadCount);
       })
       .catch(() => {});
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     load();
+    if (!user) return;
     const id = window.setInterval(load, 25000);
     return () => window.clearInterval(id);
-  }, [load]);
+  }, [load, user]);
 
   useEffect(() => {
     function onDoc(e: MouseEvent) {
@@ -64,27 +72,28 @@ export function NotificationBell() {
   }
 
   return (
-    <div className="relative" ref={panelRef}>
+    <div className="relative shrink-0" ref={panelRef}>
       <button
         type="button"
         onClick={() => {
           setOpen((v) => !v);
           if (!open) load();
         }}
-        className="relative z-[1] inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-gold/10 text-mist transition hover:border-gold hover:bg-gold/20 sm:h-11 sm:w-11"
+        className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-gold/50 bg-gold/20 text-champagne shadow-[0_0_16px_rgba(212,176,106,0.25)] transition hover:border-gold hover:bg-gold/30"
         aria-label="Alerts"
+        aria-expanded={open}
       >
         <span className="relative inline-flex h-5 w-5 items-center justify-center">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
             <path
               d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"
               stroke="currentColor"
-              strokeWidth="1.6"
+              strokeWidth="1.8"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           </svg>
-          {unread > 0 && (
+          {user && unread > 0 && (
             <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-ember px-1 text-[10px] font-bold text-white">
               {unread > 9 ? "9+" : unread}
             </span>
@@ -93,10 +102,10 @@ export function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-[min(calc(100vw-1.5rem),360px)] overflow-hidden rounded-2xl border border-white/10 bg-coal shadow-2xl">
+        <div className="absolute right-0 z-[70] mt-2 w-[min(calc(100vw-1rem),360px)] overflow-hidden rounded-2xl border border-white/10 bg-coal shadow-2xl">
           <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-            <div className="text-sm font-semibold text-mist">Notifications</div>
-            {unread > 0 && (
+            <div className="text-sm font-semibold text-mist">Alerts</div>
+            {user && unread > 0 && (
               <button
                 type="button"
                 onClick={markAll}
@@ -107,7 +116,18 @@ export function NotificationBell() {
             )}
           </div>
           <div className="max-h-80 overflow-auto">
-            {items.length === 0 ? (
+            {!user ? (
+              <div className="space-y-3 px-4 py-6 text-center">
+                <p className="text-sm text-bronze">Log in to see your alerts.</p>
+                <Link
+                  to="/login"
+                  onClick={() => setOpen(false)}
+                  className="inline-flex rounded-full bg-gold px-5 py-2 text-xs font-bold text-ink transition hover:bg-champagne"
+                >
+                  Log in
+                </Link>
+              </div>
+            ) : items.length === 0 ? (
               <div className="px-4 py-8 text-center text-sm text-bronze">No notifications yet.</div>
             ) : (
               items.map((n) => (

@@ -60,7 +60,7 @@ export function SupportButton() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="relative z-[1] inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-gold/10 text-mist transition hover:border-gold hover:bg-gold/20 sm:h-11 sm:w-11"
+        className="relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gold/50 bg-gold/20 text-champagne shadow-[0_0_16px_rgba(212,176,106,0.25)] transition hover:border-gold hover:bg-gold/30"
         aria-label="Support contacts"
         aria-expanded={open}
       >
