@@ -90,7 +90,7 @@ export default function Landing() {
         />
 
         <div className="relative flex flex-col items-center px-6">
-          <div className="relative flex h-[min(62vw,300px)] w-[min(62vw,300px)] items-center justify-center">
+          <div className="relative flex h-[min(48vw,240px)] w-[min(48vw,240px)] items-center justify-center sm:h-[min(62vw,300px)] sm:w-[min(62vw,300px)]">
             <span
               aria-hidden
               className="absolute h-[78%] w-[78%] rounded-full bg-[radial-gradient(circle,rgba(212,176,106,0.22)_0%,rgba(94,200,192,0.12)_45%,transparent_70%)] animate-intro-bloom blur-xl"
@@ -114,7 +114,7 @@ export default function Landing() {
             </div>
           </div>
 
-          <h2 className="mt-9 text-center font-display text-3xl font-semibold tracking-[0.18em] gold-text md:text-5xl">
+          <h2 className="mt-6 text-center font-display text-2xl font-semibold tracking-[0.14em] gold-text sm:mt-9 sm:text-3xl sm:tracking-[0.18em] md:text-5xl">
             <AnimatedLetters text="DIPSAN" delay={0.35} stagger={0.06} />
             <span className="mx-2.5 inline-block w-1.5" aria-hidden />
             <AnimatedLetters text="ACADEMY" delay={0.75} stagger={0.055} />
@@ -134,7 +134,7 @@ export default function Landing() {
       </div>
 
       <div
-        className={`fixed right-5 top-5 z-40 flex items-center gap-3 transition-all duration-700 md:right-8 md:top-6 ${
+        className={`fixed right-3 top-3 z-40 flex max-w-[58vw] flex-wrap items-center justify-end gap-1.5 transition-all duration-700 sm:right-5 sm:top-5 sm:max-w-none sm:gap-3 md:right-8 md:top-6 ${
           phase === "ready" ? "opacity-100 scale-100" : "opacity-0 scale-75"
         }`}
       >
@@ -145,15 +145,15 @@ export default function Landing() {
 
       {user && (
         <div
-          className={`fixed left-5 top-5 z-40 flex items-center gap-3 transition-all duration-700 md:left-8 md:top-6 ${
+          className={`fixed left-3 top-3 z-40 flex max-w-[38vw] items-center gap-2 transition-all duration-700 sm:left-5 sm:top-5 sm:max-w-none sm:gap-3 md:left-8 md:top-6 ${
             phase === "ready" ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
           }`}
         >
-          <div>
-            <p className="font-display text-lg font-semibold tracking-wide text-mist md:text-xl">
+          <div className="min-w-0">
+            <p className="truncate font-display text-base font-semibold tracking-wide text-mist sm:text-lg md:text-xl">
               Hi, <span className="gold-text">{firstName}</span>
             </p>
-            <p className="text-[10px] uppercase tracking-[0.22em] text-bronze">
+            <p className="text-[9px] uppercase tracking-[0.18em] text-bronze sm:text-[10px] sm:tracking-[0.22em]">
               {user.role === "teacher" ? "Teacher" : "Student"}
             </p>
           </div>
@@ -187,12 +187,12 @@ export default function Landing() {
             style={{ animationDelay: "0.8s" }}
           />
 
-          <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-6xl flex-col px-6 pb-12 pt-8 md:px-10">
-            <div className="h-10 pr-16" aria-hidden />
+          <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-6xl flex-col px-4 pb-8 pt-6 sm:px-6 sm:pb-12 sm:pt-8 md:px-10">
+            <div className="h-8 pr-14 sm:h-10 sm:pr-16" aria-hidden />
 
-            <div className="mb-auto mt-auto flex flex-col items-center py-10 text-center">
+            <div className="mb-auto mt-auto flex flex-col items-center py-4 text-center sm:py-8 md:py-10">
               {/* Brand circle: crest stays on the orbit and rests at top-center (middle of ring) */}
-              <div className="relative mx-auto aspect-square w-[min(92vw,560px)]">
+              <div className="relative mx-auto aspect-square w-[min(78vw,340px)] sm:w-[min(86vw,460px)] md:w-[min(92vw,560px)]">
                 <div
                   aria-hidden
                   className="pointer-events-none absolute inset-0 rounded-full border border-aurora/35 shadow-[0_0_60px_rgba(94,200,192,0.12)]"
@@ -226,8 +226,8 @@ export default function Landing() {
                   </div>
                 )}
 
-                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center px-8 pt-10">
-                  <h1 className="font-display text-[clamp(2.4rem,9vw,4.75rem)] font-semibold leading-[0.95] tracking-tight">
+                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center px-4 pt-6 sm:px-8 sm:pt-10">
+                  <h1 className="font-display text-[clamp(1.85rem,7.5vw,4.75rem)] font-semibold leading-[0.95] tracking-tight">
                     {phase === "ready" ? (
                       <>
                         <span className="gold-text">
@@ -248,28 +248,28 @@ export default function Landing() {
                   </h1>
 
                   <p
-                    className="mt-5 max-w-md animate-fade-up text-sm leading-relaxed text-bronze md:text-base"
+                    className="mt-3 max-w-[16rem] animate-fade-up text-xs leading-relaxed text-bronze sm:mt-5 sm:max-w-md sm:text-sm md:text-base"
                     style={{ animationDelay: "0.55s" }}
                   >
                     NEET &amp; JEE mocks — timed, scored, and reviewed the moment you submit.
                   </p>
 
                   <div
-                    className="mt-7 flex animate-fade-up flex-wrap items-center justify-center gap-3"
+                    className="mt-4 flex animate-fade-up flex-wrap items-center justify-center gap-2 sm:mt-7 sm:gap-3"
                     style={{ animationDelay: "0.7s" }}
                   >
                     {user ? (
                       <>
                         <Link
                           to={user.role === "teacher" ? "/teacher" : "/student"}
-                          className="inline-flex items-center rounded-full bg-gold px-8 py-3.5 text-sm font-bold tracking-wide text-ink transition hover:bg-champagne"
+                          className="inline-flex items-center rounded-full bg-gold px-5 py-2.5 text-xs font-bold tracking-wide text-ink transition hover:bg-champagne sm:px-8 sm:py-3.5 sm:text-sm"
                         >
                           Go to dashboard
                         </Link>
                         <button
                           type="button"
                           onClick={logout}
-                          className="inline-flex items-center rounded-full border border-white/25 bg-white/5 px-8 py-3.5 text-sm font-semibold tracking-wide text-mist transition hover:border-gold hover:text-gold"
+                          className="inline-flex items-center rounded-full border border-white/25 bg-white/5 px-5 py-2.5 text-xs font-semibold tracking-wide text-mist transition hover:border-gold hover:text-gold sm:px-8 sm:py-3.5 sm:text-sm"
                         >
                           Log out
                         </button>
@@ -278,13 +278,13 @@ export default function Landing() {
                       <>
                         <Link
                           to="/login"
-                          className="inline-flex items-center rounded-full bg-gold px-8 py-3.5 text-sm font-bold tracking-wide text-ink transition hover:bg-champagne"
+                          className="inline-flex items-center rounded-full bg-gold px-5 py-2.5 text-xs font-bold tracking-wide text-ink transition hover:bg-champagne sm:px-8 sm:py-3.5 sm:text-sm"
                         >
                           Log in
                         </Link>
                         <Link
                           to="/register"
-                          className="inline-flex items-center rounded-full border border-white/25 bg-white/5 px-8 py-3.5 text-sm font-semibold tracking-wide text-mist transition hover:border-gold hover:text-gold"
+                          className="inline-flex items-center rounded-full border border-white/25 bg-white/5 px-5 py-2.5 text-xs font-semibold tracking-wide text-mist transition hover:border-gold hover:text-gold sm:px-8 sm:py-3.5 sm:text-sm"
                         >
                           Sign up
                         </Link>
@@ -295,7 +295,7 @@ export default function Landing() {
               </div>
             </div>
 
-            <div className="mt-2 border-t border-white/10 pt-5">
+            <div className="mt-1 border-t border-white/10 pt-3 sm:mt-2 sm:pt-5">
               {funSubject && (
                 <SubjectFunFactInline
                   subject={funSubject}

@@ -71,7 +71,7 @@ export function NotificationBell() {
           setOpen((v) => !v);
           if (!open) load();
         }}
-        className="relative inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-3.5 py-2 text-mist transition hover:border-gold hover:bg-gold/20"
+        className="relative inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-2.5 py-1.5 text-mist transition hover:border-gold hover:bg-gold/20 sm:gap-2 sm:px-3.5 sm:py-2"
         aria-label="Notifications"
       >
         <span className="relative inline-flex h-5 w-5 items-center justify-center">
@@ -90,11 +90,11 @@ export function NotificationBell() {
             </span>
           )}
         </span>
-        <span className="text-xs font-semibold tracking-wide text-champagne">Alerts</span>
+        <span className="hidden text-xs font-semibold tracking-wide text-champagne sm:inline">Alerts</span>
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-[min(92vw,360px)] overflow-hidden rounded-2xl border border-white/10 bg-coal shadow-2xl">
+        <div className="absolute right-0 z-50 mt-2 w-[min(calc(100vw-1.5rem),360px)] overflow-hidden rounded-2xl border border-white/10 bg-coal shadow-2xl">
           <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
             <div className="text-sm font-semibold text-mist">Notifications</div>
             {unread > 0 && (
