@@ -227,7 +227,7 @@ export default function Landing() {
             </nav>
 
             <div className="mb-auto mt-auto flex flex-col items-center py-10 text-center">
-              {/* Brand circle: crest orbits the ring, then lands at the top */}
+              {/* Brand circle: crest orbits the ring, then lands in the middle */}
               <div className="relative mx-auto aspect-square w-[min(92vw,560px)]">
                 <div
                   aria-hidden
@@ -241,7 +241,7 @@ export default function Landing() {
                 {phase === "ready" && !orbitDone && (
                   <div
                     key="crest-orbit-run"
-                    className="absolute inset-0 animate-crest-orbit"
+                    className="absolute inset-0 z-20 animate-crest-orbit"
                     onAnimationEnd={(e) => {
                       if (e.target === e.currentTarget) setOrbitDone(true);
                     }}
@@ -254,13 +254,17 @@ export default function Landing() {
                   </div>
                 )}
 
-                {phase === "ready" && orbitDone && (
-                  <div className="absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1/2 animate-float">
-                    <BrandLogo to={null} size="xl" glow spinRing />
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-8">
+                  <div className="mb-4 flex h-32 w-32 shrink-0 items-center justify-center sm:mb-5 sm:h-36 sm:w-36">
+                    {phase === "ready" && orbitDone && (
+                      <div className="animate-fade-in">
+                        <div className="animate-float">
+                          <BrandLogo to={null} size="xl" glow spinRing />
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
 
-                <div className="absolute inset-0 flex flex-col items-center justify-center px-8 pb-2 pt-16 sm:pt-20">
                   <h1 className="font-display text-[clamp(2.4rem,9vw,4.75rem)] font-semibold leading-[0.95] tracking-tight">
                     {phase === "ready" ? (
                       <>
