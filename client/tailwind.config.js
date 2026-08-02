@@ -57,6 +57,10 @@ export default {
           "0%": { transform: "scale(1)" },
           "100%": { transform: "scale(1.06)" },
         },
+        "orbit-slow": {
+          "0%": { transform: "translate(-50%, -50%) rotate(0deg)" },
+          "100%": { transform: "translate(-50%, -50%) rotate(360deg)" },
+        },
         shimmer: {
           "0%": { backgroundPosition: "0% 50%" },
           "100%": { backgroundPosition: "100% 50%" },
@@ -71,6 +75,7 @@ export default {
         "ring-spin": "ring-spin 14s linear infinite",
         float: "float 7s ease-in-out infinite",
         "ken-burns": "ken-burns 24s ease-out forwards",
+        "orbit-slow": "orbit-slow 36s linear infinite",
         shimmer: "shimmer 5s linear infinite",
         "logo-drift": "float 16s ease-in-out infinite",
         "logo-drift-delayed": "float 20s ease-in-out infinite reverse",

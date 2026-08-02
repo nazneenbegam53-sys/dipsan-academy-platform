@@ -6,17 +6,12 @@ import { Button } from "../components/ui";
 
 type Phase = "intro" | "settle" | "ready";
 
-// Eye-catchy physics-themed imagery (no chalkboards)
-const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1517976487492-5750f3195933?auto=format&fit=crop&w=2400&q=80"; // rocket launch
-const PHYSICS_IMAGE =
-  "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1600&q=80"; // nebula / cosmos
-const STUDY_IMAGE =
-  "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=1600&q=80"; // exam writing desk
-const CLASS_IMAGE =
-  "https://images.unsplash.com/photo-1580894732444-8ecded7900cd?auto=format&fit=crop&w=1600&q=80"; // classroom
-const SPACE_IMAGE =
-  "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1600&q=80"; // earth / orbit
+// Local physics-themed assets (shipped with the app — no chalkboard / board photos)
+const HERO_IMAGE = "/hero/rocket.jpg";
+const PHYSICS_IMAGE = "/hero/nebula.jpg";
+const STUDY_IMAGE = "/hero/nebula.jpg";
+const CLASS_IMAGE = "/hero/earth.jpg";
+const SPACE_IMAGE = "/hero/earth.jpg";
 
 export default function Landing() {
   const { user, logout } = useAuth();
@@ -71,9 +66,29 @@ export default function Landing() {
             alt="Rocket launch — physics in motion"
             className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
           />
-          {/* Lighter overlay so type stays readable */}
-          <div className="absolute inset-0 bg-gradient-to-b from-paper/75 via-paper/65 to-paper" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(201,162,39,0.14),transparent_60%)]" />
+          {/* Keep the launch vivid; only darken edges for type */}
+          <div className="absolute inset-0 bg-gradient-to-b from-paper/55 via-paper/35 to-paper" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,rgba(12,14,18,0.55)_100%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_70%,rgba(201,162,39,0.18),transparent_50%)]" />
+          {/* Physics orbit rings */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute left-1/2 top-[42%] h-[min(70vw,520px)] w-[min(70vw,520px)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-gold/25 animate-orbit-slow"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute left-1/2 top-[42%] h-[min(52vw,380px)] w-[min(52vw,380px)] -translate-x-1/2 -translate-y-1/2 rotate-12 rounded-full border border-gold/15 animate-orbit-slow"
+            style={{ animationDirection: "reverse", animationDuration: "48s" }}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute left-[18%] top-[28%] h-2 w-2 rounded-full bg-gold/70 shadow-[0_0_12px_rgba(201,162,39,0.8)] animate-float"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute right-[22%] top-[36%] h-1.5 w-1.5 rounded-full bg-mist/60 animate-float"
+            style={{ animationDelay: "0.8s" }}
+          />
 
           <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-6xl flex-col px-6 pb-12 pt-8 md:px-10">
             <nav className="flex items-center justify-between gap-4 pr-16">
@@ -218,7 +233,7 @@ export default function Landing() {
             <div className="relative min-h-[300px] overflow-hidden border-b border-white/10 md:border-b-0 md:border-r">
               <img
                 src={STUDY_IMAGE}
-                alt="Exam preparation"
+                alt="Deep space nebula — physics scale"
                 className="absolute inset-0 h-full w-full object-cover opacity-45"
               />
               <div className="absolute inset-0 bg-paper/55" />
@@ -238,7 +253,7 @@ export default function Landing() {
             <div className="relative min-h-[300px] overflow-hidden">
               <img
                 src={CLASS_IMAGE}
-                alt="Classroom teaching"
+                alt="Earth from orbit — physics of motion"
                 className="absolute inset-0 h-full w-full object-cover opacity-40"
               />
               <div className="absolute inset-0 bg-paper/60" />
