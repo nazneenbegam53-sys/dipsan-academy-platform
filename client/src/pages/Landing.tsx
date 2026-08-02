@@ -160,10 +160,10 @@ export default function Landing() {
             className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
           />
           {/* Keep the launch vivid; only darken edges for type */}
-          <div className="absolute inset-0 bg-gradient-to-b from-paper/55 via-paper/35 to-paper" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,rgba(7,18,28,0.6)_100%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_70%,rgba(94,200,192,0.16),transparent_50%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_75%_25%,rgba(212,176,106,0.12),transparent_45%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-paper/55 via-paper/35 to-paper" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,rgba(7,18,28,0.6)_100%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_70%,rgba(94,200,192,0.16),transparent_50%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_75%_25%,rgba(212,176,106,0.12),transparent_45%)]" />
           {/* Soft outer atmosphere — main brand circle is in the hero composition */}
           <div
             aria-hidden
@@ -206,17 +206,19 @@ export default function Landing() {
               <div className="relative mx-auto aspect-square w-[min(92vw,560px)]">
                 <div
                   aria-hidden
-                  className="absolute inset-0 rounded-full border border-aurora/35 shadow-[0_0_60px_rgba(94,200,192,0.12)]"
+                  className="pointer-events-none absolute inset-0 rounded-full border border-aurora/35 shadow-[0_0_60px_rgba(94,200,192,0.12)]"
                 />
                 <div
                   aria-hidden
-                  className="absolute inset-[7%] rounded-full border border-gold/15"
+                  className="pointer-events-none absolute inset-[7%] rounded-full border border-gold/15"
                 />
 
                 {phase === "ready" && (
                   <div
                     key={orbitDone ? "crest-rest" : "crest-orbit-run"}
-                    className={`absolute inset-0 z-20 ${orbitDone ? "" : "animate-crest-orbit"}`}
+                    className={`pointer-events-none absolute inset-0 z-20 ${
+                      orbitDone ? "" : "animate-crest-orbit"
+                    }`}
                     onAnimationEnd={(e) => {
                       if (e.target === e.currentTarget) setOrbitDone(true);
                     }}
@@ -235,7 +237,7 @@ export default function Landing() {
                   </div>
                 )}
 
-                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-8 pt-10">
+                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center px-8 pt-10">
                   <h1 className="font-display text-[clamp(2.4rem,9vw,4.75rem)] font-semibold leading-[0.95] tracking-tight">
                     {phase === "ready" ? (
                       <>
@@ -402,10 +404,10 @@ export default function Landing() {
           <img
             src={SPACE_IMAGE}
             alt=""
-            className="absolute inset-0 h-full w-full object-cover opacity-25"
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-25"
           />
-          <div className="absolute inset-0 bg-paper/70" />
-          <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-8 px-6 py-20 text-center md:px-10">
+          <div className="pointer-events-none absolute inset-0 bg-paper/70" />
+          <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center gap-8 px-6 py-20 text-center md:px-10">
             <BrandLogo size="lg" glow spinRing />
             <h2 className="font-display text-4xl font-semibold text-mist md:text-5xl">
               Ready when you are.

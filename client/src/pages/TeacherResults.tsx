@@ -175,14 +175,38 @@ export default function TeacherResults() {
                 )}
                 <div className="space-y-2">
                   {q.options.map((opt, oi) => {
-                    let cls = "border border-white/15";
-                    if (oi === q.correctOptionIndex) cls = "border border-aurora/50 bg-aurora/10";
-                    if (selected === oi && oi !== q.correctOptionIndex)
-                      cls = "border border-ember/50 bg-ember/15";
+                    const isCorrect = oi === q.correctOptionIndex;
+                    const isWrongPick =
+                      selected === oi && oi !== q.correctOptionIndex;
+                    let cls = "border border-white/15 bg-white/5 text-mist";
+                    let label = "";
+                    if (isCorrect) {
+                      cls =
+                        "border border-emerald-400/70 bg-emerald-500/20 text-emerald-100";
+                      label = "Correct";
+                    }
+                    if (isWrongPick) {
+                      cls = "border border-red-400/70 bg-red-500/20 text-red-100";
+                      label = "Their answer";
+                    }
                     return (
-                      <div key={oi} className={`rounded-lg px-3 py-2 text-sm text-mist ${cls}`}>
-                        <span className="font-semibold mr-1.5">{"ABCD"[oi]}.</span>
-                        {opt}
+                      <div
+                        key={oi}
+                        className={`flex flex-wrap items-center rounded-lg px-3 py-2.5 text-sm ${cls}`}
+                      >
+                        <span className="mr-1.5 font-semibold">{"ABCD"[oi]}.</span>
+                        <span className="flex-1">{opt}</span>
+                        {label && (
+                          <span
+                            className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                              isWrongPick
+                                ? "bg-red-400/25 text-red-200"
+                                : "bg-emerald-400/25 text-emerald-200"
+                            }`}
+                          >
+                            {label}
+                          </span>
+                        )}
                       </div>
                     );
                   })}
