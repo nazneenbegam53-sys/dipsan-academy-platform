@@ -27,6 +27,7 @@ export default function App() {
 
       {/* Teacher */}
       <Route path="/teacher" element={<ProtectedRoute role="teacher"><TeacherDashboard /></ProtectedRoute>} />
+      <Route path="/teacher/results" element={<ProtectedRoute role="teacher"><TeacherResults /></ProtectedRoute>} />
       <Route path="/teacher/exam/new" element={<ProtectedRoute role="teacher"><ExamEditor /></ProtectedRoute>} />
       <Route path="/teacher/exam/:examId/edit" element={<ProtectedRoute role="teacher"><ExamEditor /></ProtectedRoute>} />
       <Route path="/teacher/exam/:examId/results" element={<ProtectedRoute role="teacher"><TeacherResults /></ProtectedRoute>} />

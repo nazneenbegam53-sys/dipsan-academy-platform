@@ -1,10 +1,39 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { api } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { Exam, Attempt } from "../types";
-import { Button, Badge, Spinner, PageShell, AppHeader } from "../components/ui";
+import { Button, Badge, Spinner, PageShell, AppHeader, Card } from "../components/ui";
 import { BrandLogo } from "../components/BrandLogo";
+
+type ExamAttemptGroup = {
+  examId: string;
+  title: string;
+  subject?: string;
+  attempts: Attempt[];
+};
+
+function groupAttemptsByExam(attempts: Attempt[]): ExamAttemptGroup[] {
+  const map = new Map<string, ExamAttemptGroup>();
+
+  for (const a of attempts) {
+    const exam = a.exam as Exam | undefined;
+    const examId =
+      typeof a.exam === "string" ? a.exam : exam?._id || exam?.title || "unknown";
+    const title = exam?.title || "Untitled exam";
+    const subject = exam?.subject;
+    const existing = map.get(examId);
+    if (existing) {
+      existing.attempts.push(a);
+    } else {
+      map.set(examId, { examId, title, subject, attempts: [a] });
+    }
+  }
+
+  return Array.from(map.values()).sort((a, b) =>
+    a.title.localeCompare(b.title, undefined, { sensitivity: "base" })
+  );
+}
 
 export default function StudentDashboard() {
   const { user, logout } = useAuth();
@@ -24,6 +53,8 @@ export default function StudentDashboard() {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  const attemptGroups = useMemo(() => groupAttemptsByExam(attempts), [attempts]);
 
   return (
     <PageShell>
@@ -85,48 +116,67 @@ export default function StudentDashboard() {
 
         <section>
           <h2 className="font-display text-2xl font-semibold text-champagne">Past attempts</h2>
-          <p className="mt-1 text-sm text-bronze">Scores and solution reviews.</p>
+          <p className="mt-1 text-sm text-bronze">
+            Results grouped by exam name — open any attempt to review solutions.
+          </p>
 
-          {attempts.length === 0 ? (
+          {loading ? (
+            <div className="mt-8">
+              <Spinner />
+            </div>
+          ) : attemptGroups.length === 0 ? (
             <p className="mt-8 border-t border-gold/15 pt-8 text-sm text-bronze">
               You haven&apos;t submitted any exams yet.
             </p>
           ) : (
-            <div className="mt-8 overflow-x-auto rounded-2xl border border-gold/20">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-charcoal text-left text-xs text-gold">
-                    <th className="px-4 py-3 font-semibold">Exam</th>
-                    <th className="px-4 py-3 font-semibold">Score</th>
-                    <th className="px-4 py-3 font-semibold">Submitted</th>
-                    <th className="px-4 py-3 font-semibold"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {attempts.map((a) => {
-                    const exam = a.exam as Exam;
-                    return (
-                      <tr key={a._id} className="border-t border-gold/10">
-                        <td className="px-4 py-3.5 font-medium text-mist">{exam?.title}</td>
-                        <td className="px-4 py-3.5 font-display text-lg font-semibold text-gold">
-                          {a.score}/{a.totalMarks}
-                        </td>
-                        <td className="px-4 py-3.5 text-xs text-bronze">
-                          {a.submittedAt ? new Date(a.submittedAt).toLocaleString() : "—"}
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <button
-                            onClick={() => navigate(`/student/result/${a._id}`)}
-                            className="text-xs font-semibold text-gold hover:text-champagne"
-                          >
-                            View →
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className="mt-8 space-y-8">
+              {attemptGroups.map((group) => (
+                <Card key={group.examId} className="overflow-hidden">
+                  <div className="border-b border-white/10 bg-charcoal/60 px-5 py-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {group.subject && <Badge tone="marigold">{group.subject}</Badge>}
+                      <Badge tone="ink">
+                        {group.attempts.length} attempt
+                        {group.attempts.length === 1 ? "" : "s"}
+                      </Badge>
+                    </div>
+                    <h3 className="mt-2 font-display text-xl font-semibold text-mist">
+                      {group.title}
+                    </h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-paper/40 text-left text-xs text-gold">
+                          <th className="px-4 py-3 font-semibold">Score</th>
+                          <th className="px-4 py-3 font-semibold">Submitted</th>
+                          <th className="px-4 py-3 font-semibold"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {group.attempts.map((a) => (
+                          <tr key={a._id} className="border-t border-gold/10">
+                            <td className="px-4 py-3.5 font-display text-lg font-semibold text-gold">
+                              {a.score}/{a.totalMarks}
+                            </td>
+                            <td className="px-4 py-3.5 text-xs text-bronze">
+                              {a.submittedAt ? new Date(a.submittedAt).toLocaleString() : "—"}
+                            </td>
+                            <td className="px-4 py-3.5 text-right">
+                              <button
+                                onClick={() => navigate(`/student/result/${a._id}`)}
+                                className="text-xs font-semibold text-gold hover:text-champagne"
+                              >
+                                View →
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              ))}
             </div>
           )}
         </section>
