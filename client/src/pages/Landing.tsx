@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { BrandLogo } from "../components/BrandLogo";
+import { InteractivePhysicsWorld } from "../components/InteractivePhysicsWorld";
 import { NotificationBell } from "../components/NotificationBell";
 
 type Phase = "intro" | "settle" | "ready";
@@ -297,6 +298,8 @@ export default function Landing() {
             </div>
           </div>
         </section>
+
+        <InteractivePhysicsWorld />
 
         <section className="relative overflow-hidden border-t border-white/10 bg-coal">
           <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-20 md:grid-cols-2 md:px-10 md:py-24">
