@@ -3,13 +3,14 @@
 @tailwind utilities;
 
 :root {
-  --ink: #1c1c1e;
-  --coal: #2c2c2e;
-  --gold: #c9a227;
-  --champagne: #f5e6b8;
-  --bronze: #d1d1d6;
-  --mist: #f5f5f7;
-  --paper: #1c1c1e;
+  --ink: #07121c;
+  --coal: #0f1f2e;
+  --gold: #d4b06a;
+  --champagne: #f0e0b8;
+  --aurora: #5ec8c0;
+  --bronze: #9db0c0;
+  --mist: #e8f0f5;
+  --paper: #07121c;
 }
 
 html {
@@ -24,8 +25,8 @@ body {
 }
 
 ::selection {
-  background: rgba(201, 162, 39, 0.4);
-  color: #1c1c1e;
+  background: rgba(94, 200, 192, 0.35);
+  color: #07121c;
 }
 
 @layer utilities {
@@ -35,36 +36,47 @@ body {
 
   .luxury-atmosphere {
     background:
-      radial-gradient(ellipse 70% 50% at 15% 0%, rgba(201, 162, 39, 0.12), transparent 55%),
-      radial-gradient(ellipse 50% 40% at 90% 15%, rgba(90, 140, 180, 0.08), transparent 50%),
-      linear-gradient(180deg, #1c1c1e 0%, #232326 45%, #1c1c1e 100%);
+      radial-gradient(ellipse 65% 45% at 12% 0%, rgba(94, 200, 192, 0.16), transparent 55%),
+      radial-gradient(ellipse 50% 40% at 92% 8%, rgba(212, 176, 106, 0.12), transparent 50%),
+      radial-gradient(ellipse 40% 35% at 70% 90%, rgba(94, 200, 192, 0.08), transparent 55%),
+      linear-gradient(180deg, #07121c 0%, #0c1a28 45%, #07121c 100%);
+  }
+
+  .science-atmosphere {
+    background:
+      radial-gradient(ellipse 80% 55% at 50% 0%, rgba(94, 200, 192, 0.18), transparent 60%),
+      radial-gradient(ellipse 45% 40% at 15% 80%, rgba(212, 176, 106, 0.1), transparent 50%),
+      radial-gradient(ellipse 40% 35% at 90% 70%, rgba(94, 200, 192, 0.08), transparent 50%),
+      #07121c;
   }
 
   .gold-text {
     background-image: linear-gradient(
       120deg,
-      #a88b4a 0%,
-      #c9a227 30%,
-      #f5e6b8 50%,
-      #c9a227 70%,
-      #a88b4a 100%
+      #9a7a3a 0%,
+      #d4b06a 28%,
+      #f0e0b8 48%,
+      #5ec8c0 62%,
+      #d4b06a 78%,
+      #9a7a3a 100%
     );
-    background-size: 200% auto;
+    background-size: 220% auto;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    animation: shimmer 5s linear infinite;
+    animation: shimmer 5.5s linear infinite;
   }
 
   .gold-border-glow {
     box-shadow:
-      0 0 0 1px rgba(201, 162, 39, 0.28),
-      0 12px 40px rgba(0, 0, 0, 0.25);
+      0 0 0 1px rgba(94, 200, 192, 0.22),
+      0 0 0 1px rgba(212, 176, 106, 0.18) inset,
+      0 18px 48px rgba(0, 0, 0, 0.35);
   }
 
   .luxury-panel {
-    background: rgba(44, 44, 46, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(15, 31, 46, 0.88);
+    border: 1px solid rgba(94, 200, 192, 0.12);
     backdrop-filter: blur(16px);
   }
 }
@@ -94,6 +106,6 @@ body {
     background-position: 0% center;
   }
   100% {
-    background-position: 200% center;
+    background-position: 220% center;
   }
 }

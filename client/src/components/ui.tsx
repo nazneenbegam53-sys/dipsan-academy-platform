@@ -20,7 +20,7 @@ export function Button({
     primary: "bg-gold text-ink hover:bg-champagne",
     accent: "bg-gold text-ink hover:bg-champagne",
     ghost:
-      "bg-white/5 text-mist border border-white/15 hover:border-gold/50 hover:bg-gold/10 hover:text-champagne",
+      "bg-white/5 text-mist border border-white/15 hover:border-aurora/50 hover:bg-aurora/10 hover:text-champagne",
     danger: "bg-ember text-white hover:opacity-90",
   };
   return (
@@ -102,15 +102,17 @@ export function PageShell({
   return (
     <div className={`relative min-h-screen overflow-hidden luxury-atmosphere text-mist ${className}`}>
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+        <div className="absolute -left-24 top-0 h-72 w-72 rounded-full bg-aurora/10 blur-3xl" />
+        <div className="absolute -right-16 bottom-10 h-80 w-80 rounded-full bg-gold/10 blur-3xl" />
         <img
           src="/dipsan-logo.png"
           alt=""
-          className="absolute left-[-10%] top-[10%] h-[50vmin] w-[50vmin] rounded-full object-contain opacity-[0.06] animate-logo-drift"
+          className="absolute left-[-10%] top-[10%] h-[50vmin] w-[50vmin] rounded-full object-contain opacity-[0.05] animate-logo-drift"
         />
         <img
           src="/dipsan-logo.png"
           alt=""
-          className="absolute bottom-[-12%] right-[-8%] h-[44vmin] w-[44vmin] rounded-full object-contain opacity-[0.05] animate-logo-drift-delayed"
+          className="absolute bottom-[-12%] right-[-8%] h-[44vmin] w-[44vmin] rounded-full object-contain opacity-[0.04] animate-logo-drift-delayed"
         />
       </div>
       <div className="relative z-10">{children}</div>
