@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { BrandLogo } from "../components/BrandLogo";
-import { InteractivePhysicsWorld } from "../components/InteractivePhysicsWorld";
 import { NotificationBell } from "../components/NotificationBell";
 
 type Phase = "intro" | "settle" | "ready";
@@ -168,9 +167,6 @@ export default function Landing() {
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,rgba(7,18,28,0.6)_100%)]" />
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_70%,rgba(94,200,192,0.16),transparent_50%)]" />
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_75%_25%,rgba(212,176,106,0.12),transparent_45%)]" />
-
-          <InteractivePhysicsWorld />
-
           {/* Soft outer atmosphere — main brand circle is in the hero composition */}
           <div
             aria-hidden
@@ -182,10 +178,10 @@ export default function Landing() {
             style={{ animationDelay: "0.8s" }}
           />
 
-          <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-6xl pointer-events-none flex-col px-6 pb-12 pt-8 md:px-10">
+          <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-6xl flex-col px-6 pb-12 pt-8 md:px-10">
             <div className="h-10 pr-16" aria-hidden />
 
-            <div className="mb-auto mt-auto flex flex-col items-center py-10 pb-[min(36vh,300px)] text-center">
+            <div className="mb-auto mt-auto flex flex-col items-center py-10 text-center">
               {/* Brand circle: crest stays on the orbit and rests at top-center (middle of ring) */}
               <div className="relative mx-auto aspect-square w-[min(92vw,560px)]">
                 <div
@@ -250,7 +246,7 @@ export default function Landing() {
                   </p>
 
                   <div
-                    className="pointer-events-auto mt-7 flex animate-fade-up flex-wrap items-center justify-center gap-3"
+                    className="mt-7 flex animate-fade-up flex-wrap items-center justify-center gap-3"
                     style={{ animationDelay: "0.7s" }}
                   >
                     {user ? (
@@ -290,7 +286,7 @@ export default function Landing() {
               </div>
             </div>
 
-            <div className="relative z-20 flex flex-wrap items-center justify-center gap-8 border-t border-white/10 pt-6 text-[11px] uppercase tracking-[0.22em] text-bronze">
+            <div className="flex flex-wrap items-center justify-center gap-8 border-t border-white/10 pt-6 text-[11px] uppercase tracking-[0.22em] text-bronze">
               <span>Physics</span>
               <span className="h-1 w-1 rounded-full bg-aurora" />
               <span>Chemistry</span>
