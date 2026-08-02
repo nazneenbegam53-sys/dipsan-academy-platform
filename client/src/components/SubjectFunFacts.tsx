@@ -160,13 +160,251 @@ const FACTS: Record<SubjectKey, FactItem[]> = {
   ],
 };
 
+const SUBJECT_DIAGRAMS: Record<SubjectKey, DiagramId[]> = {
+  physics: ["sun-earth", "dense-star", "lightning", "free-fall", "sound-wave", "orbit-escape", "circuit"],
+  chemistry: ["carbon-lattice", "ice-water", "mole", "catalyst", "ph-scale", "salt-dissolve", "combustion"],
+  maths: ["zero-place", "pi-circle", "growth-e", "golden-spiral", "infinity", "primes", "calculus", "triangle"],
+  biology: ["mitochondria", "blood-cell", "dna", "photosynthesis", "neuron", "microbe", "enzyme"],
+};
+
+/** Combinatorial banks — produce effectively unlimited unique facts per subject */
+const GEN: Record<
+  SubjectKey,
+  { leads: string[]; cores: string[]; tails: string[]; diagrams: DiagramId[] }
+> = {
+  physics: {
+    diagrams: SUBJECT_DIAGRAMS.physics,
+    leads: [
+      "In classical mechanics,",
+      "From Newton’s laws,",
+      "In electromagnetism,",
+      "In wave physics,",
+      "In thermodynamics,",
+      "In modern physics,",
+      "On the cosmic scale,",
+      "In the lab,",
+      "For JEE/NEET intuition,",
+      "Think of it this way:",
+    ],
+    cores: [
+      "force equals mass times acceleration (F = ma)",
+      "momentum p = mv stays conserved in an isolated system",
+      "energy can change form but the total is conserved",
+      "every action has an equal and opposite reaction",
+      "fields store energy even in empty space",
+      "waves carry energy without needing net mass transport",
+      "charges create electric fields and moving charges make magnetic fields",
+      "light is an electromagnetic wave that also behaves like photons",
+      "gravity curves paths — orbits are free-fall sideways forever",
+      "pressure in a fluid transmits equally in all directions (Pascal)",
+      "a changing magnetic flux induces an emf (Faraday)",
+      "resonance amplifies motion near a natural frequency",
+      "friction converts ordered motion into thermal energy",
+      "the speed of light in vacuum is the cosmic speed limit",
+      "centripetal acceleration is v²/r toward the centre",
+      "power is the rate of doing work: P = F·v or VI in circuits",
+      "lenses and mirrors redirect rays by refraction and reflection",
+      "simple harmonic motion repeats with period set by inertia and restoring force",
+      "heat flows from hot to cold unless work is done",
+      "escape velocity depends on mass and radius of the planet",
+    ],
+    tails: [
+      "master the equation and the picture appears.",
+      "units check your understanding before the numbers do.",
+      "draw the free-body diagram first — then write equations.",
+      "symmetry often hides the shortcut.",
+      "limits and extremes reveal what the formula really means.",
+      "conservation laws are your fastest problem-solving tools.",
+      "graphs often say more than a paragraph of algebra.",
+      "ideal models teach the idea; reality adds friction and noise.",
+      "dimensional analysis can save a messy derivation.",
+      "if energy is missing, look for heat, sound, or deformation.",
+    ],
+  },
+  chemistry: {
+    diagrams: SUBJECT_DIAGRAMS.chemistry,
+    leads: [
+      "In physical chemistry,",
+      "In organic reactions,",
+      "On the periodic table,",
+      "In aqueous solutions,",
+      "In chemical equilibrium,",
+      "For NEET-style thinking,",
+      "In the atomic world,",
+      "In everyday chemistry,",
+      "In redox processes,",
+      "Remember:",
+    ],
+    cores: [
+      "atoms seek lower energy electron arrangements",
+      "bonds form when the system’s potential energy drops",
+      "electronegativity decides how electrons are shared or transferred",
+      "pH measures [H⁺] on a log scale — each unit is a tenfold change",
+      "catalysts open a lower-activation-energy pathway",
+      "Le Chatelier predicts how equilibria shift under stress",
+      "moles convert invisible particle counts into weighable grams",
+      "intermolecular forces set boiling points and solubility",
+      "oxidation is loss of electrons; reduction is gain",
+      "hybridisation explains shapes like tetrahedral carbon",
+      "buffers soak up added acid or base to protect pH",
+      "rate laws depend on mechanism, not just the balanced equation",
+      "enthalpy and entropy together decide spontaneity via ΔG",
+      "isotopes share chemistry but differ in nuclear mass",
+      "water’s polarity makes it an exceptional solvent",
+      "acids donate protons (Brønsted) or accept electron pairs (Lewis)",
+      "aromatic rings are specially stabilised by delocalised π electrons",
+      "gas behaviour approximates PV = nRT when attractions are weak",
+      "precipitation happens when ion products exceed Ksp",
+      "functional groups are the ‘personality’ of organic molecules",
+    ],
+    tails: [
+      "balance atoms and charge — then the story makes sense.",
+      "structure predicts reactivity more than memorising alone.",
+      "track electrons and you’ll rarely get lost in redox.",
+      "mechanism arrows show where the electrons actually go.",
+      "temperature and concentration are levers on rate and yield.",
+      "think particles first, then translate to moles and grams.",
+      "equilibrium is dynamic — forward and reverse never truly stop.",
+      "periodic trends are patterns, not exceptions-first lists.",
+      "lab safety is just chemistry respecting energy release.",
+      "the best revision is linking formula ↔ picture ↔ example.",
+    ],
+  },
+  maths: {
+    diagrams: SUBJECT_DIAGRAMS.maths,
+    leads: [
+      "In algebra,",
+      "In geometry,",
+      "In calculus,",
+      "In number theory,",
+      "In probability,",
+      "For exam speed,",
+      "In pure maths spirit,",
+      "On the coordinate plane,",
+      "In sequences and series,",
+      "A useful habit:",
+    ],
+    cores: [
+      "equations are balances — do the same to both sides",
+      "functions map inputs to outputs with a clear rule",
+      "derivatives measure instantaneous rate of change",
+      "integrals accumulate area, distance, and totals",
+      "limits formalise what a value approaches",
+      "primes are the multiplicative building blocks of integers",
+      "triangles hide trigonometry ratios and many identities",
+      "vectors carry magnitude and direction together",
+      "matrices encode linear transformations compactly",
+      "logarithms undo exponentials and linearise growth",
+      "complex numbers complete the story of polynomial roots",
+      "permutations count arrangements; combinations ignore order",
+      "the mean is a balance point; variance measures spread",
+      "similarity scales shapes without changing angles",
+      "binomial expansions unpack (a + b)ⁿ systematically",
+      "parametric equations separate x(t) and y(t) motion",
+      "inequalities reverse when you multiply by a negative",
+      "series can converge to a finite sum even with infinite terms",
+      "coordinate geometry turns shapes into algebra you can compute",
+      "proof is organised reasoning — definitions before claims",
+    ],
+    tails: [
+      "draw it, then calculate — pictures catch mistakes early.",
+      "check edge cases: zero, negatives, and undefined points.",
+      "substitute a simple number to test your formula fast.",
+      "structure beats memorisation when problems twist.",
+      "dimensions and units (when present) expose algebra errors.",
+      "symmetry often halves the work.",
+      "name what you know and what you want — then bridge them.",
+      "a counter-example is enough to kill a false general claim.",
+      "rewrite until the pattern is obvious.",
+      "speed comes from clean method, not rushed arithmetic.",
+    ],
+  },
+  biology: {
+    diagrams: SUBJECT_DIAGRAMS.biology,
+    leads: [
+      "In cell biology,",
+      "In human physiology,",
+      "In genetics,",
+      "In plant biology,",
+      "In ecology,",
+      "For NEET clarity,",
+      "In evolution,",
+      "Inside the body,",
+      "At the molecular level,",
+      "Biologically speaking,",
+    ],
+    cores: [
+      "DNA stores instructions that RNA and ribosomes turn into proteins",
+      "mitochondria generate most ATP through cellular respiration",
+      "enzymes lower activation energy with shape-specific active sites",
+      "homeostasis keeps internal conditions in a narrow healthy range",
+      "neurons transmit signals via electrical spikes and chemical synapses",
+      "photosynthesis fixes carbon and releases oxygen in chloroplasts",
+      "blood transports gases, nutrients, hormones, and immune cells",
+      "genes are heritable units; alleles are their variant forms",
+      "natural selection favours traits that aid survival and reproduction",
+      "membranes are selectively permeable — controlled gateways",
+      "mitosis grows the body; meiosis prepares haploid gametes",
+      "antibodies recognise specific antigens with remarkable precision",
+      "hormones are chemical messengers travelling in blood or sap",
+      "ecosystems recycle matter while energy flows through trophic levels",
+      "stem cells can renew and differentiate into specialised types",
+      "the microbiome influences digestion and immune training",
+      "viruses need host machinery; bacteria are cellular and often free-living",
+      "feedback loops dampen or amplify physiological changes",
+      "structure fits function — from alveoli to nephrons to leaves",
+      "apoptosis removes damaged or unneeded cells without chaos",
+    ],
+    tails: [
+      "link organelle → process → organism-level effect.",
+      "diagrams plus flowcharts beat paragraphs for recall.",
+      "ask what happens if this step fails — that’s exam gold.",
+      "vocabulary is precise: don’t mix gene, allele, and chromosome.",
+      "compare and contrast pairs (mito/chloro, artery/vein) stick better.",
+      "numbers (120 days, 46 chromosomes) anchor the story.",
+      "evolution explains patterns; mechanisms explain molecules.",
+      "health science is applied biology under constraint.",
+      "always track inputs and outputs of a pathway.",
+      "life is chemistry organised by information.",
+    ],
+  },
+};
+
+function pickOne<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)]!;
+}
+
+function composeGenerated(subject: SubjectKey): FactItem {
+  const g = GEN[subject];
+  const text = `${pickOne(g.leads)} ${pickOne(g.cores)} — ${pickOne(g.tails)}`;
+  return { text, diagram: pickOne(g.diagrams) };
+}
+
+/** Session memory so reshuffles feel fresh; generation stays unlimited */
+const recentBySubject: Record<SubjectKey, string[]> = {
+  physics: [],
+  chemistry: [],
+  maths: [],
+  biology: [],
+};
+
 function pickFact(subject: SubjectKey, avoid?: string): FactItem {
-  const list = FACTS[subject];
-  let next = list[Math.floor(Math.random() * list.length)];
+  const recent = recentBySubject[subject];
+  const curated = FACTS[subject];
+  let next: FactItem;
   let guard = 0;
-  while (avoid && next.text === avoid && guard++ < 8) {
-    next = list[Math.floor(Math.random() * list.length)];
-  }
+
+  do {
+    // Mix curated gems with generated combinations (unlimited)
+    next = Math.random() < 0.35 ? pickOne(curated) : composeGenerated(subject);
+    guard++;
+  } while (
+    guard < 24 &&
+    (next.text === avoid || recent.includes(next.text))
+  );
+
+  recent.push(next.text);
+  if (recent.length > 40) recent.shift();
   return next;
 }
 
@@ -680,6 +918,7 @@ export function SubjectFunFactInline({
             >
               Another fact
             </button>
+            <p className="mt-2 text-[10px] text-bronze">Keep tapping — new facts never run out.</p>
           </div>
 
           <div
