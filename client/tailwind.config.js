@@ -79,6 +79,22 @@ export default {
           "0%, 100%": { opacity: "0.25", transform: "scale(1)" },
           "50%": { opacity: "1", transform: "scale(1.35)" },
         },
+        "letter-in": {
+          "0%": {
+            opacity: "0",
+            transform: "translateY(32px) scale(0.85)",
+            filter: "blur(8px)",
+          },
+          "100%": {
+            opacity: "1",
+            transform: "translateY(0) scale(1)",
+            filter: "blur(0)",
+          },
+        },
+        "letter-glow": {
+          "0%, 100%": { textShadow: "0 0 0 transparent" },
+          "50%": { textShadow: "0 0 18px rgba(94,200,192,0.45), 0 0 8px rgba(212,176,106,0.35)" },
+        },
         shimmer: {
           "0%": { backgroundPosition: "0% 50%" },
           "100%": { backgroundPosition: "100% 50%" },
@@ -98,6 +114,8 @@ export default {
         "pulse-ring": "pulse-ring 2.2s ease-out infinite",
         "orbit-tilt": "orbit-tilt 14s linear infinite",
         "star-twinkle": "star-twinkle 2.8s ease-in-out infinite",
+        "letter-in": "letter-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "letter-glow": "letter-glow 3.5s ease-in-out infinite",
         shimmer: "shimmer 5s linear infinite",
         "logo-drift": "float 16s ease-in-out infinite",
         "logo-drift-delayed": "float 20s ease-in-out infinite reverse",
