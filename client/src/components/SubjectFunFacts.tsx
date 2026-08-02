@@ -642,8 +642,8 @@ export function SubjectFunFactInline({
 
   return (
     <div
-      className={`mb-4 overflow-hidden rounded-2xl border border-white/12 transition-all duration-400 ease-out ${
-        show ? "max-h-[420px] opacity-100 translate-y-0" : "max-h-0 opacity-0 translate-y-3"
+      className={`mb-4 overflow-hidden rounded-2xl border border-white/12 transition-all duration-300 ease-out ${
+        show ? "max-h-[420px] translate-y-0 opacity-100" : "max-h-0 translate-y-3 opacity-0"
       }`}
       style={{
         background: "rgba(15,31,46,0.82)",
