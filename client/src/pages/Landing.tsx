@@ -45,8 +45,8 @@ export default function Landing() {
   const [orbitDone, setOrbitDone] = useState(false);
 
   useEffect(() => {
-    const settleTimer = window.setTimeout(() => setPhase("settle"), 2200);
-    const readyTimer = window.setTimeout(() => setPhase("ready"), 3800);
+    const settleTimer = window.setTimeout(() => setPhase("settle"), 1800);
+    const readyTimer = window.setTimeout(() => setPhase("ready"), 3200);
     return () => {
       window.clearTimeout(settleTimer);
       window.clearTimeout(readyTimer);
@@ -61,132 +61,66 @@ export default function Landing() {
 
   return (
     <div className="relative min-h-screen overflow-x-hidden science-atmosphere text-mist">
-      {/* Crest intro — orbital science + letter reveal */}
+      {/* Crest intro — clean, flat reveal (no tilt) */}
       <div
-        className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-[900ms] ease-out ${
-          phase === "ready" ? "pointer-events-none opacity-0 scale-110" : "opacity-100 scale-100"
+        className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-[850ms] ease-out ${
+          phase === "ready" ? "pointer-events-none opacity-0" : "opacity-100"
         }`}
       >
         <div className="absolute inset-0 science-atmosphere" />
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-70"
+          className="pointer-events-none absolute inset-0"
           style={{
             backgroundImage:
-              "radial-gradient(1.5px 1.5px at 12% 18%, rgba(240,224,184,0.7), transparent)," +
-              "radial-gradient(1.5px 1.5px at 78% 22%, rgba(94,200,192,0.8), transparent)," +
-              "radial-gradient(1px 1px at 34% 72%, rgba(240,224,184,0.55), transparent)," +
-              "radial-gradient(1.5px 1.5px at 88% 68%, rgba(94,200,192,0.65), transparent)," +
-              "radial-gradient(1px 1px at 55% 40%, rgba(255,255,255,0.45), transparent)," +
-              "radial-gradient(1px 1px at 22% 48%, rgba(94,200,192,0.5), transparent)",
+              "radial-gradient(ellipse 50% 40% at 50% 42%, rgba(94,200,192,0.12), transparent 70%)," +
+              "radial-gradient(1.5px 1.5px at 18% 22%, rgba(240,224,184,0.55), transparent)," +
+              "radial-gradient(1.5px 1.5px at 82% 28%, rgba(94,200,192,0.55), transparent)," +
+              "radial-gradient(1px 1px at 70% 68%, rgba(240,224,184,0.4), transparent)," +
+              "radial-gradient(1px 1px at 30% 74%, rgba(94,200,192,0.4), transparent)",
           }}
         />
 
-        <div className="relative flex flex-col items-center px-6" style={{ perspective: "900px" }}>
-          <div className="relative flex h-[min(70vw,360px)] w-[min(70vw,360px)] items-center justify-center">
-            {/* Soft aurora bloom */}
+        <div className="relative flex flex-col items-center px-6">
+          <div className="relative flex h-[min(62vw,300px)] w-[min(62vw,300px)] items-center justify-center">
             <span
               aria-hidden
-              className="absolute h-[70%] w-[70%] rounded-full bg-[radial-gradient(circle,rgba(94,200,192,0.35)_0%,rgba(212,176,106,0.18)_40%,transparent_70%)] animate-intro-bloom blur-2xl"
+              className="absolute h-[78%] w-[78%] rounded-full bg-[radial-gradient(circle,rgba(212,176,106,0.22)_0%,rgba(94,200,192,0.12)_45%,transparent_70%)] animate-intro-bloom blur-xl"
+            />
+            <span
+              aria-hidden
+              className="absolute inset-[4%] rounded-full border border-gold/30 animate-intro-ring"
+            />
+            <span
+              aria-hidden
+              className="absolute inset-[10%] rounded-full border border-aurora/25 animate-intro-ring"
+              style={{ animationDelay: "0.12s" }}
+            />
+            <span
+              aria-hidden
+              className="absolute inset-0 rounded-full border border-white/10 animate-pulse-ring"
             />
 
-            {/* Drawn gold/aurora arc */}
-            <svg
-              aria-hidden
-              className="absolute inset-0 h-full w-full -rotate-90"
-              viewBox="0 0 320 320"
-              fill="none"
-            >
-              <circle
-                cx="160"
-                cy="160"
-                r="146"
-                stroke="rgba(94,200,192,0.35)"
-                strokeWidth="1"
-                className="animate-intro-arc"
-                style={{ strokeDasharray: 920 }}
-              />
-              <circle
-                cx="160"
-                cy="160"
-                r="132"
-                stroke="rgba(212,176,106,0.45)"
-                strokeWidth="1.5"
-                className="animate-intro-arc"
-                style={{ strokeDasharray: 830, animationDelay: "0.2s" }}
-              />
-            </svg>
-
-            <span
-              aria-hidden
-              className="absolute h-[min(72vw,380px)] w-[min(72vw,380px)] rounded-full border border-aurora/20 animate-pulse-ring"
-            />
-            <span
-              aria-hidden
-              className="absolute h-[min(72vw,380px)] w-[min(72vw,380px)] rounded-full border border-gold/15 animate-pulse-ring"
-              style={{ animationDelay: "0.85s" }}
-            />
-            <span
-              aria-hidden
-              className="absolute h-[88%] w-[88%] rounded-full border border-aurora/15"
-              style={{
-                transform: "rotateX(68deg)",
-                animation: "orbit-tilt 14s linear infinite",
-              }}
-            />
-            <span
-              aria-hidden
-              className="absolute h-[70%] w-[70%] rounded-full border border-gold/20"
-              style={{
-                transform: "rotateX(68deg)",
-                animation: "orbit-tilt 9s linear infinite reverse",
-              }}
-            />
-            <span
-              aria-hidden
-              className="absolute -left-6 top-12 h-1.5 w-1.5 rounded-full bg-aurora shadow-[0_0_10px_rgba(94,200,192,0.9)] animate-star-twinkle"
-            />
-            <span
-              aria-hidden
-              className="absolute -right-4 bottom-16 h-1 w-1 rounded-full bg-champagne animate-star-twinkle"
-              style={{ animationDelay: "0.9s" }}
-            />
-            <span
-              aria-hidden
-              className="absolute right-2 top-4 h-1.5 w-1.5 rounded-full bg-gold/80 animate-star-twinkle"
-              style={{ animationDelay: "1.4s" }}
-            />
-            <div className="relative z-10 animate-float">
-              <BrandLogo to={null} size="hero" glow spinRing className="animate-logo-enter" />
+            <div className="relative z-10">
+              <BrandLogo to={null} size="hero" glow className="animate-logo-enter" />
             </div>
           </div>
 
-          <h2
-            className="mt-10 text-center font-display text-3xl font-semibold tracking-[0.12em] gold-text animate-letter-glow md:text-5xl"
-            style={{ transformStyle: "preserve-3d" }}
-          >
-            <AnimatedLetters text="DIPSAN" delay={0.45} stagger={0.08} />
-            <span className="mx-2 inline-block w-2" aria-hidden />
-            <AnimatedLetters text="ACADEMY" delay={0.95} stagger={0.07} />
+          <h2 className="mt-9 text-center font-display text-3xl font-semibold tracking-[0.18em] gold-text md:text-5xl">
+            <AnimatedLetters text="DIPSAN" delay={0.35} stagger={0.06} />
+            <span className="mx-2.5 inline-block w-1.5" aria-hidden />
+            <AnimatedLetters text="ACADEMY" delay={0.75} stagger={0.055} />
           </h2>
           <span
             aria-hidden
-            className="mt-4 h-px w-28 origin-center bg-gradient-to-r from-transparent via-gold/70 to-transparent animate-underline-grow"
-            style={{ animationDelay: "1.55s" }}
+            className="mt-4 h-px w-24 origin-center bg-gradient-to-r from-transparent via-champagne/80 to-transparent animate-underline-grow"
+            style={{ animationDelay: "1.35s" }}
           />
-
           <p
-            className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] uppercase tracking-[0.32em] text-aurora/90"
-            aria-label="Science Precision Practice"
+            className="mt-4 animate-fade-up text-[11px] uppercase tracking-[0.34em] text-aurora/90"
+            style={{ animationDelay: "1.45s" }}
           >
-            {["Science", "Precision", "Practice"].map((word, wi) => (
-              <span key={word} className="inline-flex items-center gap-3">
-                {wi > 0 && (
-                  <span className="h-1 w-1 rounded-full bg-gold/70" aria-hidden />
-                )}
-                <AnimatedLetters text={word} delay={1.7 + wi * 0.2} stagger={0.045} />
-              </span>
-            ))}
+            Science · Precision · Practice
           </p>
         </div>
       </div>
@@ -287,9 +221,15 @@ export default function Landing() {
                       if (e.target === e.currentTarget) setOrbitDone(true);
                     }}
                   >
+                    {/* Logo rides the rim; counter-spin keeps it upright (no tilt/scale) */}
                     <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
                       <div className={orbitDone ? "animate-float" : "animate-crest-face"}>
-                        <BrandLogo to={null} size="xl" glow spinRing />
+                        <BrandLogo
+                          to={null}
+                          size="xl"
+                          glow
+                          spinRing={orbitDone}
+                        />
                       </div>
                     </div>
                   </div>
