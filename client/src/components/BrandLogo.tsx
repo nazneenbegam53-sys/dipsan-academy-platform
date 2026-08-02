@@ -22,7 +22,7 @@ export function BrandLogo({
     sm: "h-10 w-10 md:h-12 md:w-12",
     md: "h-14 w-14 md:h-16 md:w-16",
     lg: "h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24",
-    xl: "h-20 w-20 sm:h-24 sm:w-24 md:h-32 md:w-32",
+    xl: "h-14 w-14 sm:h-20 sm:w-20 md:h-28 md:w-28",
     hero: "h-[min(42vw,220px)] w-[min(42vw,220px)] sm:h-[min(48vw,260px)] sm:w-[min(48vw,260px)] md:h-[340px] md:w-[340px]",
   };
 
