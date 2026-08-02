@@ -22,11 +22,13 @@ const SPACE_IMAGE = "/hero/earth.jpg";
 function AnimatedLetters({
   text,
   className = "",
+  letterClassName = "",
   delay = 0,
   stagger = 0.045,
 }: {
   text: string;
   className?: string;
+  letterClassName?: string;
   delay?: number;
   stagger?: number;
 }) {
@@ -35,7 +37,7 @@ function AnimatedLetters({
       {text.split("").map((ch, i) => (
         <span
           key={`${ch}-${i}`}
-          className="inline-block animate-letter-in"
+          className={`inline-block animate-letter-in ${letterClassName}`}
           style={{ animationDelay: `${delay + i * stagger}s` }}
         >
           {ch === " " ? "\u00A0" : ch}
@@ -114,10 +116,10 @@ export default function Landing() {
             </div>
           </div>
 
-          <h2 className="mt-6 text-center font-display text-2xl font-semibold tracking-[0.14em] gold-text sm:mt-9 sm:text-3xl sm:tracking-[0.18em] md:text-5xl">
-            <AnimatedLetters text="DIPSAN" delay={0.35} stagger={0.06} />
+          <h2 className="mt-6 text-center font-display text-2xl font-semibold tracking-[0.14em] sm:mt-9 sm:text-3xl sm:tracking-[0.18em] md:text-5xl">
+            <AnimatedLetters text="DIPSAN" delay={0.35} stagger={0.06} letterClassName="gold-text" />
             <span className="mx-2.5 inline-block w-1.5" aria-hidden />
-            <AnimatedLetters text="ACADEMY" delay={0.75} stagger={0.055} />
+            <AnimatedLetters text="ACADEMY" delay={0.75} stagger={0.055} letterClassName="gold-text" />
           </h2>
           <span
             aria-hidden
@@ -134,11 +136,11 @@ export default function Landing() {
       </div>
 
       <div
-        className={`fixed right-3 top-3 z-40 flex flex-nowrap items-center justify-end gap-1.5 transition-all duration-700 sm:right-5 sm:top-5 sm:gap-2.5 md:right-8 md:top-6 md:gap-3 ${
+        className={`fixed right-2 top-2 z-[60] flex flex-nowrap items-center justify-end gap-1.5 transition-all duration-700 sm:right-5 sm:top-5 sm:gap-2 md:right-8 md:top-6 ${
           phase === "ready" ? "opacity-100 scale-100" : "opacity-0 scale-75"
         }`}
       >
-        {user && <NotificationBell />}
+        {user ? <NotificationBell /> : null}
         <SupportButton />
         <BrandLogo size="sm" glow spinRing />
       </div>
@@ -226,17 +228,13 @@ export default function Landing() {
                   </div>
                 )}
 
-                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center px-4 pt-6 sm:px-8 sm:pt-10">
-                  <h1 className="font-display text-[clamp(1.85rem,7.5vw,4.75rem)] font-semibold leading-[0.95] tracking-tight">
+                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center px-4 pt-14 sm:px-8 sm:pt-16">
+                  <h1 className="relative z-10 font-display text-[clamp(1.85rem,7.5vw,4.75rem)] font-semibold leading-[0.95] tracking-tight">
                     {phase === "ready" ? (
                       <>
-                        <span className="gold-text">
-                          <AnimatedLetters text="Dipsan" delay={0.2} stagger={0.06} />
-                        </span>
+                        <AnimatedLetters text="Dipsan" delay={0.2} stagger={0.06} letterClassName="gold-text" />
                         <br />
-                        <span className="text-mist">
-                          <AnimatedLetters text="Academy" delay={0.55} stagger={0.055} />
-                        </span>
+                        <AnimatedLetters text="Academy" delay={0.55} stagger={0.055} letterClassName="text-mist" />
                       </>
                     ) : (
                       <>

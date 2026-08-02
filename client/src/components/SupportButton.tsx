@@ -60,7 +60,7 @@ export function SupportButton() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="relative z-[1] inline-flex shrink-0 items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-2.5 py-1.5 text-mist transition hover:border-gold hover:bg-gold/20 sm:gap-2 sm:px-3.5 sm:py-2"
+        className="relative z-[1] inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-gold/10 text-mist transition hover:border-gold hover:bg-gold/20 sm:h-11 sm:w-11"
         aria-label="Support contacts"
         aria-expanded={open}
       >
@@ -76,7 +76,6 @@ export function SupportButton() {
             <circle cx="12" cy="16.5" r="1" fill="currentColor" />
           </svg>
         </span>
-        <span className="text-[11px] font-semibold tracking-wide text-champagne sm:text-xs">Support</span>
       </button>
 
       {open && (
