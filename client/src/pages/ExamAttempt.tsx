@@ -4,7 +4,7 @@ import { api } from "../services/api";
 import { Exam, AnswerEntry } from "../types";
 import { Button, Card, Spinner } from "../components/ui";
 import { useTimer, formatTime } from "../hooks/useTimer";
-import { useAntiCheat, requestFullscreen } from "../hooks/useAntiCheat";
+import { useAntiCheat, requestFullscreen, violationLabel, ViolationType } from "../hooks/useAntiCheat";
 
 export default function ExamAttempt() {
   const { examId, attemptId } = useParams();
@@ -16,86 +16,75 @@ export default function ExamAttempt() {
   const [answers, setAnswers] = useState<Record<string, AnswerEntry>>({});
   const [qIndex, setQIndex] = useState(0);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [violationAlert, setViolationAlert] = useState<{
+    type: ViolationType;
+    count: number;
+  } | null>(null);
+  const [violationCount, setViolationCount] = useState(0);
   const submittedRef = useRef(false);
 
-  // useEffect(() => {
-  //   api.get<{ exam: Exam }>(`/exams/${examId}/student-view`).then((r) => setExam(r.exam)).finally(() => setLoading(false));
-  //   if (exam?.antiCheat?.requireFullscreen) requestFullscreen();
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [examId]);
   useEffect(() => {
-  api.get<{ exam: Exam }>(`/exams/${examId}/student-view`)
-    .then((r) => setExam(r.exam))
-    .finally(() => setLoading(false));
-}, [examId]);
+    api
+      .get<{ exam: Exam }>(`/exams/${examId}/student-view`)
+      .then((r) => setExam(r.exam))
+      .finally(() => setLoading(false));
+  }, [examId]);
 
-useEffect(() => {
-  if (exam?.antiCheat?.requireFullscreen) {
-    requestFullscreen();
-  }
-}, [exam]);
-  // NOTE / TODO: remaining time is computed from the startedAt timestamp passed via
-  // navigation state (set right after /attempts/:examId/start). If the student
-  // refreshes this page, that state is lost and this falls back to the full
-  // duration — a dedicated "GET /attempts/:id" resume endpoint would fix that;
-  // not built yet.
-  // const initialSeconds = useMemo(() => {
-  //   if (!exam) return 0;
-  //   if (location.state?.startedAt) {
-  //     const elapsed = Math.floor((Date.now() - new Date(location.state.startedAt).getTime()) / 1000);
-  //     return Math.max(0, exam.durationMinutes * 60 - elapsed);
-  //   }
-  //   return exam.durationMinutes * 60;
-  // }, [exam, location.state]);
-const initialSeconds = useMemo(() => {
-  if (!exam) return undefined;
+  useEffect(() => {
+    if (exam?.antiCheat?.requireFullscreen) {
+      requestFullscreen();
+    }
+  }, [exam]);
 
-  if (location.state?.startedAt) {
-    const elapsed =
-      Math.floor(
+  const initialSeconds = useMemo(() => {
+    if (!exam) return undefined;
+
+    if (location.state?.startedAt) {
+      const elapsed = Math.floor(
         (Date.now() - new Date(location.state.startedAt).getTime()) / 1000
       );
+      return Math.max(0, exam.durationMinutes * 60 - elapsed);
+    }
 
-    return Math.max(0, exam.durationMinutes * 60 - elapsed);
-  }
+    return exam.durationMinutes * 60;
+  }, [exam, location.state]);
 
-  return exam.durationMinutes * 60;
-}, [exam, location.state]);
+  const submitExam = useCallback(
+    async (auto = false) => {
+      if (submittedRef.current) return;
+      submittedRef.current = true;
 
-const submitExam = useCallback(async (auto = false) => {
-  console.log("submitExam called", { auto });
-    console.log("===== submitExam CALLED =====");
-  console.trace();
-  if (submittedRef.current) return;
-
-  submittedRef.current = true;
-
-  try {
-    await api.post(`/attempts/${attemptId}/submit`, { auto });
-  } finally {
-    console.log("Navigating to result page");
-    navigate(`/student/result/${attemptId}`);
-  }
-}, [attemptId, navigate]);
-
-  //const timeLeft = useTimer(initialSeconds, () => submitExam(true));
-  console.log({
-  examLoaded: !!exam,
-  initialSeconds,
-  duration: exam?.durationMinutes,
-  startedAt: location.state?.startedAt,
-});
-  // const timeLeft = useTimer(
-  // exam ? initialSeconds : null,
-  // () => submitExam(true)
-  // );
-  //const timeLeft = 999999;
+      try {
+        await api.post(`/attempts/${attemptId}/submit`, { auto });
+      } finally {
+        navigate(`/student/result/${attemptId}`);
+      }
+    },
+    [attemptId, navigate]
+  );
 
   const timeLeft = useTimer(initialSeconds, () => submitExam(true));
-  
 
-  useAntiCheat(!!exam, (type) => {
-    api.post(`/attempts/${attemptId}/violation`, { type }).catch(() => {});
+  useAntiCheat(!!exam && !submittedRef.current, (type) => {
+    api
+      .post<{ violationCount: number; shouldAutoSubmit: boolean }>(
+        `/attempts/${attemptId}/violation`,
+        { type }
+      )
+      .then((res) => {
+        setViolationCount(res.violationCount);
+        setViolationAlert({ type, count: res.violationCount });
+        if (res.shouldAutoSubmit) {
+          void submitExam(true);
+        }
+      })
+      .catch(() => {
+        setViolationCount((c) => {
+          const next = c + 1;
+          setViolationAlert({ type, count: next });
+          return next;
+        });
+      });
   });
 
   const q = exam?.questions[qIndex];
@@ -113,12 +102,24 @@ const submitExam = useCallback(async (auto = false) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qIndex]);
 
-  if (loading || !exam) return <div className="min-h-screen flex items-center justify-center"><Spinner /></div>;
-  if (!q) return <div className="min-h-screen flex items-center justify-center text-sm text-bronze">This exam has no questions.</div>;
+  if (loading || !exam)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Spinner />
+      </div>
+    );
+  if (!q)
+    return (
+      <div className="min-h-screen flex items-center justify-center text-sm text-bronze">
+        This exam has no questions.
+      </div>
+    );
 
   const total = exam.questions.length;
   const low = timeLeft <= 300;
-  const answeredCount = Object.values(answers).filter((a) => a.selected !== undefined && a.selected !== null).length;
+  const answeredCount = Object.values(answers).filter(
+    (a) => a.selected !== undefined && a.selected !== null
+  ).length;
 
   function statusFor(i: number) {
     const qq = exam!.questions[i];
@@ -139,15 +140,26 @@ const submitExam = useCallback(async (auto = false) => {
   };
 
   const currentEntry = answers[q._id];
+  const isTabLeave =
+    violationAlert?.type === "visibility-hidden" || violationAlert?.type === "tab-blur";
 
   return (
     <div className="min-h-screen bg-paper">
       <div className="flex items-center justify-between px-6 py-4 bg-soft text-mist border-b border-white/10">
         <div>
           <div className="font-bold">{exam.title}</div>
-          <div className="text-xs text-bronze">Question {qIndex + 1} of {total}</div>
+          <div className="text-xs text-bronze">
+            Question {qIndex + 1} of {total}
+            {violationCount > 0 && (
+              <span className="ml-2 text-ember">· {violationCount} warning(s)</span>
+            )}
+          </div>
         </div>
-        <div className={`font-mono flex items-center gap-2 rounded-sm px-4 py-2 font-bold text-lg ${low ? "bg-ember text-white" : "bg-gold/90 text-ink"}`}>
+        <div
+          className={`font-mono flex items-center gap-2 rounded-sm px-4 py-2 font-bold text-lg ${
+            low ? "bg-ember text-white" : "bg-gold/90 text-ink"
+          }`}
+        >
           {formatTime(timeLeft)}
         </div>
       </div>
@@ -155,13 +167,28 @@ const submitExam = useCallback(async (auto = false) => {
       <div className="grid lg:grid-cols-[1fr_280px] gap-6 px-6 py-6 max-w-6xl mx-auto">
         <Card className="p-6">
           <div className="text-base font-medium mb-4 text-mist">{q.text}</div>
-          {q.imageUrl && <img src={q.imageUrl} alt="" className="max-h-72 rounded-xl mb-5 border border-white/10" />}
+          {q.imageUrl && (
+            <img src={q.imageUrl} alt="" className="max-h-72 rounded-xl mb-5 border border-white/10" />
+          )}
 
           <div className="space-y-3">
             {q.options.map((opt, oi) => (
-              <button key={oi} onClick={() => persistAnswer(q._id, { selected: oi })}
-                className={`w-full text-left rounded-xl px-4 py-3 flex items-center gap-3 border ${currentEntry?.selected === oi ? "border-gold bg-gold/15" : "border-white/15 bg-charcoal"}`}>
-                <span className={`rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold ${currentEntry?.selected === oi ? "bg-gold/90 text-ink" : "bg-paper border border-white/10 text-bronze"}`}>
+              <button
+                key={oi}
+                onClick={() => persistAnswer(q._id, { selected: oi })}
+                className={`w-full text-left rounded-xl px-4 py-3 flex items-center gap-3 border ${
+                  currentEntry?.selected === oi
+                    ? "border-gold bg-gold/15"
+                    : "border-white/15 bg-charcoal"
+                }`}
+              >
+                <span
+                  className={`rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold ${
+                    currentEntry?.selected === oi
+                      ? "bg-gold/90 text-ink"
+                      : "bg-paper border border-white/10 text-bronze"
+                  }`}
+                >
                   {"ABCD"[oi]}
                 </span>
                 <span className="text-sm text-mist">{opt}</span>
@@ -170,16 +197,34 @@ const submitExam = useCallback(async (auto = false) => {
           </div>
 
           <div className="flex flex-wrap gap-2 mt-6">
-            <Button variant="ghost" onClick={() => setQIndex((i) => Math.max(0, i - 1))} disabled={qIndex === 0}>Previous</Button>
-            <Button variant="ghost" onClick={() => persistAnswer(q._id, { selected: null as any })}>Clear Response</Button>
-            <Button variant="ghost" onClick={() => persistAnswer(q._id, { markedForReview: !currentEntry?.markedForReview })}>
+            <Button
+              variant="ghost"
+              onClick={() => setQIndex((i) => Math.max(0, i - 1))}
+              disabled={qIndex === 0}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => persistAnswer(q._id, { selected: null as any })}
+            >
+              Clear Response
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                persistAnswer(q._id, { markedForReview: !currentEntry?.markedForReview })
+              }
+            >
               {currentEntry?.markedForReview ? "Unmark review" : "Mark for review"}
             </Button>
             <div className="flex-1" />
             {qIndex < total - 1 ? (
               <Button onClick={() => setQIndex((i) => i + 1)}>Save &amp; Next</Button>
             ) : (
-              <Button variant="accent" onClick={() => setConfirmOpen(true)}>Submit Test</Button>
+              <Button variant="accent" onClick={() => setConfirmOpen(true)}>
+                Submit Test
+              </Button>
             )}
           </div>
         </Card>
@@ -189,7 +234,11 @@ const submitExam = useCallback(async (auto = false) => {
             <div className="font-semibold text-sm text-mist mb-3">Question Palette</div>
             <div className="grid grid-cols-5 gap-2">
               {exam.questions.map((qq, i) => (
-                <button key={qq._id} onClick={() => setQIndex(i)} className={`rounded-lg h-9 text-xs font-bold ${statusClasses[statusFor(i)]}`}>
+                <button
+                  key={qq._id}
+                  onClick={() => setQIndex(i)}
+                  className={`rounded-lg h-9 text-xs font-bold ${statusClasses[statusFor(i)]}`}
+                >
                   {i + 1}
                 </button>
               ))}
@@ -197,9 +246,13 @@ const submitExam = useCallback(async (auto = false) => {
           </Card>
           <Card className="p-5 text-center">
             <div className="text-xs text-bronze">Answered</div>
-            <div className="text-2xl font-bold text-mist">{answeredCount}/{total}</div>
+            <div className="text-2xl font-bold text-mist">
+              {answeredCount}/{total}
+            </div>
           </Card>
-          <Button variant="accent" className="w-full" onClick={() => setConfirmOpen(true)}>Submit Test</Button>
+          <Button variant="accent" className="w-full" onClick={() => setConfirmOpen(true)}>
+            Submit Test
+          </Button>
         </div>
       </div>
 
@@ -211,9 +264,37 @@ const submitExam = useCallback(async (auto = false) => {
               You've answered {answeredCount} of {total} questions. This can't be undone.
             </div>
             <div className="flex gap-2">
-              <Button variant="ghost" className="flex-1" onClick={() => setConfirmOpen(false)}>Keep working</Button>
-              <Button className="flex-1" onClick={() => submitExam(false)}>Submit</Button>
+              <Button variant="ghost" className="flex-1" onClick={() => setConfirmOpen(false)}>
+                Keep working
+              </Button>
+              <Button className="flex-1" onClick={() => submitExam(false)}>
+                Submit
+              </Button>
             </div>
+          </Card>
+        </div>
+      )}
+
+      {violationAlert && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 px-6 backdrop-blur-sm">
+          <Card className="w-full max-w-md border border-ember/40 p-7 gold-border-glow">
+            <div className="mb-1 text-xs font-semibold uppercase tracking-[0.2em] text-ember">
+              Proctoring alert
+            </div>
+            <div className="font-display text-2xl font-semibold text-mist">
+              {isTabLeave ? "Tab switch detected" : "Exam window left"}
+            </div>
+            <p className="mt-3 text-sm leading-relaxed text-bronze">
+              {violationLabel(violationAlert.type)}. This has been logged and your teacher will see
+              it on the result page.
+            </p>
+            <div className="mt-4 rounded-xl border border-ember/30 bg-ember/10 px-4 py-3 text-sm text-mist">
+              Warning count this attempt:{" "}
+              <span className="font-semibold text-ember">{violationAlert.count}</span>
+            </div>
+            <Button className="mt-6 w-full" onClick={() => setViolationAlert(null)}>
+              Return to exam
+            </Button>
           </Card>
         </div>
       )}
