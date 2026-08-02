@@ -6,15 +6,15 @@ import { Button } from "../components/ui";
 
 type Phase = "intro" | "settle" | "ready";
 
-// Science-themed photography
+// Broad NEET/JEE imagery — physics, maths, classroom (not chem/bio only)
 const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=2400&q=80"; // microscope
-const LAB_IMAGE =
-  "https://images.unsplash.com/photo-1582719471384-894fbb16e074?auto=format&fit=crop&w=1600&q=80"; // lab glassware
-const MICROSCOPE_IMAGE =
-  "https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&w=1600&q=80"; // DNA / biotech
-const CHEM_IMAGE =
-  "https://images.unsplash.com/photo-1507413245164-6160d8298b31?auto=format&fit=crop&w=1600&q=80"; // science workspace
+  "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=2400&q=80"; // physics / equations
+const MATH_IMAGE =
+  "https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=1600&q=80"; // mathematics
+const STUDY_IMAGE =
+  "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=1600&q=80"; // exam writing desk
+const CLASS_IMAGE =
+  "https://images.unsplash.com/photo-1580894732444-8ecded7900cd?auto=format&fit=crop&w=1600&q=80"; // classroom
 
 export default function Landing() {
   const { user, logout } = useAuth();
@@ -66,7 +66,7 @@ export default function Landing() {
         <section className="relative min-h-[100svh] overflow-hidden">
           <img
             src={HERO_IMAGE}
-            alt="Science laboratory"
+            alt="Physics and equations"
             className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
           />
           {/* Lighter overlay so type stays readable */}
@@ -120,8 +120,7 @@ export default function Landing() {
                 className="mt-6 max-w-lg animate-fade-up text-base leading-relaxed text-bronze md:text-lg"
                 style={{ animationDelay: "0.25s" }}
               >
-                Science-ready NEET &amp; JEE mocks — timed, scored, and reviewed the moment you
-                submit.
+                NEET &amp; JEE mocks — timed, scored, and reviewed the moment you submit.
               </p>
 
               <div
@@ -168,6 +167,8 @@ export default function Landing() {
               <span className="h-1 w-1 rounded-full bg-gold" />
               <span>Chemistry</span>
               <span className="h-1 w-1 rounded-full bg-gold" />
+              <span>Maths</span>
+              <span className="h-1 w-1 rounded-full bg-gold" />
               <span>Biology</span>
             </div>
           </div>
@@ -197,8 +198,8 @@ export default function Landing() {
               style={{ animationDelay: "0.12s" }}
             >
               <img
-                src={LAB_IMAGE}
-                alt="Science lab glassware"
+                src={MATH_IMAGE}
+                alt="Mathematics"
                 className="h-[340px] w-full object-cover md:h-[400px]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-paper via-transparent to-transparent" />
@@ -214,8 +215,8 @@ export default function Landing() {
           <div className="mx-auto grid max-w-6xl md:grid-cols-2">
             <div className="relative min-h-[300px] overflow-hidden border-b border-white/10 md:border-b-0 md:border-r">
               <img
-                src={MICROSCOPE_IMAGE}
-                alt="Biotechnology"
+                src={STUDY_IMAGE}
+                alt="Exam preparation"
                 className="absolute inset-0 h-full w-full object-cover opacity-45"
               />
               <div className="absolute inset-0 bg-paper/55" />
@@ -234,8 +235,8 @@ export default function Landing() {
             </div>
             <div className="relative min-h-[300px] overflow-hidden">
               <img
-                src={CHEM_IMAGE}
-                alt="Chemistry"
+                src={CLASS_IMAGE}
+                alt="Classroom teaching"
                 className="absolute inset-0 h-full w-full object-cover opacity-40"
               />
               <div className="absolute inset-0 bg-paper/60" />
@@ -257,7 +258,7 @@ export default function Landing() {
 
         <section className="relative overflow-hidden border-t border-white/10 bg-coal">
           <img
-            src={LAB_IMAGE}
+            src={HERO_IMAGE}
             alt=""
             className="absolute inset-0 h-full w-full object-cover opacity-20"
           />
@@ -268,7 +269,7 @@ export default function Landing() {
               Ready when you are.
             </h2>
             <p className="max-w-md text-bronze">
-              Enter the hall with science on your side — and the clock ahead.
+              Enter the hall with focus — and the clock ahead.
             </p>
             {user ? (
               <div className="flex flex-wrap justify-center gap-3">
