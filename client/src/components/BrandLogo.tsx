@@ -43,7 +43,7 @@ export function BrandLogo({
           className="pointer-events-none absolute -inset-1.5 rounded-full animate-ring-spin"
           style={{
             background:
-              "conic-gradient(from 0deg, transparent 0%, #D4AF37 25%, transparent 50%, #F3E5B5 75%, transparent 100%)",
+              "conic-gradient(from 0deg, transparent 0%, #D4B06A 18%, transparent 38%, #5EC8C0 58%, transparent 78%, #F0E0B8 92%, transparent 100%)",
             mask: "radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px))",
             WebkitMask:
               "radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px))",

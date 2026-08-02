@@ -18,8 +18,8 @@ export default function Landing() {
   const [phase, setPhase] = useState<Phase>("intro");
 
   useEffect(() => {
-    const settleTimer = window.setTimeout(() => setPhase("settle"), 1200);
-    const readyTimer = window.setTimeout(() => setPhase("ready"), 2000);
+    const settleTimer = window.setTimeout(() => setPhase("settle"), 1600);
+    const readyTimer = window.setTimeout(() => setPhase("ready"), 2800);
     return () => {
       window.clearTimeout(settleTimer);
       window.clearTimeout(readyTimer);
@@ -27,22 +27,84 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-paper text-mist">
-      {/* Elegant crest intro */}
+    <div className="relative min-h-screen overflow-x-hidden science-atmosphere text-mist">
+      {/* Crest intro — orbital science reveal */}
       <div
-        className={`fixed inset-0 z-50 flex items-center justify-center bg-paper transition-all duration-700 ${
-          phase === "ready" ? "pointer-events-none opacity-0" : "opacity-100"
+        className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-[900ms] ease-out ${
+          phase === "ready" ? "pointer-events-none opacity-0 scale-110" : "opacity-100 scale-100"
         }`}
       >
+        <div className="absolute inset-0 science-atmosphere" />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-70"
+          style={{
+            backgroundImage:
+              "radial-gradient(1.5px 1.5px at 12% 18%, rgba(240,224,184,0.7), transparent)," +
+              "radial-gradient(1.5px 1.5px at 78% 22%, rgba(94,200,192,0.8), transparent)," +
+              "radial-gradient(1px 1px at 34% 72%, rgba(240,224,184,0.55), transparent)," +
+              "radial-gradient(1.5px 1.5px at 88% 68%, rgba(94,200,192,0.65), transparent)," +
+              "radial-gradient(1px 1px at 55% 40%, rgba(255,255,255,0.45), transparent)," +
+              "radial-gradient(1px 1px at 22% 48%, rgba(94,200,192,0.5), transparent)",
+          }}
+        />
+
         <div className="relative flex flex-col items-center">
-          <div className="animate-float">
-            <BrandLogo to={null} size="hero" glow spinRing className="animate-logo-enter" />
+          <div className="relative flex items-center justify-center">
+            <span
+              aria-hidden
+              className="absolute h-[min(72vw,380px)] w-[min(72vw,380px)] rounded-full border border-aurora/25 animate-pulse-ring"
+            />
+            <span
+              aria-hidden
+              className="absolute h-[min(72vw,380px)] w-[min(72vw,380px)] rounded-full border border-gold/20 animate-pulse-ring"
+              style={{ animationDelay: "0.7s" }}
+            />
+            <span
+              aria-hidden
+              className="absolute h-[min(58vw,300px)] w-[min(58vw,300px)] rounded-full border border-aurora/15"
+              style={{
+                transform: "rotateX(68deg)",
+                animation: "orbit-tilt 14s linear infinite",
+              }}
+            />
+            <span
+              aria-hidden
+              className="absolute h-[min(46vw,240px)] w-[min(46vw,240px)] rounded-full border border-gold/20"
+              style={{
+                transform: "rotateX(68deg)",
+                animation: "orbit-tilt 9s linear infinite reverse",
+              }}
+            />
+            <span
+              aria-hidden
+              className="absolute -left-8 top-10 h-1.5 w-1.5 rounded-full bg-aurora shadow-[0_0_10px_rgba(94,200,192,0.9)] animate-star-twinkle"
+            />
+            <span
+              aria-hidden
+              className="absolute -right-6 bottom-14 h-1 w-1 rounded-full bg-champagne animate-star-twinkle"
+              style={{ animationDelay: "0.9s" }}
+            />
+            <span
+              aria-hidden
+              className="absolute right-0 top-0 h-1.5 w-1.5 rounded-full bg-gold/80 animate-star-twinkle"
+              style={{ animationDelay: "1.4s" }}
+            />
+            <div className="relative z-10 animate-float">
+              <BrandLogo to={null} size="hero" glow spinRing className="animate-logo-enter" />
+            </div>
           </div>
           <p
-            className="mt-8 font-display text-3xl font-semibold tracking-[0.18em] gold-text animate-title-rise md:text-4xl"
-            style={{ animationDelay: "0.3s" }}
+            className="mt-10 font-display text-3xl font-semibold tracking-[0.18em] gold-text animate-intro-title md:text-4xl"
+            style={{ animationDelay: "0.45s" }}
           >
             DIPSAN ACADEMY
+          </p>
+          <p
+            className="mt-3 animate-fade-up text-[11px] uppercase tracking-[0.35em] text-aurora/90"
+            style={{ animationDelay: "0.85s" }}
+          >
+            Science · Precision · Practice
           </p>
         </div>
       </div>
@@ -68,25 +130,26 @@ export default function Landing() {
           />
           {/* Keep the launch vivid; only darken edges for type */}
           <div className="absolute inset-0 bg-gradient-to-b from-paper/55 via-paper/35 to-paper" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,rgba(12,14,18,0.55)_100%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_70%,rgba(201,162,39,0.18),transparent_50%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,rgba(7,18,28,0.6)_100%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_70%,rgba(94,200,192,0.16),transparent_50%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_75%_25%,rgba(212,176,106,0.12),transparent_45%)]" />
           {/* Physics orbit rings */}
           <div
             aria-hidden
-            className="pointer-events-none absolute left-1/2 top-[42%] h-[min(70vw,520px)] w-[min(70vw,520px)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-gold/25 animate-orbit-slow"
+            className="pointer-events-none absolute left-1/2 top-[42%] h-[min(70vw,520px)] w-[min(70vw,520px)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-aurora/30 animate-orbit-slow"
           />
           <div
             aria-hidden
-            className="pointer-events-none absolute left-1/2 top-[42%] h-[min(52vw,380px)] w-[min(52vw,380px)] -translate-x-1/2 -translate-y-1/2 rotate-12 rounded-full border border-gold/15 animate-orbit-slow"
+            className="pointer-events-none absolute left-1/2 top-[42%] h-[min(52vw,380px)] w-[min(52vw,380px)] -translate-x-1/2 -translate-y-1/2 rotate-12 rounded-full border border-gold/20 animate-orbit-slow"
             style={{ animationDirection: "reverse", animationDuration: "48s" }}
           />
           <div
             aria-hidden
-            className="pointer-events-none absolute left-[18%] top-[28%] h-2 w-2 rounded-full bg-gold/70 shadow-[0_0_12px_rgba(201,162,39,0.8)] animate-float"
+            className="pointer-events-none absolute left-[18%] top-[28%] h-2 w-2 rounded-full bg-aurora/80 shadow-[0_0_14px_rgba(94,200,192,0.9)] animate-float"
           />
           <div
             aria-hidden
-            className="pointer-events-none absolute right-[22%] top-[36%] h-1.5 w-1.5 rounded-full bg-mist/60 animate-float"
+            className="pointer-events-none absolute right-[22%] top-[36%] h-1.5 w-1.5 rounded-full bg-gold/70 animate-float"
             style={{ animationDelay: "0.8s" }}
           />
 
@@ -181,11 +244,11 @@ export default function Landing() {
 
             <div className="flex flex-wrap items-center justify-center gap-8 border-t border-white/10 pt-6 text-[11px] uppercase tracking-[0.22em] text-bronze">
               <span>Physics</span>
-              <span className="h-1 w-1 rounded-full bg-gold" />
+              <span className="h-1 w-1 rounded-full bg-aurora" />
               <span>Chemistry</span>
               <span className="h-1 w-1 rounded-full bg-gold" />
               <span>Maths</span>
-              <span className="h-1 w-1 rounded-full bg-gold" />
+              <span className="h-1 w-1 rounded-full bg-aurora" />
               <span>Biology</span>
             </div>
           </div>
@@ -220,14 +283,9 @@ export default function Landing() {
                 className="h-[340px] w-full object-cover md:h-[400px]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-paper via-transparent to-transparent" />
-              <div className="absolute bottom-5 left-5 right-5 flex flex-wrap items-end justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <BrandLogo size="xs" />
-                  <span className="font-display text-lg text-mist">Precision over pressure.</span>
-                </div>
-                <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gold">
-                  Chemistry
-                </span>
+              <div className="absolute bottom-5 left-5 flex items-center gap-3">
+                <BrandLogo size="xs" />
+                <span className="font-display text-lg text-mist">Precision over pressure.</span>
               </div>
             </div>
           </div>
