@@ -1,26 +1,46 @@
 import { useEffect, useRef } from "react";
 
-type ViolationType = "tab-blur" | "visibility-hidden" | "fullscreen-exit";
+export type ViolationType = "tab-blur" | "visibility-hidden" | "fullscreen-exit";
 
-// Wires up the standard-browser anti-cheat signals from spec #13.
-// Honest limitation: no website can fully stop someone switching apps/screens —
-// this covers what's actually detectable (window blur, tab visibility, exiting
-// fullscreen) and reports each event via onViolation.
+const TAB_TYPES = new Set<ViolationType>(["tab-blur", "visibility-hidden"]);
+
+/**
+ * Detects tab/window leave, visibility hide, and fullscreen exit.
+ * Tab-blur + visibility-hidden are coalesced (one report per leave) so students
+ * get a single popup and teachers see one clean log entry per switch.
+ */
 export function useAntiCheat(active: boolean, onViolation: (type: ViolationType) => void) {
   const onViolationRef = useRef(onViolation);
   onViolationRef.current = onViolation;
+  const lastTabAtRef = useRef(0);
 
   useEffect(() => {
     if (!active) return;
 
+    const armedAt = Date.now() + 2500; // ignore startup fullscreen/focus churn
+
+    function report(type: ViolationType) {
+      if (Date.now() < armedAt) return;
+
+      if (TAB_TYPES.has(type)) {
+        const now = Date.now();
+        if (now - lastTabAtRef.current < 1200) return;
+        lastTabAtRef.current = now;
+        // Prefer a single canonical type for tab leaves
+        onViolationRef.current("visibility-hidden");
+        return;
+      }
+      onViolationRef.current(type);
+    }
+
     function handleBlur() {
-      onViolationRef.current("tab-blur");
+      report("tab-blur");
     }
     function handleVisibility() {
-      if (document.hidden) onViolationRef.current("visibility-hidden");
+      if (document.hidden) report("visibility-hidden");
     }
     function handleFullscreenChange() {
-      if (!document.fullscreenElement) onViolationRef.current("fullscreen-exit");
+      if (!document.fullscreenElement) report("fullscreen-exit");
     }
     function handleBeforeUnload(e: BeforeUnloadEvent) {
       e.preventDefault();
@@ -57,7 +77,12 @@ export async function requestFullscreen() {
   try {
     await document.documentElement.requestFullscreen();
   } catch {
-    // Some browsers/devices don't support or allow this — fail silently,
-    // the exam still works, just without the fullscreen deterrent.
+    // Some browsers/devices don't support or allow this — fail silently.
   }
+}
+
+export function violationLabel(type: string): string {
+  if (type === "visibility-hidden" || type === "tab-blur") return "Switched tab / left exam window";
+  if (type === "fullscreen-exit") return "Exited fullscreen";
+  return type;
 }
