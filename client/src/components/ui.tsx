@@ -20,7 +20,7 @@ export function Button({
     primary: "bg-gold text-ink hover:bg-champagne",
     accent: "bg-gold text-ink hover:bg-champagne",
     ghost:
-      "bg-transparent text-champagne border border-gold/35 hover:border-gold hover:bg-gold/10 hover:text-gold",
+      "bg-white/5 text-mist border border-white/15 hover:border-gold/50 hover:bg-gold/10 hover:text-champagne",
     danger: "bg-ember text-white hover:opacity-90",
   };
   return (
@@ -45,7 +45,7 @@ export function Card({
   style?: CSSProperties;
 }) {
   return (
-    <div className={`luxury-panel rounded-2xl ${className}`} style={style}>
+    <div className={`luxury-panel rounded-2xl text-mist ${className}`} style={style}>
       {children}
     </div>
   );
@@ -59,10 +59,10 @@ export function Badge({
   tone?: "ink" | "success" | "danger" | "marigold" | "signal";
 }) {
   const tones: Record<string, string> = {
-    ink: "bg-gold/15 text-gold border border-gold/25",
-    success: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/25",
-    danger: "bg-ember/15 text-ember border border-ember/30",
-    marigold: "bg-gold/15 text-champagne border border-gold/25",
+    ink: "bg-white/10 text-mist border border-white/15",
+    success: "bg-emerald-500/20 text-emerald-200 border border-emerald-400/30",
+    danger: "bg-ember/20 text-ember border border-ember/30",
+    marigold: "bg-gold/20 text-champagne border border-gold/30",
     signal: "bg-gold text-ink",
   };
   return (
@@ -105,14 +105,13 @@ export function PageShell({
         <img
           src="/dipsan-logo.png"
           alt=""
-          className="absolute left-[-12%] top-[8%] h-[62vmin] w-[62vmin] rounded-full object-contain opacity-[0.12] animate-logo-drift"
+          className="absolute left-[-10%] top-[10%] h-[50vmin] w-[50vmin] rounded-full object-contain opacity-[0.06] animate-logo-drift"
         />
         <img
           src="/dipsan-logo.png"
           alt=""
-          className="absolute bottom-[-14%] right-[-10%] h-[55vmin] w-[55vmin] rounded-full object-contain opacity-[0.09] animate-logo-drift-delayed"
+          className="absolute bottom-[-12%] right-[-8%] h-[44vmin] w-[44vmin] rounded-full object-contain opacity-[0.05] animate-logo-drift-delayed"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-ink/50 via-transparent to-ink/70" />
       </div>
       <div className="relative z-10">{children}</div>
     </div>
@@ -129,7 +128,7 @@ export function AppHeader({
   actions?: ReactNode;
 }) {
   return (
-    <header className="mb-10 flex flex-wrap items-end justify-between gap-4 border-b border-gold/20 pb-8">
+    <header className="mb-10 flex flex-wrap items-end justify-between gap-4 border-b border-white/10 pb-8">
       <div className="flex items-center gap-4">
         <BrandLogo size="md" glow spinRing showWordmark={false} />
         <div>

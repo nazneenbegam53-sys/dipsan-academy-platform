@@ -4,20 +4,21 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: "#070707",
-        coal: "#111111",
-        charcoal: "#1A1A1A",
-        gold: "#D4AF37",
-        champagne: "#F3E5B5",
-        bronze: "#A88B4A",
-        mist: "#F7F2E8",
-        paper: "#0A0A0A",
-        ember: "#C44B3C",
-        soft: "#141414",
-        forest: "#A88B4A",
-        teal: "#D4AF37",
-        signal: "#D4AF37",
-        marigold: "#D4AF37",
+        // Apple-like elegant dark — never pure black body text on dark surfaces
+        ink: "#1C1C1E", // dark for text ON gold/light chips only
+        coal: "#2C2C2E",
+        charcoal: "#3A3A3C",
+        gold: "#C9A227",
+        champagne: "#F5E6B8",
+        bronze: "#D1D1D6", // secondary text — light enough to read
+        mist: "#F5F5F7", // primary readable text
+        paper: "#1C1C1E", // page background
+        ember: "#FF6B6B",
+        soft: "#2C2C2E",
+        forest: "#D1D1D6",
+        teal: "#C9A227",
+        signal: "#C9A227",
+        marigold: "#C9A227",
       },
       fontFamily: {
         display: ["Cormorant Garamond", "Georgia", "serif"],
@@ -25,7 +26,7 @@ export default {
       },
       keyframes: {
         "fade-up": {
-          "0%": { opacity: "0", transform: "translateY(24px)" },
+          "0%": { opacity: "0", transform: "translateY(18px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
         "fade-in": {
@@ -33,17 +34,16 @@ export default {
           "100%": { opacity: "1" },
         },
         "logo-enter": {
-          "0%": { opacity: "0", transform: "scale(0.7) rotate(-8deg)" },
-          "60%": { opacity: "1", transform: "scale(1.06) rotate(0deg)" },
-          "100%": { opacity: "1", transform: "scale(1) rotate(0deg)" },
+          "0%": { opacity: "0", transform: "scale(0.78)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
         },
         "title-rise": {
-          "0%": { opacity: "0", transform: "translateY(36px)", filter: "blur(8px)" },
-          "100%": { opacity: "1", transform: "translateY(0)", filter: "blur(0)" },
+          "0%": { opacity: "0", transform: "translateY(24px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
         "gold-pulse": {
-          "0%, 100%": { boxShadow: "0 0 0 0 rgba(212,175,55,0.35)" },
-          "50%": { boxShadow: "0 0 0 14px rgba(212,175,55,0)" },
+          "0%, 100%": { boxShadow: "0 0 0 0 rgba(201,162,39,0.28)" },
+          "50%": { boxShadow: "0 0 0 12px rgba(201,162,39,0)" },
         },
         "ring-spin": {
           "0%": { transform: "rotate(0deg)" },
@@ -51,11 +51,11 @@ export default {
         },
         float: {
           "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-12px)" },
+          "50%": { transform: "translateY(-10px)" },
         },
         "ken-burns": {
           "0%": { transform: "scale(1)" },
-          "100%": { transform: "scale(1.08)" },
+          "100%": { transform: "scale(1.06)" },
         },
         shimmer: {
           "0%": { backgroundPosition: "0% 50%" },
@@ -63,17 +63,17 @@ export default {
         },
       },
       animation: {
-        "fade-up": "fade-up 0.8s ease-out both",
-        "fade-in": "fade-in 0.7s ease-out both",
-        "logo-enter": "logo-enter 1.2s cubic-bezier(0.22,1,0.36,1) both",
-        "title-rise": "title-rise 1s ease-out both",
+        "fade-up": "fade-up 0.75s ease-out both",
+        "fade-in": "fade-in 0.65s ease-out both",
+        "logo-enter": "logo-enter 1s ease-out both",
+        "title-rise": "title-rise 0.9s ease-out both",
         "gold-pulse": "gold-pulse 2.8s ease-out infinite",
-        "ring-spin": "ring-spin 12s linear infinite",
-        float: "float 6s ease-in-out infinite",
-        "ken-burns": "ken-burns 22s ease-out forwards",
+        "ring-spin": "ring-spin 14s linear infinite",
+        float: "float 7s ease-in-out infinite",
+        "ken-burns": "ken-burns 24s ease-out forwards",
         shimmer: "shimmer 5s linear infinite",
-        "logo-drift": "float 14s ease-in-out infinite",
-        "logo-drift-delayed": "float 18s ease-in-out infinite reverse",
+        "logo-drift": "float 16s ease-in-out infinite",
+        "logo-drift-delayed": "float 20s ease-in-out infinite reverse",
       },
     },
   },

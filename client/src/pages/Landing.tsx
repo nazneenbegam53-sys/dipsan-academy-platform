@@ -6,20 +6,23 @@ import { Button } from "../components/ui";
 
 type Phase = "intro" | "settle" | "ready";
 
+// Science-themed photography
 const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=2400&q=80";
-const STUDY_IMAGE =
-  "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=1600&q=80";
-const LIBRARY_IMAGE =
-  "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=1600&q=80";
+  "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=2400&q=80"; // microscope
+const LAB_IMAGE =
+  "https://images.unsplash.com/photo-1582719471384-894fbb16e074?auto=format&fit=crop&w=1600&q=80"; // lab glassware
+const MICROSCOPE_IMAGE =
+  "https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&w=1600&q=80"; // DNA / biotech
+const CHEM_IMAGE =
+  "https://images.unsplash.com/photo-1507413245164-6160d8298b31?auto=format&fit=crop&w=1600&q=80"; // science workspace
 
 export default function Landing() {
   const { user, logout } = useAuth();
   const [phase, setPhase] = useState<Phase>("intro");
 
   useEffect(() => {
-    const settleTimer = window.setTimeout(() => setPhase("settle"), 1400);
-    const readyTimer = window.setTimeout(() => setPhase("ready"), 2200);
+    const settleTimer = window.setTimeout(() => setPhase("settle"), 1200);
+    const readyTimer = window.setTimeout(() => setPhase("ready"), 2000);
     return () => {
       window.clearTimeout(settleTimer);
       window.clearTimeout(readyTimer);
@@ -27,10 +30,10 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-ink text-mist">
-      {/* Cinematic logo intro */}
+    <div className="relative min-h-screen overflow-x-hidden bg-paper text-mist">
+      {/* Elegant crest intro */}
       <div
-        className={`fixed inset-0 z-50 flex items-center justify-center bg-ink transition-all duration-700 ${
+        className={`fixed inset-0 z-50 flex items-center justify-center bg-paper transition-all duration-700 ${
           phase === "ready" ? "pointer-events-none opacity-0" : "opacity-100"
         }`}
       >
@@ -39,15 +42,14 @@ export default function Landing() {
             <BrandLogo to={null} size="hero" glow spinRing className="animate-logo-enter" />
           </div>
           <p
-            className="mt-8 font-display text-3xl font-semibold tracking-[0.2em] gold-text animate-title-rise md:text-4xl"
-            style={{ animationDelay: "0.35s" }}
+            className="mt-8 font-display text-3xl font-semibold tracking-[0.18em] gold-text animate-title-rise md:text-4xl"
+            style={{ animationDelay: "0.3s" }}
           >
             DIPSAN ACADEMY
           </p>
         </div>
       </div>
 
-      {/* Persistent corner crest */}
       <div
         className={`fixed right-5 top-5 z-40 transition-all duration-700 md:right-8 md:top-6 ${
           phase === "ready" ? "opacity-100 scale-100" : "opacity-0 scale-75"
@@ -61,15 +63,15 @@ export default function Landing() {
           phase === "ready" ? "opacity-100" : "opacity-0"
         }`}
       >
-        {/* HERO — full-bleed image + brand */}
         <section className="relative min-h-[100svh] overflow-hidden">
           <img
             src={HERO_IMAGE}
-            alt=""
+            alt="Science laboratory"
             className="absolute inset-0 h-full w-full object-cover animate-ken-burns"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-ink/80 via-ink/70 to-ink" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.18),transparent_55%)]" />
+          {/* Lighter overlay so type stays readable */}
+          <div className="absolute inset-0 bg-gradient-to-b from-paper/75 via-paper/65 to-paper" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(201,162,39,0.14),transparent_60%)]" />
 
           <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-6xl flex-col px-6 pb-12 pt-8 md:px-10">
             <nav className="flex items-center justify-between gap-4 pr-16">
@@ -79,7 +81,7 @@ export default function Landing() {
                   <>
                     <Link
                       to={user.role === "teacher" ? "/teacher" : "/student"}
-                      className="hidden text-sm font-medium text-champagne/80 transition hover:text-gold sm:inline"
+                      className="hidden text-sm font-medium text-mist/90 transition hover:text-gold sm:inline"
                     >
                       Dashboard
                     </Link>
@@ -90,7 +92,7 @@ export default function Landing() {
                 ) : (
                   <Link
                     to="/login"
-                    className="text-sm font-medium text-champagne/80 transition hover:text-gold"
+                    className="text-sm font-medium text-mist/90 transition hover:text-gold"
                   >
                     Log in
                   </Link>
@@ -103,28 +105,28 @@ export default function Landing() {
                 <BrandLogo to={null} size="xl" glow spinRing />
               </div>
 
-              <h1 className="font-display text-[clamp(3.2rem,12vw,6.5rem)] font-semibold leading-[0.92] tracking-tight">
+              <h1 className="font-display text-[clamp(3rem,11vw,5.75rem)] font-semibold leading-[0.95] tracking-tight">
                 <span className="inline-block animate-title-rise gold-text">Dipsan</span>
                 <br />
                 <span
                   className="inline-block animate-title-rise text-mist"
-                  style={{ animationDelay: "0.15s" }}
+                  style={{ animationDelay: "0.12s" }}
                 >
                   Academy
                 </span>
               </h1>
 
               <p
-                className="mt-6 max-w-lg animate-fade-up text-base leading-relaxed text-champagne/75 md:text-lg"
-                style={{ animationDelay: "0.28s" }}
+                className="mt-6 max-w-lg animate-fade-up text-base leading-relaxed text-bronze md:text-lg"
+                style={{ animationDelay: "0.25s" }}
               >
-                Luxury-grade NEET &amp; JEE mock exams — timed, scored, and reviewed the moment you
+                Science-ready NEET &amp; JEE mocks — timed, scored, and reviewed the moment you
                 submit.
               </p>
 
               <div
                 className="mt-10 flex animate-fade-up flex-wrap items-center justify-center gap-3"
-                style={{ animationDelay: "0.4s" }}
+                style={{ animationDelay: "0.38s" }}
               >
                 {user ? (
                   <>
@@ -137,7 +139,7 @@ export default function Landing() {
                     <button
                       type="button"
                       onClick={logout}
-                      className="inline-flex items-center rounded-full border border-gold/40 px-8 py-3.5 text-sm font-semibold tracking-wide text-gold transition hover:border-gold hover:bg-gold/10"
+                      className="inline-flex items-center rounded-full border border-white/25 bg-white/5 px-8 py-3.5 text-sm font-semibold tracking-wide text-mist transition hover:border-gold hover:text-gold"
                     >
                       Log out
                     </button>
@@ -152,7 +154,7 @@ export default function Landing() {
                     </Link>
                     <Link
                       to="/register"
-                      className="inline-flex items-center rounded-full border border-gold/40 px-8 py-3.5 text-sm font-semibold tracking-wide text-gold transition hover:border-gold hover:bg-gold/10"
+                      className="inline-flex items-center rounded-full border border-white/25 bg-white/5 px-8 py-3.5 text-sm font-semibold tracking-wide text-mist transition hover:border-gold hover:text-gold"
                     >
                       Sign up
                     </Link>
@@ -161,23 +163,22 @@ export default function Landing() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-8 border-t border-gold/20 pt-6 text-[11px] uppercase tracking-[0.25em] text-bronze">
-              <span>Mock series</span>
+            <div className="flex flex-wrap items-center justify-center gap-8 border-t border-white/10 pt-6 text-[11px] uppercase tracking-[0.22em] text-bronze">
+              <span>Physics</span>
               <span className="h-1 w-1 rounded-full bg-gold" />
-              <span>CBT</span>
+              <span>Chemistry</span>
               <span className="h-1 w-1 rounded-full bg-gold" />
-              <span>Auto-grade</span>
+              <span>Biology</span>
             </div>
           </div>
         </section>
 
-        {/* Visual story section */}
-        <section className="relative overflow-hidden border-t border-gold/15 bg-coal">
-          <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-20 md:grid-cols-2 md:px-10 md:py-28">
+        <section className="relative overflow-hidden border-t border-white/10 bg-coal">
+          <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-20 md:grid-cols-2 md:px-10 md:py-24">
             <div className="animate-fade-up">
               <div className="mb-4 flex items-center gap-3">
                 <BrandLogo size="xs" glow />
-                <span className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">
+                <span className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
                   The experience
                 </span>
               </div>
@@ -191,31 +192,38 @@ export default function Landing() {
                 feedback when the clock hits zero.
               </p>
             </div>
-            <div className="relative overflow-hidden rounded-3xl gold-border-glow animate-fade-up" style={{ animationDelay: "0.15s" }}>
+            <div
+              className="relative overflow-hidden rounded-3xl gold-border-glow animate-fade-up"
+              style={{ animationDelay: "0.12s" }}
+            >
               <img
-                src={STUDY_IMAGE}
-                alt="Focused study session"
-                className="h-[360px] w-full object-cover md:h-[420px]"
+                src={LAB_IMAGE}
+                alt="Science lab glassware"
+                className="h-[340px] w-full object-cover md:h-[400px]"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-ink via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-paper via-transparent to-transparent" />
               <div className="absolute bottom-5 left-5 flex items-center gap-3">
                 <BrandLogo size="xs" />
-                <span className="font-display text-lg text-champagne">Prepared. Precise. Proud.</span>
+                <span className="font-display text-lg text-mist">Precision over pressure.</span>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="border-t border-gold/15">
+        <section className="border-t border-white/10">
           <div className="mx-auto grid max-w-6xl md:grid-cols-2">
-            <div
-              className="relative min-h-[320px] overflow-hidden border-b border-gold/15 md:border-b-0 md:border-r"
-            >
-              <img src={LIBRARY_IMAGE} alt="" className="absolute inset-0 h-full w-full object-cover opacity-40" />
-              <div className="absolute inset-0 bg-ink/70" />
+            <div className="relative min-h-[300px] overflow-hidden border-b border-white/10 md:border-b-0 md:border-r">
+              <img
+                src={MICROSCOPE_IMAGE}
+                alt="Biotechnology"
+                className="absolute inset-0 h-full w-full object-cover opacity-45"
+              />
+              <div className="absolute inset-0 bg-paper/55" />
               <div className="relative px-6 py-16 md:px-10 md:py-20">
-                <BrandLogo size="xs" glow className="mb-4" />
-                <div className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">Students</div>
+                <BrandLogo size="xs" glow />
+                <div className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+                  Students
+                </div>
                 <h3 className="mt-3 font-display text-3xl font-semibold text-mist md:text-4xl">
                   Practice like the real paper.
                 </h3>
@@ -224,12 +232,18 @@ export default function Landing() {
                 </p>
               </div>
             </div>
-            <div className="relative min-h-[320px] overflow-hidden">
-              <img src={STUDY_IMAGE} alt="" className="absolute inset-0 h-full w-full object-cover opacity-35" />
-              <div className="absolute inset-0 bg-ink/75" />
+            <div className="relative min-h-[300px] overflow-hidden">
+              <img
+                src={CHEM_IMAGE}
+                alt="Chemistry"
+                className="absolute inset-0 h-full w-full object-cover opacity-40"
+              />
+              <div className="absolute inset-0 bg-paper/60" />
               <div className="relative px-6 py-16 md:px-10 md:py-20">
-                <BrandLogo size="xs" glow className="mb-4" />
-                <div className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">Teachers</div>
+                <BrandLogo size="xs" glow />
+                <div className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+                  Teachers
+                </div>
                 <h3 className="mt-3 font-display text-3xl font-semibold text-mist md:text-4xl">
                   Publish once. Read every attempt.
                 </h3>
@@ -241,20 +255,20 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="relative overflow-hidden border-t border-gold/15 bg-charcoal">
+        <section className="relative overflow-hidden border-t border-white/10 bg-coal">
           <img
-            src={HERO_IMAGE}
+            src={LAB_IMAGE}
             alt=""
-            className="absolute inset-0 h-full w-full object-cover opacity-25"
+            className="absolute inset-0 h-full w-full object-cover opacity-20"
           />
-          <div className="absolute inset-0 bg-ink/80" />
-          <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-8 px-6 py-24 text-center md:px-10">
+          <div className="absolute inset-0 bg-paper/70" />
+          <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-8 px-6 py-20 text-center md:px-10">
             <BrandLogo size="lg" glow spinRing />
             <h2 className="font-display text-4xl font-semibold text-mist md:text-5xl">
               Ready when you are.
             </h2>
             <p className="max-w-md text-bronze">
-              Enter the hall with the crest behind you — and the clock ahead.
+              Enter the hall with science on your side — and the clock ahead.
             </p>
             {user ? (
               <div className="flex flex-wrap justify-center gap-3">
@@ -267,7 +281,7 @@ export default function Landing() {
                 <button
                   type="button"
                   onClick={logout}
-                  className="inline-flex rounded-full border border-gold/40 px-8 py-3.5 text-sm font-semibold text-gold transition hover:bg-gold/10"
+                  className="inline-flex rounded-full border border-white/25 bg-white/5 px-8 py-3.5 text-sm font-semibold text-mist transition hover:border-gold hover:text-gold"
                 >
                   Log out
                 </button>
@@ -282,7 +296,7 @@ export default function Landing() {
                 </Link>
                 <Link
                   to="/register"
-                  className="inline-flex rounded-full border border-gold/40 px-8 py-3.5 text-sm font-semibold text-gold transition hover:bg-gold/10"
+                  className="inline-flex rounded-full border border-white/25 bg-white/5 px-8 py-3.5 text-sm font-semibold text-mist transition hover:border-gold hover:text-gold"
                 >
                   Sign up
                 </Link>
@@ -291,7 +305,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <footer className="border-t border-gold/15 bg-ink px-6 py-8 md:px-10">
+        <footer className="border-t border-white/10 bg-paper px-6 py-8 md:px-10">
           <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
             <BrandLogo size="sm" showWordmark glow />
             <span className="text-xs tracking-wide text-bronze">Online examination platform</span>
