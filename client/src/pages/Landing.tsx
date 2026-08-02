@@ -134,18 +134,18 @@ export default function Landing() {
       </div>
 
       <div
-        className={`fixed right-3 top-3 z-40 flex max-w-[58vw] flex-wrap items-center justify-end gap-1.5 transition-all duration-700 sm:right-5 sm:top-5 sm:max-w-none sm:gap-3 md:right-8 md:top-6 ${
+        className={`fixed right-3 top-3 z-40 flex flex-nowrap items-center justify-end gap-1.5 transition-all duration-700 sm:right-5 sm:top-5 sm:gap-2.5 md:right-8 md:top-6 md:gap-3 ${
           phase === "ready" ? "opacity-100 scale-100" : "opacity-0 scale-75"
         }`}
       >
-        <SupportButton />
         {user && <NotificationBell />}
+        <SupportButton />
         <BrandLogo size="sm" glow spinRing />
       </div>
 
       {user && (
         <div
-          className={`fixed left-3 top-3 z-40 flex max-w-[38vw] items-center gap-2 transition-all duration-700 sm:left-5 sm:top-5 sm:max-w-none sm:gap-3 md:left-8 md:top-6 ${
+          className={`fixed left-3 top-3 z-40 flex max-w-[42vw] items-center gap-2 transition-all duration-700 sm:left-5 sm:top-5 sm:max-w-[50vw] sm:gap-3 md:left-8 md:top-6 md:max-w-none ${
             phase === "ready" ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
           }`}
         >

@@ -71,8 +71,8 @@ export function NotificationBell() {
           setOpen((v) => !v);
           if (!open) load();
         }}
-        className="relative inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-2.5 py-1.5 text-mist transition hover:border-gold hover:bg-gold/20 sm:gap-2 sm:px-3.5 sm:py-2"
-        aria-label="Notifications"
+        className="relative z-[1] inline-flex shrink-0 items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-2.5 py-1.5 text-mist transition hover:border-gold hover:bg-gold/20 sm:gap-2 sm:px-3.5 sm:py-2"
+        aria-label="Alerts"
       >
         <span className="relative inline-flex h-5 w-5 items-center justify-center">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -90,7 +90,7 @@ export function NotificationBell() {
             </span>
           )}
         </span>
-        <span className="hidden text-xs font-semibold tracking-wide text-champagne sm:inline">Alerts</span>
+        <span className="text-[11px] font-semibold tracking-wide text-champagne sm:text-xs">Alerts</span>
       </button>
 
       {open && (
