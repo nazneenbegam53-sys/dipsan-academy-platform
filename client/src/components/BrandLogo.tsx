@@ -21,9 +21,9 @@ export function BrandLogo({
     xs: "h-10 w-10",
     sm: "h-12 w-12",
     md: "h-16 w-16",
-    lg: "h-24 w-24",
-    xl: "h-32 w-32",
-    hero: "h-[min(58vw,300px)] w-[min(58vw,300px)] md:h-[340px] md:w-[340px]",
+    lg: "h-20 w-20 md:h-24 md:w-24",
+    xl: "h-24 w-24 md:h-32 md:w-32",
+    hero: "h-[min(48vw,260px)] w-[min(48vw,260px)] md:h-[340px] md:w-[340px]",
   };
 
   const wordSizes = {
