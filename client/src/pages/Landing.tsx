@@ -100,7 +100,13 @@ export default function Landing() {
   const firstName = user?.name?.trim().split(/\s+/)[0] || "";
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden science-atmosphere text-mist">
+    <div
+      className="relative min-h-screen min-h-[100dvh] overflow-x-hidden science-atmosphere text-mist"
+      style={{
+        paddingTop: "env(safe-area-inset-top, 0px)",
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+      }}
+    >
       {/* Crest intro — skipped after login/signup or once per session */}
       {phase !== "ready" && (
       <div className="fixed inset-0 z-50 flex items-center justify-center opacity-100">
@@ -319,6 +325,12 @@ export default function Landing() {
                         >
                           Sign up
                         </Link>
+                        <a
+                          href="/install/"
+                          className="inline-flex items-center rounded-full border border-aurora/40 bg-aurora/10 px-5 py-2.5 text-xs font-bold tracking-wide text-champagne transition hover:border-gold hover:text-gold sm:px-8 sm:py-3.5 sm:text-sm"
+                        >
+                          Install free app
+                        </a>
                       </>
                     )}
                   </div>

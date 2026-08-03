@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#07121C" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Dipsan Academy" />
+    <title>Install Dipsan Academy — Free</title>
+    <link rel="icon" type="image/png" href="/dipsan-logo.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Outfit:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #07121c;
+        --gold: #d4b06a;
+        --champagne: #f0e0b8;
+        --aurora: #5ec8c0;
+        --bronze: #9db0c0;
+        --mist: #e8f0f5;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Outfit, system-ui, sans-serif;
+        color: var(--mist);
+        background:
+          radial-gradient(ellipse 70% 50% at 50% 0%, rgba(94, 200, 192, 0.18), transparent 60%),
+          radial-gradient(ellipse 50% 40% at 90% 80%, rgba(212, 176, 106, 0.1), transparent 50%),
+          var(--ink);
+        padding: 2rem 1.25rem 3rem;
+      }
+      .wrap { max-width: 34rem; margin: 0 auto; }
+      img.logo {
+        width: 72px; height: 72px; border-radius: 999px; object-fit: contain;
+        box-shadow: 0 0 0 1px rgba(212, 176, 106, 0.35);
+      }
+      h1 {
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-size: clamp(1.9rem, 6vw, 2.6rem);
+        margin: 1.25rem 0 0.5rem;
+        font-weight: 700;
+      }
+      .gold {
+        background: linear-gradient(120deg, #9a7a3a, #d4b06a 40%, #f0e0b8 55%, #5ec8c0 70%, #d4b06a);
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+      }
+      p { color: var(--bronze); line-height: 1.55; }
+      .card {
+        margin-top: 1.25rem;
+        padding: 1.15rem 1.2rem;
+        border-radius: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(15, 31, 46, 0.85);
+      }
+      .card h2 {
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-size: 1.35rem;
+        color: var(--champagne);
+        margin: 0 0 0.65rem;
+      }
+      ol { margin: 0; padding-left: 1.2rem; color: var(--bronze); }
+      ol li { margin: 0.45rem 0; }
+      .btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        margin-top: 1.25rem; padding: 0.85rem 1.4rem; border-radius: 999px;
+        background: var(--gold); color: var(--ink); font-weight: 700;
+        text-decoration: none; border: 0; cursor: pointer; font-size: 0.95rem;
+      }
+      .btn.secondary {
+        background: transparent; color: var(--mist);
+        border: 1px solid rgba(255, 255, 255, 0.22); margin-left: 0.5rem;
+      }
+      .note {
+        margin-top: 1.5rem; padding: 1rem 1.1rem; border-radius: 1rem;
+        border: 1px solid rgba(212, 176, 106, 0.25); background: rgba(212, 176, 106, 0.06);
+        font-size: 0.9rem;
+      }
+      a.back { color: var(--gold); text-decoration: none; font-weight: 600; font-size: 0.9rem; }
+      #ios-help {
+        display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+        align-items: flex-end; justify-content: center; padding: 1rem; z-index: 20;
+      }
+      #ios-help.open { display: flex; }
+      #ios-help .sheet {
+        width: 100%; max-width: 26rem; background: #0f1f2e; border-radius: 1.25rem;
+        padding: 1.35rem; border: 1px solid rgba(255,255,255,0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <img class="logo" src="/dipsan-logo.png" alt="Dipsan Academy" />
+      <h1>Install <span class="gold">Dipsan Academy</span> — free</h1>
+      <p>
+        No Play Store or App Store fee. Add the app to your home screen from this page.
+      </p>
+
+      <button class="btn" id="install-btn" type="button">Install free app</button>
+      <a class="btn secondary" href="/">Open website</a>
+
+      <div class="card">
+        <h2>Android (Chrome)</h2>
+        <ol>
+          <li>Open this page in Chrome.</li>
+          <li>Tap <strong style="color:var(--mist)">Install free app</strong>, or the menu → Install app.</li>
+          <li>Confirm — the icon appears on your home screen.</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h2>iPhone / iPad (Safari)</h2>
+        <ol>
+          <li>Open this page in Safari.</li>
+          <li>Tap Share → <strong style="color:var(--mist)">Add to Home Screen</strong>.</li>
+          <li>Tap Add. Done — no Apple fee.</li>
+        </ol>
+      </div>
+
+      <div class="note">
+        This install is free forever. Official Play Store / App Store listings are optional and paid later.
+      </div>
+
+      <p style="margin-top:1.75rem"><a class="back" href="/">← Back to Dipsan Academy</a></p>
+    </div>
+
+    <div id="ios-help" role="dialog" aria-modal="true">
+      <div class="sheet">
+        <h2 style="font-family:'Cormorant Garamond',Georgia,serif;color:var(--mist);margin:0 0 0.75rem">
+          Install on iPhone
+        </h2>
+        <ol>
+          <li>Tap the Share button in Safari.</li>
+          <li>Choose Add to Home Screen.</li>
+          <li>Tap Add.</li>
+        </ol>
+        <button class="btn" type="button" id="ios-close" style="width:100%">Got it</button>
+      </div>
+    </div>
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/sw.js").catch(function () {});
+      }
+
+      var deferred = null;
+      var btn = document.getElementById("install-btn");
+      var iosHelp = document.getElementById("ios-help");
+      var isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      var standalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        navigator.standalone === true;
+
+      if (standalone) {
+        btn.textContent = "Already installed";
+        btn.disabled = true;
+      }
+
+      window.addEventListener("beforeinstallprompt", function (e) {
+        e.preventDefault();
+        deferred = e;
+      });
+
+      window.addEventListener("appinstalled", function () {
+        btn.textContent = "Installed";
+        btn.disabled = true;
+      });
+
+      btn.addEventListener("click", async function () {
+        if (deferred) {
+          deferred.prompt();
+          var choice = await deferred.userChoice;
+          if (choice.outcome === "accepted") {
+            btn.textContent = "Installed";
+            btn.disabled = true;
+          }
+          deferred = null;
+          return;
+        }
+        if (isIos) {
+          iosHelp.classList.add("open");
+          return;
+        }
+        alert("In Chrome, open the browser menu and choose Install app / Add to Home screen.");
+      });
+
+      document.getElementById("ios-close").addEventListener("click", function () {
+        iosHelp.classList.remove("open");
+      });
+      iosHelp.addEventListener("click", function (e) {
+        if (e.target === iosHelp) iosHelp.classList.remove("open");
+      });
+    </script>
+  </body>
+</html>

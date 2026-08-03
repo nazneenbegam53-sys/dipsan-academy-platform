@@ -2,6 +2,8 @@ import { Routes, Route } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import InstallApp from "./pages/InstallApp";
 import StudentDashboard from "./pages/StudentDashboard";
 import ExamInstructions from "./pages/ExamInstructions";
 import ExamAttempt from "./pages/ExamAttempt";
@@ -19,6 +21,8 @@ export default function App() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/install" element={<InstallApp />} />
 
       {/* Student */}
       <Route path="/student" element={<ProtectedRoute role="student"><StudentDashboard /></ProtectedRoute>} />

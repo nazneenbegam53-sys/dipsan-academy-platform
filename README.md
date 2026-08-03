@@ -48,12 +48,19 @@ JWT auth · Cloudinary (optional) file storage · Chart.js (analytics) · jsPDF 
 These are stubbed with clear comments so you (or I, in a follow-up) can build
 them out incrementally without restructuring what's already there.
 
-## Project structure
+## Mobile app
+
+**Free (recommended first):** share the live site — users install from the browser
+with no store fees: https://dipsan-academy-platform.vercel.app/install
+
+**Play Store / App Store (paid accounts):** the React client is also packaged with
+Capacitor as a native **Dipsan Academy** app. See
+**[client/MOBILE_APP.md](client/MOBILE_APP.md)** for build steps and listing copy.
 
 ```
-dipsan-academy-platform/
-├── server/     Node/Express API + MongoDB models
-└── client/     React + TypeScript + Tailwind frontend
+cd client
+npm install
+npm run mobile:sync    # build + sync into android/ and ios/
 ```
 
 ## Getting it running
