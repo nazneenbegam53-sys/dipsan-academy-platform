@@ -48,11 +48,14 @@ JWT auth · Cloudinary (optional) file storage · Chart.js (analytics) · jsPDF 
 These are stubbed with clear comments so you (or I, in a follow-up) can build
 them out incrementally without restructuring what's already there.
 
-## Mobile app (Play Store + App Store)
+## Mobile app
 
-The React client is packaged as a native **Dipsan Academy** app with Capacitor
-for Android and iOS. See **[client/MOBILE_APP.md](client/MOBILE_APP.md)** for
-build steps, store listing copy, and submission notes.
+**Free (recommended first):** share the live site — users install from the browser
+with no store fees: https://dipsan-academy-platform.vercel.app/install
+
+**Play Store / App Store (paid accounts):** the React client is also packaged with
+Capacitor as a native **Dipsan Academy** app. See
+**[client/MOBILE_APP.md](client/MOBILE_APP.md)** for build steps and listing copy.
 
 ```
 cd client

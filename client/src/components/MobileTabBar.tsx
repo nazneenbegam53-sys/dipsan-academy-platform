@@ -86,7 +86,7 @@ function AccountIcon({ active }: { active: boolean }) {
 }
 
 function shouldHideTabBar(path: string) {
-  if (path === "/login" || path === "/register") return true;
+  if (path === "/login" || path === "/register" || path === "/install" || path === "/privacy") return true;
   if (path.includes("/attempt/") || path.includes("/instructions")) return true;
   if (path === "/teacher/exam/new") return true;
   if (/\/teacher\/exam\/[^/]+\/(edit|analytics|video-solutions)/.test(path)) return true;

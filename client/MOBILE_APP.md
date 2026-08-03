@@ -1,5 +1,25 @@
 # Dipsan Academy — Mobile App (Play Store + App Store)
 
+## Free option (no store fees)
+
+You can publish **today for $0** as a Progressive Web App (PWA):
+
+1. Deploy the client to Vercel (already live).
+2. Share https://dipsan-academy-platform.vercel.app/install
+3. Students tap **Install free app** (Android) or **Add to Home Screen** (iPhone).
+
+It appears on the home screen like a normal app — no Google or Apple developer fee.
+
+| Platform | Free install |
+|----------|----------------|
+| Android Chrome | Install prompt / browser menu → Install app |
+| iPhone Safari | Share → Add to Home Screen |
+| Guide page | `/install` on the website |
+
+Official Play Store / App Store listings are **not free** (Google ~$25 one-time, Apple ~$99/year). Use the sections below only when you want those stores.
+
+---
+
 Native shells for **Dipsan Academy** are built with [Capacitor](https://capacitorjs.com/).
 The same React client that powers https://dipsan-academy-platform.vercel.app/ is packaged
 as an Android and iOS app that talks to the live API:

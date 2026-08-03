@@ -13,6 +13,7 @@ import {
   SubjectNav,
   type SubjectKey,
 } from "../components/SubjectFunFacts";
+import { InstallAppButton } from "../components/InstallAppButton";
 
 type Phase = "intro" | "settle" | "ready";
 
@@ -325,6 +326,7 @@ export default function Landing() {
                         >
                           Sign up
                         </Link>
+                        <InstallAppButton />
                       </>
                     )}
                   </div>
