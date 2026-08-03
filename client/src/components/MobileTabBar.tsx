@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { tapHaptic } from "../lib/native";
+import { isStandaloneApp, tapHaptic } from "../lib/native";
 
 type Tab = {
   key: string;
@@ -96,14 +96,39 @@ function shouldHideTabBar(path: string) {
 export function MobileTabBar() {
   const { user, logout } = useAuth();
   const { pathname } = useLocation();
-  const visible = Boolean(user) && !shouldHideTabBar(pathname);
+  const appMode = isStandaloneApp();
+  const visible = (Boolean(user) || appMode) && !shouldHideTabBar(pathname);
 
   useEffect(() => {
     document.body.classList.toggle("has-mobile-tabs", visible);
     return () => document.body.classList.remove("has-mobile-tabs");
   }, [visible]);
 
-  if (!visible || !user) return null;
+  if (!visible) return null;
+
+  const guestTabs: Tab[] = [
+    {
+      key: "home",
+      to: "/",
+      label: "Home",
+      active: pathname === "/",
+      icon: (a) => <HomeIcon active={a} />,
+    },
+    {
+      key: "login",
+      to: "/login",
+      label: "Log in",
+      active: pathname === "/login",
+      icon: (a) => <AccountIcon active={a} />,
+    },
+    {
+      key: "signup",
+      to: "/register",
+      label: "Sign up",
+      active: pathname === "/register",
+      icon: (a) => <ExamsIcon active={a} />,
+    },
+  ];
 
   const studentTabs: Tab[] = [
     {
@@ -155,7 +180,7 @@ export function MobileTabBar() {
     },
   ];
 
-  const tabs = user.role === "teacher" ? teacherTabs : studentTabs;
+  const tabs = !user ? guestTabs : user.role === "teacher" ? teacherTabs : studentTabs;
 
   return (
     <nav
@@ -177,18 +202,20 @@ export function MobileTabBar() {
             <span>{tab.label}</span>
           </NavLink>
         ))}
-        <button
-          type="button"
-          onClick={() => {
-            void tapHaptic();
-            logout();
-            window.location.assign("/");
-          }}
-          className="flex min-w-[4.5rem] flex-col items-center gap-0.5 rounded-xl px-3 py-2 text-[10px] font-semibold tracking-wide text-bronze transition hover:text-champagne"
-        >
-          <AccountIcon active={false} />
-          <span>Log out</span>
-        </button>
+        {user && (
+          <button
+            type="button"
+            onClick={() => {
+              void tapHaptic();
+              logout();
+              window.location.assign("/");
+            }}
+            className="flex min-w-[4.5rem] flex-col items-center gap-0.5 rounded-xl px-3 py-2 text-[10px] font-semibold tracking-wide text-bronze transition hover:text-champagne"
+          >
+            <AccountIcon active={false} />
+            <span>Log out</span>
+          </button>
+        )}
       </div>
     </nav>
   );

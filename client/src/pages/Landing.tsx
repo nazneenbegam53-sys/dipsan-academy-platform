@@ -13,6 +13,8 @@ import {
   SubjectNav,
   type SubjectKey,
 } from "../components/SubjectFunFacts";
+import { AppHomeScreen } from "../components/AppHomeScreen";
+import { isStandaloneApp } from "../lib/native";
 
 type Phase = "intro" | "settle" | "ready";
 
@@ -66,6 +68,14 @@ function AnimatedLetters({
 }
 
 export default function Landing() {
+  // Installed app / Capacitor: compact app home — not the marketing website.
+  if (isStandaloneApp()) {
+    return <AppHomeScreen />;
+  }
+  return <MarketingLanding />;
+}
+
+function MarketingLanding() {
   const { user, logout } = useAuth();
   const [phase, setPhase] = useState<Phase>(() => (hasSeenIntro() ? "ready" : "intro"));
   const [orbitDone, setOrbitDone] = useState(false);
