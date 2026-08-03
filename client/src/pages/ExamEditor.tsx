@@ -185,6 +185,14 @@ export default function ExamEditor() {
           <Button variant="ghost" onClick={() => navigate("/teacher")}>
             ← Back to dashboard
           </Button>
+          {savedExamId && (
+            <Button
+              variant="accent"
+              onClick={() => navigate(`/teacher/exam/${savedExamId}/video-solutions`)}
+            >
+              Video solutions
+            </Button>
+          )}
         </div>
 
         <ErrorBanner message={error} />

@@ -43,10 +43,69 @@ const updateQuestion = asyncHandler(async (req, res) => {
     "type", "text", "imageUrl", "options", "correctOptionIndex", "correctOptionIndexes",
     "correctNumericValue", "numericTolerance", "marks", "negativeMarks",
     "chapter", "topic", "difficulty", "explanation", "explanationImageUrl",
+    "explanationVideoUrl", "explanationVideoStatus", "explanationVideoDuration",
+    "explanationVideoProvider",
   ];
   editable.forEach((field) => {
     if (req.body[field] !== undefined) question[field] = req.body[field];
   });
+
+  // Keep status consistent with URL presence
+  if (req.body.explanationVideoUrl === null || req.body.explanationVideoUrl === "") {
+    question.explanationVideoUrl = null;
+    question.explanationVideoStatus = "none";
+    question.explanationVideoDuration = null;
+    question.explanationVideoProvider = null;
+  } else if (req.body.explanationVideoUrl && question.explanationVideoStatus === "none") {
+    question.explanationVideoStatus = "draft";
+  }
+
+  await question.save();
+  res.json({ question });
+});
+
+/** Save / publish / unpublish a per-question video solution */
+const upsertVideoSolution = asyncHandler(async (req, res) => {
+  const exam = await ownExamOrFail(req.params.examId, req.user._id, res);
+  if (!exam) return;
+
+  const question = await Question.findOne({ _id: req.params.questionId, exam: exam._id });
+  if (!question) return res.status(404).json({ message: "Question not found." });
+
+  const { url, status, duration, provider, clear } = req.body;
+
+  if (clear) {
+    question.explanationVideoUrl = null;
+    question.explanationVideoStatus = "none";
+    question.explanationVideoDuration = null;
+    question.explanationVideoProvider = null;
+    await question.save();
+    return res.json({ question });
+  }
+
+  if (url !== undefined) {
+    if (!url) {
+      return res.status(400).json({ message: "Video URL is required." });
+    }
+    question.explanationVideoUrl = url;
+    if (question.explanationVideoStatus === "none") {
+      question.explanationVideoStatus = "draft";
+    }
+  }
+
+  if (status !== undefined) {
+    if (!["draft", "published"].includes(status)) {
+      return res.status(400).json({ message: "Status must be draft or published." });
+    }
+    if (!question.explanationVideoUrl && status !== "draft") {
+      return res.status(400).json({ message: "Save a recording before publishing." });
+    }
+    question.explanationVideoStatus = question.explanationVideoUrl ? status : "none";
+  }
+
+  if (duration !== undefined) question.explanationVideoDuration = duration;
+  if (provider !== undefined) question.explanationVideoProvider = provider;
+
   await question.save();
   res.json({ question });
 });
@@ -89,4 +148,11 @@ const attachExistingQuestion = asyncHandler(async (req, res) => {
   res.json({ exam });
 });
 
-module.exports = { addQuestion, updateQuestion, deleteQuestion, listQuestionBank, attachExistingQuestion };
+module.exports = {
+  addQuestion,
+  updateQuestion,
+  upsertVideoSolution,
+  deleteQuestion,
+  listQuestionBank,
+  attachExistingQuestion,
+};

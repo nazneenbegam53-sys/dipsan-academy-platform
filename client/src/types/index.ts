@@ -27,6 +27,10 @@ export interface Question {
   difficulty?: "easy" | "medium" | "hard";
   explanation?: string;
   explanationImageUrl?: string | null;
+  explanationVideoUrl?: string | null;
+  explanationVideoStatus?: "none" | "draft" | "published";
+  explanationVideoDuration?: number | null;
+  explanationVideoProvider?: string | null;
 }
 
 export interface Exam {

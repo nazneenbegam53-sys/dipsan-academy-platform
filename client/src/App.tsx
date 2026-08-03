@@ -10,6 +10,7 @@ import TeacherDashboard from "./pages/TeacherDashboard";
 import ExamEditor from "./pages/ExamEditor";
 import TeacherResults from "./pages/TeacherResults";
 import Analytics from "./pages/Analytics";
+import VideoSolutions from "./pages/VideoSolutions";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export default function App() {
@@ -32,6 +33,7 @@ export default function App() {
       <Route path="/teacher/exam/:examId/edit" element={<ProtectedRoute role="teacher"><ExamEditor /></ProtectedRoute>} />
       <Route path="/teacher/exam/:examId/results" element={<ProtectedRoute role="teacher"><TeacherResults /></ProtectedRoute>} />
       <Route path="/teacher/exam/:examId/analytics" element={<ProtectedRoute role="teacher"><Analytics /></ProtectedRoute>} />
+      <Route path="/teacher/exam/:examId/video-solutions" element={<ProtectedRoute role="teacher"><VideoSolutions /></ProtectedRoute>} />
     </Routes>
   );
 }

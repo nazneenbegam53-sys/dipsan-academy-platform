@@ -30,6 +30,16 @@ const questionSchema = new mongoose.Schema(
 
     explanation: { type: String, default: "" },
     explanationImageUrl: { type: String, default: null }, // solution diagram shown with explanation
+
+    // Interactive video solution (per-question) — record, save, publish/unpublish
+    explanationVideoUrl: { type: String, default: null },
+    explanationVideoStatus: {
+      type: String,
+      enum: ["none", "draft", "published"],
+      default: "none",
+    },
+    explanationVideoDuration: { type: Number, default: null }, // seconds
+    explanationVideoProvider: { type: String, default: null }, // cloudinary | gridfs
   },
   { timestamps: true }
 );

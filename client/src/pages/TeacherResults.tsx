@@ -211,8 +211,8 @@ export default function TeacherResults() {
                     );
                   })}
                 </div>
-                {(q.explanation || q.explanationImageUrl) && (
-                  <div className="mt-3 rounded-xl border-l-4 border-gold bg-gold/15 px-3 py-2 text-xs text-mist">
+                {(q.explanation || q.explanationImageUrl || q.explanationVideoUrl) && (
+                  <div className="mt-3 space-y-3 rounded-xl border-l-4 border-gold bg-gold/15 px-3 py-2 text-xs text-mist">
                     {q.explanation && (
                       <div>
                         <span className="font-semibold">Explanation: </span>
@@ -225,6 +225,20 @@ export default function TeacherResults() {
                         alt="Solution"
                         className="mt-2 max-h-48 rounded-lg border border-white/10"
                       />
+                    )}
+                    {q.explanationVideoUrl && (
+                      <div className="mt-2">
+                        <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-gold">
+                          Video solution
+                          {q.explanationVideoStatus === "published" ? " · published" : " · draft"}
+                        </p>
+                        <video
+                          src={q.explanationVideoUrl}
+                          controls
+                          playsInline
+                          className="aspect-video w-full max-w-xl rounded-xl border border-white/10 bg-black"
+                        />
+                      </div>
                     )}
                   </div>
                 )}

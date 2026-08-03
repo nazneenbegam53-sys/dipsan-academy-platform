@@ -134,6 +134,12 @@ export default function TeacherDashboard() {
                   <Button variant="ghost" onClick={() => navigate(`/teacher/exam/${e._id}/edit`)}>
                     Edit
                   </Button>
+                  <Button
+                    variant="accent"
+                    onClick={() => navigate(`/teacher/exam/${e._id}/video-solutions`)}
+                  >
+                    Video solutions
+                  </Button>
                   <Button onClick={() => navigate(`/teacher/exam/${e._id}/results`)}>
                     Submissions ({e.submissionCount ?? 0})
                   </Button>

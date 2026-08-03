@@ -10,7 +10,7 @@ router.get(
   asyncHandler(async (req, res) => {
     const found = await streamGridFSFile(req.params.id, res);
     if (!found) {
-      return res.status(404).json({ message: "Image not found." });
+      return res.status(404).json({ message: "Media not found." });
     }
   })
 );
