@@ -22,13 +22,23 @@ const allowedOrigins = (process.env.CLIENT_ORIGIN || "http://localhost:5173")
   .map((s) => s.trim())
   .filter(Boolean);
 
+const nativeOrigins = [
+  "capacitor://localhost",
+  "ionic://localhost",
+  "http://localhost",
+  "https://localhost",
+  "http://localhost:5173",
+];
+
 app.use(
   cors({
     origin(origin, callback) {
-      // Allow non-browser / same-origin, configured clients, and Vercel previews
+      // Allow non-browser / same-origin, configured clients, Vercel previews,
+      // and Capacitor (iOS / Android) WebView origins.
       if (
         !origin ||
         allowedOrigins.includes(origin) ||
+        nativeOrigins.includes(origin) ||
         /\.vercel\.app$/i.test(origin)
       ) {
         return callback(null, true);

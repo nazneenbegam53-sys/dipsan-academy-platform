@@ -22,7 +22,7 @@ export default function Login() {
     } catch {
       /* ignore */
     }
-    navigate("/", { replace: true });
+    navigate(user.role === "teacher" ? "/teacher" : "/student", { replace: true });
   }, [user, navigate]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -36,7 +36,7 @@ export default function Login() {
       } catch {
         /* ignore */
       }
-      navigate("/", { replace: true });
+      // Role redirect handled by the effect above once user is set.
     } catch (err: any) {
       setError(err.message || "Login failed.");
       setLoading(false);

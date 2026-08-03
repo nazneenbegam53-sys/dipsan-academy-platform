@@ -35,7 +35,7 @@ export default function Register() {
       } catch {
         /* ignore */
       }
-      navigate("/", { replace: true });
+      navigate(role === "teacher" ? "/teacher" : "/student", { replace: true });
     } catch (err: any) {
       setError(err.message || "Registration failed.");
       setLoading(false);

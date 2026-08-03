@@ -6,9 +6,23 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "assets:mobile": "node scripts/generate-mobile-assets.mjs",
+    "assets:native": "npx capacitor-assets generate --iconBackgroundColor '#07121C' --iconBackgroundColorDark '#07121C' --splashBackgroundColor '#07121C' --splashBackgroundColorDark '#07121C'",
+    "build:mobile": "npm run assets:mobile && tsc && vite build --mode production",
+    "cap:sync": "npx cap sync",
+    "mobile:android": "npx cap open android",
+    "mobile:ios": "npx cap open ios",
+    "mobile:sync": "npm run build:mobile && npm run assets:native && npx cap sync"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/keyboard": "^8.0.5",
+    "@capacitor/network": "^8.0.1",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.3",
     "chart.js": "^4.4.3",
     "jspdf": "^2.5.1",
     "react": "^18.3.1",
@@ -17,11 +31,16 @@
     "react-router-dom": "^6.24.1"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/ios": "^8.5.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.39",
+    "sharp": "^0.35.3",
     "tailwindcss": "^3.4.6",
     "typescript": "^5.5.3",
     "vite": "^5.3.4"

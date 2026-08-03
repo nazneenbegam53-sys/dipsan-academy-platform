@@ -56,6 +56,13 @@ export default function StudentDashboard() {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    if (loading) return;
+    if (window.location.hash === "#history") {
+      document.getElementById("history")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [loading]);
+
   const attemptGroups = useMemo(() => groupAttemptsByExam(attempts), [attempts]);
 
   return (
@@ -118,7 +125,7 @@ export default function StudentDashboard() {
           )}
         </section>
 
-        <section>
+        <section id="history">
           <h2 className="font-display text-2xl font-semibold text-champagne">Past attempts</h2>
           <p className="mt-1 text-sm text-bronze">
             Results grouped by exam name — open any attempt to review solutions.

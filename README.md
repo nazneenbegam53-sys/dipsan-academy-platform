@@ -48,12 +48,16 @@ JWT auth · Cloudinary (optional) file storage · Chart.js (analytics) · jsPDF 
 These are stubbed with clear comments so you (or I, in a follow-up) can build
 them out incrementally without restructuring what's already there.
 
-## Project structure
+## Mobile app (Play Store + App Store)
+
+The React client is packaged as a native **Dipsan Academy** app with Capacitor
+for Android and iOS. See **[client/MOBILE_APP.md](client/MOBILE_APP.md)** for
+build steps, store listing copy, and submission notes.
 
 ```
-dipsan-academy-platform/
-├── server/     Node/Express API + MongoDB models
-└── client/     React + TypeScript + Tailwind frontend
+cd client
+npm install
+npm run mobile:sync    # build + sync into android/ and ios/
 ```
 
 ## Getting it running

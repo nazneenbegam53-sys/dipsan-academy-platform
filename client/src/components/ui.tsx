@@ -99,7 +99,12 @@ export function PageShell({
   className?: string;
 }) {
   return (
-    <div className={`relative min-h-screen overflow-x-hidden luxury-atmosphere text-mist ${className}`}>
+    <div
+      className={`relative min-h-screen min-h-[100dvh] overflow-x-hidden luxury-atmosphere text-mist ${className}`}
+      style={{
+        paddingTop: "env(safe-area-inset-top, 0px)",
+      }}
+    >
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
         <div className="absolute -left-24 top-0 h-72 w-72 rounded-full bg-aurora/10 blur-3xl" />
         <div className="absolute -right-16 bottom-10 h-80 w-80 rounded-full bg-gold/10 blur-3xl" />
