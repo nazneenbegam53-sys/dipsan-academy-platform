@@ -69,8 +69,13 @@ export default function VideoSolutions() {
     setMessage("");
     try {
       const fd = new FormData();
-      const ext = blob.type.includes("mp4") ? "mp4" : "webm";
-      fd.append("video", blob, `q-${active._id}.${ext}`);
+      // Browsers/WebViews often send Blobs as application/octet-stream — force a real video File type.
+      const baseMime = (blob.type || "").split(";")[0].trim().toLowerCase();
+      const isMp4 = baseMime.includes("mp4") || baseMime.includes("quicktime");
+      const ext = isMp4 ? "mp4" : "webm";
+      const mime = baseMime.startsWith("video/") ? baseMime : isMp4 ? "video/mp4" : "video/webm";
+      const file = new File([blob], `q-${active._id}.${ext}`, { type: mime });
+      fd.append("video", file);
       const uploaded = await api.post<{ url: string; provider?: string; duration?: number | null }>(
         "/upload/video",
         fd
