@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "assets:mobile": "node scripts/generate-mobile-assets.mjs",
     "assets:native": "npx capacitor-assets generate --iconBackgroundColor '#07121C' --iconBackgroundColorDark '#07121C' --splashBackgroundColor '#07121C' --splashBackgroundColorDark '#07121C'",
-    "build:mobile": "npm run assets:mobile && tsc && vite build --mode production",
+    "build:mobile": "npm run assets:mobile && tsc && CAPACITOR_BUILD=1 vite build --mode production",
     "cap:sync": "npx cap sync",
     "mobile:android": "npx cap open android",
     "mobile:ios": "npx cap open ios",
