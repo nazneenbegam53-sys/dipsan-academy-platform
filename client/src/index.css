@@ -28,14 +28,35 @@ body {
 
 /* Native Capacitor shell — notch / home-indicator safe areas */
 html.native-app,
-body.native-app {
+body.native-app,
+html.app-shell,
+body.app-shell {
   background: #07121c;
   min-height: 100dvh;
+  /* Feel like an app, not a scrollable webpage */
+  overscroll-behavior: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.app-shell input,
+.app-shell textarea,
+.native-app input,
+.native-app textarea {
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .native-app button,
-.native-app a {
+.native-app a,
+.app-shell button,
+.app-shell a {
   touch-action: manipulation;
+}
+
+body.in-browser {
+  padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 @media (max-width: 767px) {
@@ -45,6 +66,10 @@ body.native-app {
 
   body.has-mobile-tabs {
     padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  body.in-browser.has-mobile-tabs {
+    padding-bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
   }
 }
 

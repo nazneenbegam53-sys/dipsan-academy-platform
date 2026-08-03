@@ -1,14 +1,22 @@
 {
+  "id": "/",
   "name": "Dipsan Academy",
   "short_name": "Dipsan",
   "description": "Timed mock exams for NEET, JEE, and school boards — practice, submit, and review with detailed solutions.",
-  "start_url": "/",
+  "start_url": "/?source=app",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "fullscreen", "minimal-ui"],
   "orientation": "portrait-primary",
   "background_color": "#07121C",
   "theme_color": "#07121C",
   "lang": "en",
+  "dir": "ltr",
   "categories": ["education", "productivity"],
+  "prefer_related_applications": false,
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  },
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -27,18 +35,15 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    },
+    }
+  ],
+  "screenshots": [
     {
-      "src": "/icons/icon-192.webp",
-      "sizes": "192x192",
-      "type": "image/webp",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-512.webp",
+      "src": "/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/webp",
-      "purpose": "any"
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Dipsan Academy"
     }
   ]
 }

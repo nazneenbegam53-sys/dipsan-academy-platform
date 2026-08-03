@@ -1,22 +1,19 @@
 # Dipsan Academy — Mobile App (Play Store + App Store)
 
-## Free option (no store fees)
+## Free “real app” install (no store fees)
 
-You can publish **today for $0** as a Progressive Web App (PWA):
+Opening the website in Chrome/Safari is **not** the app — you’ll still see the browser bar.
 
-1. Deploy the client to Vercel (already live).
-2. Share https://dipsan-academy-platform.vercel.app/install
-3. Students tap **Install free app** (Android) or **Add to Home Screen** (iPhone).
+To get a real full-screen app icon:
 
-It appears on the home screen like a normal app — no Google or Apple developer fee.
+1. On your phone open https://dipsan-academy-platform.vercel.app/install  
+2. Tap **Install to home screen** (Android) or Safari Share → **Add to Home Screen** (iPhone)  
+3. **Leave the browser** and open the new **Dipsan Academy** icon  
 
-| Platform | Free install |
-|----------|----------------|
-| Android Chrome | Install prompt / browser menu → Install app |
-| iPhone Safari | Share → Add to Home Screen |
-| Guide page | `/install` on the website |
+That installed icon runs standalone (no address bar), with an app-style home and bottom tabs.
 
-Official Play Store / App Store listings are **not free** (Google ~$25 one-time, Apple ~$99/year). Use the sections below only when you want those stores.
+Official Play Store / App Store builds still need paid developer accounts — see below.
+
 
 ---
 

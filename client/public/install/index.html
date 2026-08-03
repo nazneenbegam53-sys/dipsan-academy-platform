@@ -2,11 +2,13 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
     <meta name="theme-color" content="#07121C" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Dipsan Academy" />
-    <title>Install Dipsan Academy — Free</title>
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>Install Dipsan Academy — Real App</title>
     <link rel="icon" type="image/png" href="/dipsan-logo.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
@@ -33,14 +35,13 @@
         color: var(--mist);
         background:
           radial-gradient(ellipse 70% 50% at 50% 0%, rgba(94, 200, 192, 0.18), transparent 60%),
-          radial-gradient(ellipse 50% 40% at 90% 80%, rgba(212, 176, 106, 0.1), transparent 50%),
           var(--ink);
         padding: 2rem 1.25rem 3rem;
       }
       .wrap { max-width: 34rem; margin: 0 auto; }
       img.logo {
-        width: 72px; height: 72px; border-radius: 999px; object-fit: contain;
-        box-shadow: 0 0 0 1px rgba(212, 176, 106, 0.35);
+        width: 88px; height: 88px; border-radius: 999px; object-fit: contain;
+        box-shadow: 0 0 0 2px rgba(212, 176, 106, 0.4);
       }
       h1 {
         font-family: "Cormorant Garamond", Georgia, serif;
@@ -53,6 +54,25 @@
         -webkit-background-clip: text; background-clip: text; color: transparent;
       }
       p { color: var(--bronze); line-height: 1.55; }
+      .warn {
+        margin: 1rem 0;
+        padding: 0.9rem 1rem;
+        border-radius: 0.9rem;
+        border: 1px solid rgba(255, 107, 107, 0.35);
+        background: rgba(255, 107, 107, 0.1);
+        color: #ffc9c9;
+        font-size: 0.9rem;
+      }
+      .ok {
+        display: none;
+        margin: 1rem 0;
+        padding: 0.9rem 1rem;
+        border-radius: 0.9rem;
+        border: 1px solid rgba(94, 200, 192, 0.35);
+        background: rgba(94, 200, 192, 0.1);
+        color: #b8f0ec;
+        font-size: 0.9rem;
+      }
       .card {
         margin-top: 1.25rem;
         padding: 1.15rem 1.2rem;
@@ -70,18 +90,13 @@
       ol li { margin: 0.45rem 0; }
       .btn {
         display: inline-flex; align-items: center; justify-content: center;
-        margin-top: 1.25rem; padding: 0.85rem 1.4rem; border-radius: 999px;
+        margin-top: 1.25rem; padding: 0.9rem 1.5rem; border-radius: 999px;
         background: var(--gold); color: var(--ink); font-weight: 700;
         text-decoration: none; border: 0; cursor: pointer; font-size: 0.95rem;
       }
       .btn.secondary {
         background: transparent; color: var(--mist);
         border: 1px solid rgba(255, 255, 255, 0.22); margin-left: 0.5rem;
-      }
-      .note {
-        margin-top: 1.5rem; padding: 1rem 1.1rem; border-radius: 1rem;
-        border: 1px solid rgba(212, 176, 106, 0.25); background: rgba(212, 176, 106, 0.06);
-        font-size: 0.9rem;
       }
       a.back { color: var(--gold); text-decoration: none; font-weight: 600; font-size: 0.9rem; }
       #ios-help {
@@ -98,48 +113,54 @@
   <body>
     <div class="wrap">
       <img class="logo" src="/dipsan-logo.png" alt="Dipsan Academy" />
-      <h1>Install <span class="gold">Dipsan Academy</span> — free</h1>
+      <h1>Install the <span class="gold">real app</span></h1>
       <p>
-        No Play Store or App Store fee. Add the app to your home screen from this page.
+        Opening this site in Chrome or Safari is <strong style="color:var(--mist)">not</strong> the app.
+        After install, open the <strong style="color:var(--mist)">Dipsan Academy</strong> icon from your
+        home screen — it runs full-screen with no browser bar.
       </p>
 
-      <button class="btn" id="install-btn" type="button">Install free app</button>
-      <a class="btn secondary" href="/">Open website</a>
+      <div class="warn" id="browser-warn">
+        You are still inside a browser right now (address bar visible). Follow the steps below, then
+        leave the browser and open the home-screen icon.
+      </div>
+      <div class="ok" id="app-ok">
+        You’re already in the installed app. Close this page and use Log in from Home.
+      </div>
+
+      <button class="btn" id="install-btn" type="button">Install to home screen</button>
+      <a class="btn secondary" href="/">Back</a>
 
       <div class="card">
-        <h2>Android (Chrome)</h2>
+        <h2>Android</h2>
         <ol>
-          <li>Open this page in Chrome.</li>
-          <li>Tap <strong style="color:var(--mist)">Install free app</strong>, or the menu → Install app.</li>
-          <li>Confirm — the icon appears on your home screen.</li>
+          <li>Tap <strong style="color:var(--mist)">Install to home screen</strong> above.</li>
+          <li>Or Chrome menu ⋮ → <strong style="color:var(--mist)">Install app</strong> / Add to Home screen.</li>
+          <li>Leave Chrome. Open the new <strong style="color:var(--mist)">Dipsan Academy</strong> icon.</li>
         </ol>
       </div>
 
       <div class="card">
-        <h2>iPhone / iPad (Safari)</h2>
+        <h2>iPhone (must use Safari)</h2>
         <ol>
-          <li>Open this page in Safari.</li>
-          <li>Tap Share → <strong style="color:var(--mist)">Add to Home Screen</strong>.</li>
-          <li>Tap Add. Done — no Apple fee.</li>
+          <li>Open this page in <strong style="color:var(--mist)">Safari</strong> (not Chrome).</li>
+          <li>Tap Share → <strong style="color:var(--mist)">Add to Home Screen</strong> → Add.</li>
+          <li>Leave Safari. Open the home-screen icon — that is the real app.</li>
         </ol>
       </div>
 
-      <div class="note">
-        This install is free forever. Official Play Store / App Store listings are optional and paid later.
-      </div>
-
-      <p style="margin-top:1.75rem"><a class="back" href="/">← Back to Dipsan Academy</a></p>
+      <p style="margin-top:1.75rem"><a class="back" href="/">← Website home</a></p>
     </div>
 
     <div id="ios-help" role="dialog" aria-modal="true">
       <div class="sheet">
         <h2 style="font-family:'Cormorant Garamond',Georgia,serif;color:var(--mist);margin:0 0 0.75rem">
-          Install on iPhone
+          iPhone steps
         </h2>
         <ol>
-          <li>Tap the Share button in Safari.</li>
-          <li>Choose Add to Home Screen.</li>
-          <li>Tap Add.</li>
+          <li>Tap Share in Safari.</li>
+          <li>Add to Home Screen → Add.</li>
+          <li>Open the home-screen icon (not Safari).</li>
         </ol>
         <button class="btn" type="button" id="ios-close" style="width:100%">Got it</button>
       </div>
@@ -159,6 +180,8 @@
         navigator.standalone === true;
 
       if (standalone) {
+        document.getElementById("browser-warn").style.display = "none";
+        document.getElementById("app-ok").style.display = "block";
         btn.textContent = "Already installed";
         btn.disabled = true;
       }
@@ -169,8 +192,9 @@
       });
 
       window.addEventListener("appinstalled", function () {
-        btn.textContent = "Installed";
+        btn.textContent = "Installed — open home icon";
         btn.disabled = true;
+        alert("Installed! Close the browser and open the Dipsan Academy icon on your home screen.");
       });
 
       btn.addEventListener("click", async function () {
@@ -178,7 +202,7 @@
           deferred.prompt();
           var choice = await deferred.userChoice;
           if (choice.outcome === "accepted") {
-            btn.textContent = "Installed";
+            btn.textContent = "Installed — open home icon";
             btn.disabled = true;
           }
           deferred = null;
@@ -188,7 +212,7 @@
           iosHelp.classList.add("open");
           return;
         }
-        alert("In Chrome, open the browser menu and choose Install app / Add to Home screen.");
+        alert("In Chrome: tap the menu (⋮) → Install app / Add to Home screen. Then open the home-screen icon.");
       });
 
       document.getElementById("ios-close").addEventListener("click", function () {
