@@ -80,8 +80,8 @@ export function InstallAppButton({
       setShowIosHelp(true);
       return;
     }
-    // Desktop / unsupported — open install guide
-    window.location.assign("/install");
+    // Desktop / unsupported — open static install guide
+    window.location.assign("/install/");
   }
 
   return (

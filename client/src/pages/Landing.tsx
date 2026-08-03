@@ -13,7 +13,6 @@ import {
   SubjectNav,
   type SubjectKey,
 } from "../components/SubjectFunFacts";
-import { InstallAppButton } from "../components/InstallAppButton";
 
 type Phase = "intro" | "settle" | "ready";
 
@@ -326,7 +325,12 @@ export default function Landing() {
                         >
                           Sign up
                         </Link>
-                        <InstallAppButton />
+                        <a
+                          href="/install/"
+                          className="inline-flex items-center rounded-full border border-aurora/40 bg-aurora/10 px-5 py-2.5 text-xs font-bold tracking-wide text-champagne transition hover:border-gold hover:text-gold sm:px-8 sm:py-3.5 sm:text-sm"
+                        >
+                          Install free app
+                        </a>
                       </>
                     )}
                   </div>
