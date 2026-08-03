@@ -1,10 +1,6 @@
 {
-  "cleanUrls": true,
   "rewrites": [
-    {
-      "source": "/((?!install(?:/.*)?$|assets/|icons/|hero/|sw\\.js$|manifest\\.webmanifest$|.*\\.[a-zA-Z0-9]+$).*)",
-      "destination": "/index.html"
-    }
+    { "source": "/((?!install$).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
