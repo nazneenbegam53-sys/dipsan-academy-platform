@@ -153,12 +153,27 @@ const getMyAttemptResult = asyncHandler(async (req, res) => {
 
   const exam = await Exam.findById(attempt.exam).populate("questions");
 
+  // Only expose published video solutions to students
+  const examObj = exam.toObject();
+  examObj.questions = (examObj.questions || []).map((q) => {
+    if (q.explanationVideoStatus !== "published") {
+      return {
+        ...q,
+        explanationVideoUrl: null,
+        explanationVideoDuration: null,
+        explanationVideoProvider: null,
+        explanationVideoStatus: "none",
+      };
+    }
+    return q;
+  });
+
   res.json({
     attempt: {
       ...attempt.toObject(),
       answers: attempt.answers || {},
     },
-    exam,
+    exam: examObj,
   });
 });
 

@@ -273,8 +273,8 @@ export default function ResultPage() {
                     <div className="text-xs text-bronze">Not attempted</div>
                   )}
                 </div>
-                {(q.explanation || q.explanationImageUrl) && (
-                  <div className="mt-3 rounded-xl border-l-4 border-gold bg-gold/10 px-3 py-2 text-xs text-champagne/80">
+                {(q.explanation || q.explanationImageUrl || q.explanationVideoUrl) && (
+                  <div className="mt-3 space-y-3 rounded-xl border-l-4 border-gold bg-gold/10 px-3 py-2 text-xs text-champagne/80">
                     {q.explanation && (
                       <div>
                         <span className="font-semibold">Explanation: </span>
@@ -287,6 +287,20 @@ export default function ResultPage() {
                         alt="Solution"
                         className="mt-2 max-h-56 rounded-lg border border-gold/10"
                       />
+                    )}
+                    {q.explanationVideoUrl && q.explanationVideoStatus === "published" && (
+                      <div className="mt-2">
+                        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-gold">
+                          Video solution
+                        </p>
+                        <video
+                          src={q.explanationVideoUrl}
+                          controls
+                          playsInline
+                          preload="metadata"
+                          className="aspect-video w-full max-w-xl rounded-xl border border-gold/20 bg-black"
+                        />
+                      </div>
                     )}
                   </div>
                 )}

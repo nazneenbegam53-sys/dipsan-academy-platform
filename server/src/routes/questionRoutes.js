@@ -1,6 +1,6 @@
 const express = require("express");
 const {
-  addQuestion, updateQuestion, deleteQuestion, listQuestionBank, attachExistingQuestion,
+  addQuestion, updateQuestion, upsertVideoSolution, deleteQuestion, listQuestionBank, attachExistingQuestion,
 } = require("../controllers/questionController");
 const { protect, requireRole } = require("../middleware/auth");
 
@@ -10,6 +10,12 @@ router.get("/bank", protect, requireRole("teacher"), listQuestionBank);
 
 router.post("/:examId/questions", protect, requireRole("teacher"), addQuestion);
 router.patch("/:examId/questions/:questionId", protect, requireRole("teacher"), updateQuestion);
+router.patch(
+  "/:examId/questions/:questionId/video-solution",
+  protect,
+  requireRole("teacher"),
+  upsertVideoSolution
+);
 router.delete("/:examId/questions/:questionId", protect, requireRole("teacher"), deleteQuestion);
 router.post("/:examId/questions/attach", protect, requireRole("teacher"), attachExistingQuestion);
 

@@ -1,10 +1,10 @@
 const express = require("express");
 const multer = require("multer");
-const { uploadImage } = require("../controllers/uploadController");
+const { uploadImage, uploadVideo } = require("../controllers/uploadController");
 const { protect, requireRole } = require("../middleware/auth");
 
 // Memory storage — bytes go to Cloudinary or MongoDB GridFS, never ephemeral disk.
-const upload = multer({
+const imageUpload = multer({
   storage: multer.memoryStorage(),
   fileFilter: (req, file, cb) => {
     const allowed = [
@@ -22,14 +22,39 @@ const upload = multer({
   },
 });
 
+const videoUpload = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: (req, file, cb) => {
+    const allowed = [
+      "video/webm",
+      "video/mp4",
+      "video/quicktime",
+      "video/x-matroska",
+    ];
+    const ok = allowed.includes(file.mimetype) || file.mimetype.startsWith("video/");
+    cb(ok ? null : new Error("Invalid video type. Use WebM or MP4."), ok);
+  },
+  limits: {
+    fileSize: 200 * 1024 * 1024, // 200 MB — question-wise explanations
+  },
+});
+
 const router = express.Router();
 
 router.post(
   "/image",
   protect,
   requireRole("teacher"),
-  upload.single("image"),
+  imageUpload.single("image"),
   uploadImage
+);
+
+router.post(
+  "/video",
+  protect,
+  requireRole("teacher"),
+  videoUpload.single("video"),
+  uploadVideo
 );
 
 module.exports = router;

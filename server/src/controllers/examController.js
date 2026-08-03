@@ -80,7 +80,7 @@ const getExamForStudent = asyncHandler(async (req, res) => {
     .populate({
       path: "questions",
       select:
-        "-correctOptionIndex -correctOptionIndexes -correctNumericValue -explanation -explanationImageUrl",
+        "-correctOptionIndex -correctOptionIndexes -correctNumericValue -explanation -explanationImageUrl -explanationVideoUrl -explanationVideoStatus -explanationVideoDuration -explanationVideoProvider",
     });
   if (!exam) return res.status(404).json({ message: "Exam not found or not published." });
   res.json({ exam });

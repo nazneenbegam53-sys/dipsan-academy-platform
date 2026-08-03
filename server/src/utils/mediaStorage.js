@@ -2,14 +2,15 @@ const mongoose = require("mongoose");
 const { Readable } = require("stream");
 const { cloudinary, isConfigured: cloudinaryConfigured } = require("../config/cloudinary");
 
-const BUCKET_NAME = "questionImages";
+const IMAGE_BUCKET = "questionImages";
+const VIDEO_BUCKET = "questionVideos";
 
-function getBucket() {
+function getBucket(bucketName = IMAGE_BUCKET) {
   if (!mongoose.connection?.db) {
     throw new Error("MongoDB is not connected yet.");
   }
   return new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
-    bucketName: BUCKET_NAME,
+    bucketName,
   });
 }
 
@@ -20,12 +21,12 @@ function bufferToStream(buffer) {
   return stream;
 }
 
-async function uploadToCloudinary(file) {
+async function uploadToCloudinary(file, { resourceType = "image", folder = "dipsan/questions" } = {}) {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       {
-        folder: "dipsan/questions",
-        resource_type: "image",
+        folder,
+        resource_type: resourceType,
         public_id: `${Date.now()}-${Math.round(Math.random() * 1e9)}`,
       },
       (err, result) => {
@@ -34,6 +35,7 @@ async function uploadToCloudinary(file) {
           url: result.secure_url,
           provider: "cloudinary",
           publicId: result.public_id,
+          duration: result.duration ?? null,
         });
       }
     );
@@ -41,8 +43,8 @@ async function uploadToCloudinary(file) {
   });
 }
 
-async function uploadToGridFS(file) {
-  const bucket = getBucket();
+async function uploadToGridFS(file, bucketName = IMAGE_BUCKET) {
+  const bucket = getBucket(bucketName);
   const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${
     require("path").extname(file.originalname || "") || ".bin"
   }`;
@@ -53,6 +55,7 @@ async function uploadToGridFS(file) {
       metadata: {
         originalName: file.originalname,
         uploadedAt: new Date().toISOString(),
+        bucket: bucketName,
       },
     });
 
@@ -63,6 +66,7 @@ async function uploadToGridFS(file) {
         filename,
         contentType: file.mimetype,
         provider: "gridfs",
+        bucket: bucketName,
       });
     });
 
@@ -81,10 +85,10 @@ async function storeImage(file, { baseUrl } = {}) {
   }
 
   if (cloudinaryConfigured) {
-    return uploadToCloudinary(file);
+    return uploadToCloudinary(file, { resourceType: "image", folder: "dipsan/questions" });
   }
 
-  const stored = await uploadToGridFS(file);
+  const stored = await uploadToGridFS(file, IMAGE_BUCKET);
   const origin = (baseUrl || "").replace(/\/$/, "");
   return {
     url: `${origin}/api/media/${stored.id}`,
@@ -93,19 +97,40 @@ async function storeImage(file, { baseUrl } = {}) {
   };
 }
 
-async function streamGridFSFile(id, res) {
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return false;
+/**
+ * Persist a video solution recording (webm/mp4).
+ * Cloudinary uses resource_type "video"; otherwise GridFS video bucket.
+ */
+async function storeVideo(file, { baseUrl } = {}) {
+  if (!file?.buffer) {
+    throw new Error("No video file provided.");
   }
 
-  const bucket = getBucket();
-  const _id = new mongoose.Types.ObjectId(id);
+  if (cloudinaryConfigured) {
+    return uploadToCloudinary(file, {
+      resourceType: "video",
+      folder: "dipsan/video-solutions",
+    });
+  }
+
+  const stored = await uploadToGridFS(file, VIDEO_BUCKET);
+  const origin = (baseUrl || "").replace(/\/$/, "");
+  return {
+    url: `${origin}/api/media/${stored.id}`,
+    provider: "gridfs",
+    id: stored.id,
+  };
+}
+
+async function streamFromBucket(bucketName, _id, res) {
+  const bucket = getBucket(bucketName);
   const files = await bucket.find({ _id }).toArray();
   if (!files.length) return false;
 
   const file = files[0];
   res.setHeader("Content-Type", file.contentType || "application/octet-stream");
   res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  res.setHeader("Accept-Ranges", "bytes");
   res.setHeader("Content-Disposition", `inline; filename="${file.filename}"`);
 
   return new Promise((resolve, reject) => {
@@ -116,9 +141,24 @@ async function streamGridFSFile(id, res) {
   });
 }
 
+async function streamGridFSFile(id, res) {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return false;
+  }
+
+  const _id = new mongoose.Types.ObjectId(id);
+  // Try image bucket first, then video bucket
+  const fromImages = await streamFromBucket(IMAGE_BUCKET, _id, res);
+  if (fromImages) return true;
+  return streamFromBucket(VIDEO_BUCKET, _id, res);
+}
+
 module.exports = {
   storeImage,
+  storeVideo,
   streamGridFSFile,
   cloudinaryConfigured,
-  BUCKET_NAME,
+  BUCKET_NAME: IMAGE_BUCKET,
+  IMAGE_BUCKET,
+  VIDEO_BUCKET,
 };
