@@ -30,6 +30,7 @@ export function VideoSolutionRecorder({
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const chunks = useRef<Blob[]>([]);
   const streamsRef = useRef<MediaStream[]>([]);
+  const audioCtxRef = useRef<AudioContext | null>(null);
   const startedAt = useRef(0);
 
   const [mode, setMode] = useState<RecMode>("board");
@@ -42,11 +43,15 @@ export function VideoSolutionRecorder({
   const [pendingDuration, setPendingDuration] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [livePreview, setLivePreview] = useState(false);
+  const [previewKey, setPreviewKey] = useState(0);
 
   const stopTracks = useCallback(() => {
     streamsRef.current.forEach((s) => s.getTracks().forEach((t) => t.stop()));
     streamsRef.current = [];
+    if (audioCtxRef.current) {
+      void audioCtxRef.current.close().catch(() => undefined);
+      audioCtxRef.current = null;
+    }
   }, []);
 
   useEffect(() => {
@@ -184,27 +189,45 @@ export function VideoSolutionRecorder({
     }
 
     try {
-      const audio = await navigator.mediaDevices.getUserMedia({
+      // Mic first — required for narration on both board and screen modes
+      const micStream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
+          autoGainControl: true,
         },
+        video: false,
       });
-      streamsRef.current.push(audio);
+      streamsRef.current.push(micStream);
+      micStream.getAudioTracks().forEach((t) => {
+        t.enabled = true;
+      });
+
+      // Route mic through AudioContext so MediaRecorder reliably gets audio
+      // (especially when mixing with canvas.captureStream / display media).
+      const AudioCtx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const audioCtx = new AudioCtx();
+      audioCtxRef.current = audioCtx;
+      if (audioCtx.state === "suspended") {
+        await audioCtx.resume();
+      }
+      const source = audioCtx.createMediaStreamSource(micStream);
+      const dest = audioCtx.createMediaStreamDestination();
+      source.connect(dest);
+      const mixedAudio = dest.stream;
+      streamsRef.current.push(mixedAudio);
 
       let videoStream: MediaStream;
       if (mode === "board") {
         const canvas = canvasRef.current;
         if (!canvas) throw new Error("Drawing board not ready.");
-        // Ensure board is painted before capture
-        if (!recording) {
-          /* keep current drawings */
-        }
         videoStream = canvas.captureStream(30);
       } else {
         videoStream = await navigator.mediaDevices.getDisplayMedia({
           video: { frameRate: 30 },
-          audio: false,
+          audio: true, // system/tab audio when the browser allows it
         });
         videoStream.getVideoTracks().forEach((t) => {
           t.addEventListener("ended", () => {
@@ -214,49 +237,64 @@ export function VideoSolutionRecorder({
       }
       streamsRef.current.push(videoStream);
 
-      const combined = new MediaStream([
-        ...videoStream.getVideoTracks(),
-        ...audio.getAudioTracks(),
-      ]);
+      const combined = new MediaStream();
+      videoStream.getVideoTracks().forEach((t) => combined.addTrack(t));
+      // Prefer AudioContext-mixed mic; also keep any display-audio tracks
+      mixedAudio.getAudioTracks().forEach((t) => {
+        t.enabled = true;
+        combined.addTrack(t);
+      });
+      videoStream.getAudioTracks().forEach((t) => {
+        t.enabled = true;
+        combined.addTrack(t);
+      });
+
+      if (combined.getAudioTracks().length === 0) {
+        throw new Error("Microphone audio was not attached. Check mic permission and try again.");
+      }
+      if (combined.getVideoTracks().length === 0) {
+        throw new Error("No video track available to record.");
+      }
 
       const mimeCandidates = [
-        "video/webm;codecs=vp9,opus",
         "video/webm;codecs=vp8,opus",
+        "video/webm;codecs=vp9,opus",
+        "video/webm;codecs=vp8",
         "video/webm",
         "video/mp4",
       ];
-      const mimeType = mimeCandidates.find((m) => MediaRecorder.isTypeSupported(m)) || "";
-      const recorder = new MediaRecorder(combined, mimeType ? { mimeType } : undefined);
+      const mimeType =
+        typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported
+          ? mimeCandidates.find((m) => MediaRecorder.isTypeSupported(m)) || ""
+          : "";
+      const recorder = new MediaRecorder(combined, mimeType ? { mimeType, audioBitsPerSecond: 128000 } : { audioBitsPerSecond: 128000 });
       chunks.current = [];
       recorder.ondataavailable = (ev) => {
-        if (ev.data.size > 0) chunks.current.push(ev.data);
+        if (ev.data && ev.data.size > 0) chunks.current.push(ev.data);
+      };
+      recorder.onerror = () => {
+        setError("Recording failed. Try again with microphone allowed.");
+        setRecording(false);
+        stopTracks();
       };
       recorder.onstop = () => {
-        const type = recorder.mimeType || "video/webm";
-        const blob = new Blob(chunks.current, { type });
+        const rawType = (recorder.mimeType || mimeType || "video/webm").split(";")[0];
+        const safeType = rawType.startsWith("video/") ? rawType : "video/webm";
+        const blob = new Blob(chunks.current, { type: safeType });
         const duration = Math.max(1, Math.round((Date.now() - startedAt.current) / 1000));
         setPendingBlob(blob);
         setPendingDuration(duration);
         const url = URL.createObjectURL(blob);
         setBlobUrl(url);
-        setLivePreview(false);
-        if (previewRef.current) {
-          previewRef.current.srcObject = null;
-          previewRef.current.src = url;
-        }
+        setPreviewKey((k) => k + 1);
         stopTracks();
       };
 
       mediaRecorder.current = recorder;
-      recorder.start(1000);
+      recorder.start(500);
       startedAt.current = Date.now();
       setElapsed(0);
       setRecording(true);
-      setLivePreview(mode === "screen");
-      if (mode === "screen" && previewRef.current) {
-        previewRef.current.srcObject = videoStream;
-        void previewRef.current.play().catch(() => undefined);
-      }
     } catch (err: any) {
       stopTracks();
       setError(
@@ -270,6 +308,11 @@ export function VideoSolutionRecorder({
   function stopRecording() {
     const rec = mediaRecorder.current;
     if (rec && rec.state !== "inactive") {
+      try {
+        if (rec.state === "recording") rec.requestData();
+      } catch {
+        /* ignore */
+      }
       rec.stop();
     }
     setRecording(false);
@@ -401,16 +444,25 @@ export function VideoSolutionRecorder({
         )}
       </div>
 
-      {(livePreview || blobUrl) && (
+      {blobUrl && (
         <div className="overflow-hidden rounded-2xl border border-gold/20 bg-ink/60">
           <video
+            key={previewKey}
             ref={previewRef}
             className="aspect-video w-full bg-black"
-            controls={!livePreview}
-            muted={livePreview}
+            controls
             playsInline
-            src={blobUrl || undefined}
+            preload="auto"
+            src={blobUrl}
+            onLoadedMetadata={(e) => {
+              const v = e.currentTarget;
+              v.muted = false;
+              v.volume = 1;
+            }}
           />
+          <p className="px-3 py-2 text-[11px] text-bronze">
+            Preview — turn up device volume if needed. Mic audio is included in the recording.
+          </p>
         </div>
       )}
 

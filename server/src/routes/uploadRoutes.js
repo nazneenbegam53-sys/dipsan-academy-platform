@@ -25,13 +25,15 @@ const imageUpload = multer({
 const videoUpload = multer({
   storage: multer.memoryStorage(),
   fileFilter: (req, file, cb) => {
-    const allowed = [
-      "video/webm",
-      "video/mp4",
-      "video/quicktime",
-      "video/x-matroska",
-    ];
-    const ok = allowed.includes(file.mimetype) || file.mimetype.startsWith("video/");
+    const mime = (file.mimetype || "").toLowerCase().split(";")[0].trim();
+    const name = (file.originalname || "").toLowerCase();
+    const extOk = /\.(webm|mp4|mov|mkv|m4v)$/i.test(name);
+    const mimeOk =
+      !mime ||
+      mime === "application/octet-stream" ||
+      mime.startsWith("video/") ||
+      ["video/webm", "video/mp4", "video/quicktime", "video/x-matroska"].includes(mime);
+    const ok = mimeOk || extOk;
     cb(ok ? null : new Error("Invalid video type. Use WebM or MP4."), ok);
   },
   limits: {
