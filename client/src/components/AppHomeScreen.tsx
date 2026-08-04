@@ -5,7 +5,7 @@ import { useEffect } from "react";
 
 /**
  * Compact home shown when the app is installed (standalone / native).
- * Feels like a real app launch screen — not a marketing website.
+ * Same accounts, exams, payments, and teacher tools as the website.
  */
 export function AppHomeScreen() {
   const { user, loading } = useAuth();
@@ -56,7 +56,8 @@ export function AppHomeScreen() {
           ready when you are
         </h1>
         <p className="mt-3 max-w-xs text-sm text-bronze">
-          Timed NEET &amp; JEE practice — scored the moment you submit.
+          Timed NEET &amp; JEE practice — same account and data as the website. Subscribe once for
+          ₹2000 to unlock all papers and solutions.
         </p>
 
         <div className="mt-8 flex w-full flex-col gap-3">
@@ -71,6 +72,12 @@ export function AppHomeScreen() {
             className="inline-flex w-full items-center justify-center rounded-full border border-white/20 bg-white/5 px-6 py-3.5 text-sm font-semibold text-mist"
           >
             Create account
+          </Link>
+          <Link
+            to="/subscribe"
+            className="inline-flex w-full items-center justify-center rounded-full border border-gold/40 bg-gold/10 px-6 py-3.5 text-sm font-bold tracking-wide text-champagne"
+          >
+            Subscribe ₹2000
           </Link>
         </div>
       </div>

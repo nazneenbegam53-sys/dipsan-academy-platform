@@ -55,10 +55,12 @@ them out incrementally without restructuring what's already there.
 **Free (recommended first):** share the live site — users install from the browser
 with no store fees: https://dipsan-academy-platform.vercel.app/install
 
+The installed app and Capacitor store shells load that **same live website**, so
+exams, subscriptions, and teacher tools stay in sync whenever you deploy to Vercel.
+
 **Play Store / App Store (paid accounts):** the React client is also packaged with
 Capacitor as a native **Dipsan Academy** app. See
 **[client/MOBILE_APP.md](client/MOBILE_APP.md)** for build steps and listing copy.
-
 ```
 cd client
 npm install

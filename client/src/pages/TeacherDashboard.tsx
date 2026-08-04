@@ -61,6 +61,13 @@ export default function TeacherDashboard() {
     load();
   }, []);
 
+  useEffect(() => {
+    if (loading) return;
+    if (window.location.hash === "#subscribers") {
+      document.getElementById("subscribers")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [loading]);
+
   async function togglePublish(exam: Exam) {
     const next = exam.status === "published" ? "draft" : "published";
     await api.patch(`/exams/${exam._id}/status`, { status: next });
