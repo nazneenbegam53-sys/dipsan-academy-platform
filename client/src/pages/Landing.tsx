@@ -313,6 +313,14 @@ function MarketingLanding() {
                         >
                           Go to dashboard
                         </Link>
+                        {user.role === "student" && !user.subscriptionActive && (
+                          <Link
+                            to="/subscribe"
+                            className="inline-flex items-center rounded-full border border-gold/40 bg-gold/10 px-5 py-2.5 text-xs font-bold tracking-wide text-champagne transition hover:border-gold hover:text-gold sm:px-8 sm:py-3.5 sm:text-sm"
+                          >
+                            Subscribe ₹2000
+                          </Link>
+                        )}
                         <button
                           type="button"
                           onClick={logout}
@@ -465,6 +473,14 @@ function MarketingLanding() {
                 >
                   Open dashboard
                 </Link>
+                {user.role === "student" && !user.subscriptionActive && (
+                  <Link
+                    to="/subscribe"
+                    className="inline-flex rounded-full border border-gold/40 bg-gold/10 px-8 py-3.5 text-sm font-bold text-champagne transition hover:border-gold hover:text-gold"
+                  >
+                    Subscribe ₹2000
+                  </Link>
+                )}
                 <button
                   type="button"
                   onClick={logout}

@@ -43,6 +43,7 @@ export default function StudentDashboard() {
   const [exams, setExams] = useState<Exam[]>([]);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [loading, setLoading] = useState(true);
+  const subscribed = Boolean(user?.subscriptionActive);
 
   useEffect(() => {
     Promise.all([
@@ -89,6 +90,28 @@ export default function StudentDashboard() {
           }
         />
 
+        {!subscribed && (
+          <section className="mb-10 overflow-hidden rounded-2xl border border-gold/25 bg-gradient-to-br from-gold/15 via-charcoal/40 to-transparent p-6 sm:p-8">
+            <Badge tone="marigold">SUBSCRIPTION</Badge>
+            <h2 className="mt-3 font-display text-2xl font-semibold text-champagne sm:text-3xl">
+              Unlock all mock tests &amp; solutions
+            </h2>
+            <p className="mt-2 max-w-xl text-sm text-bronze">
+              One-time payment of <span className="font-semibold text-mist">₹2000</span> gives you
+              access to every published paper and full answer explanations.
+            </p>
+            <div className="mt-5">
+              <Button onClick={() => navigate("/subscribe")}>Subscribe for ₹2000</Button>
+            </div>
+          </section>
+        )}
+
+        {subscribed && (
+          <p className="mb-8 text-sm text-emerald-200/90">
+            Full access active — all mock tests and solutions are unlocked.
+          </p>
+        )}
+
         <section className="mb-14">
           <h2 className="font-display text-2xl font-semibold text-champagne">Available exams</h2>
           <p className="mt-1 text-sm text-bronze">Pick a paper and sit it under the clock.</p>
@@ -116,9 +139,15 @@ export default function StudentDashboard() {
                       {e.questionCount} questions · {e.durationMinutes} min · {e.totalMarks} marks
                     </div>
                   </div>
-                  <Button onClick={() => navigate(`/student/exam/${e._id}/instructions`)}>
-                    Start test
-                  </Button>
+                  {subscribed ? (
+                    <Button onClick={() => navigate(`/student/exam/${e._id}/instructions`)}>
+                      Start test
+                    </Button>
+                  ) : (
+                    <Button variant="ghost" onClick={() => navigate("/subscribe")}>
+                      Unlock to start
+                    </Button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -175,10 +204,16 @@ export default function StudentDashboard() {
                             </td>
                             <td className="px-4 py-3.5 text-right">
                               <button
-                                onClick={() => navigate(`/student/result/${a._id}`)}
+                                onClick={() =>
+                                  navigate(
+                                    subscribed
+                                      ? `/student/result/${a._id}`
+                                      : "/subscribe"
+                                  )
+                                }
                                 className="text-xs font-semibold text-gold hover:text-champagne"
                               >
-                                View →
+                                {subscribed ? "View →" : "Unlock solutions →"}
                               </button>
                             </td>
                           </tr>
