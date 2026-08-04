@@ -1,6 +1,14 @@
-/* Minimal service worker — enables free PWA install on Android Chrome. */
-const CACHE = "dipsan-academy-v1";
-const PRECACHE = ["/", "/manifest.webmanifest", "/dipsan-logo.png", "/icons/icon-192.png", "/icons/icon-512.png"];
+/* PWA service worker — keeps the installed app in sync with the live website.
+ * Navigations + JS/CSS are network-first so deploys show up on the next open.
+ */
+const CACHE = "dipsan-academy-v2";
+const PRECACHE = [
+  "/",
+  "/manifest.webmanifest",
+  "/dipsan-logo.png",
+  "/icons/icon-192.png",
+  "/icons/icon-512.png",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -21,20 +29,34 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+function isAppShellAsset(url) {
+  const path = url.pathname;
+  return (
+    path.endsWith(".js") ||
+    path.endsWith(".css") ||
+    path.endsWith(".html") ||
+    path === "/" ||
+    path.endsWith("/index.html") ||
+    path.startsWith("/assets/")
+  );
+}
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET") return;
 
-  // Network-first for API / navigation; cache-first for static assets.
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  if (request.mode === "navigate") {
+  // Always prefer network for HTML / JS / CSS so website deploys sync into the app.
+  if (request.mode === "navigate" || isAppShellAsset(url)) {
     event.respondWith(
       fetch(request)
         .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(request, copy));
+          if (res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put(request, copy));
+          }
           return res;
         })
         .catch(() => caches.match(request).then((r) => r || caches.match("/")))
@@ -42,6 +64,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Icons / images: cache-first with background refresh.
   event.respondWith(
     caches.match(request).then((cached) => {
       const fetched = fetch(request)

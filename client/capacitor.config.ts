@@ -1,12 +1,29 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
+/**
+ * Live web origin — Capacitor loads this URL so the native shell always mirrors
+ * https://dipsan-academy-platform.vercel.app (same product as the free PWA install).
+ */
+const LIVE_WEB_URL = "https://dipsan-academy-platform.vercel.app";
+
 const config: CapacitorConfig = {
   appId: "com.dipsanacademy.app",
   appName: "Dipsan Academy",
   webDir: "dist",
   server: {
+    // Always load the deployed website so every Vercel deploy syncs into the app.
+    url: LIVE_WEB_URL,
+    cleartext: false,
     androidScheme: "https",
     iosScheme: "https",
+    allowNavigation: [
+      "dipsan-academy-platform.vercel.app",
+      "*.vercel.app",
+      "dipsan-academy-platform.onrender.com",
+      "*.razorpay.com",
+      "checkout.razorpay.com",
+      "api.razorpay.com",
+    ],
   },
   plugins: {
     SplashScreen: {
