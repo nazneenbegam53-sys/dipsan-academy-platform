@@ -4,6 +4,20 @@ function getToken() {
   return localStorage.getItem("dipsan_token");
 }
 
+export class ApiError extends Error {
+  status: number;
+  code?: string;
+  subscribePath?: string;
+
+  constructor(message: string, status: number, code?: string, subscribePath?: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.code = code;
+    this.subscribePath = subscribePath;
+  }
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
   const headers: Record<string, string> = {
@@ -18,7 +32,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
-    throw new Error(data.message || `Request failed (${res.status})`);
+    throw new ApiError(
+      data.message || `Request failed (${res.status})`,
+      res.status,
+      data.code,
+      data.subscribePath
+    );
   }
   return data as T;
 }
