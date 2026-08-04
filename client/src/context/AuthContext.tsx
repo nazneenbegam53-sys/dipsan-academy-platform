@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
 import { api } from "../services/api";
 import { User, Role } from "../types";
 
@@ -54,14 +54,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }
 
-  async function refreshUser() {
+  const refreshUser = useCallback(async () => {
     const res = await api.get<{ user: User }>("/auth/me");
     setUser(res.user);
-  }
+  }, []);
 
-  function setUserFromServer(next: User) {
+  const setUserFromServer = useCallback((next: User) => {
     setUser(next);
-  }
+  }, []);
 
   return (
     <AuthContext.Provider

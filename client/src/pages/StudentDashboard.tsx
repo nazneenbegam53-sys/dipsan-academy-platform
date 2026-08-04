@@ -38,12 +38,17 @@ function groupAttemptsByExam(attempts: Attempt[]): ExamAttemptGroup[] {
 }
 
 export default function StudentDashboard() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [exams, setExams] = useState<Exam[]>([]);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [loading, setLoading] = useState(true);
   const subscribed = Boolean(user?.subscriptionActive);
+
+  useEffect(() => {
+    // Pick up subscription status after payment / teacher grant.
+    refreshUser().catch(() => undefined);
+  }, [refreshUser]);
 
   useEffect(() => {
     Promise.all([
@@ -69,6 +74,14 @@ export default function StudentDashboard() {
   return (
     <PageShell>
       <div className="fixed right-2 top-2 z-[80] flex flex-nowrap items-center gap-2 sm:right-5 sm:top-5 md:right-8 md:top-6">
+        {!subscribed && (
+          <Link
+            to="/subscribe"
+            className="inline-flex shrink-0 items-center justify-center rounded-full border border-gold/50 bg-gold px-3 py-2 text-[11px] font-bold tracking-wide text-ink transition hover:bg-champagne sm:px-3.5 sm:text-xs"
+          >
+            Subscribe ₹2000
+          </Link>
+        )}
         <NotificationBell />
         <SupportButton />
         <BrandLogo size="sm" glow spinRing />
