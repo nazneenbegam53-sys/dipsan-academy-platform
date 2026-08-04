@@ -198,4 +198,64 @@ const webhook = asyncHandler(async (req, res) => {
   res.json({ received: true });
 });
 
-module.exports = { getPlan, createOrder, verifyPayment, webhook };
+const listSubscribers = asyncHandler(async (req, res) => {
+  const subscribers = await User.find({
+    role: "student",
+    subscriptionActive: true,
+  })
+    .select("name email phone className rollNumber subscriptionPaidAt subscriptionAmountInr subscriptionPaymentId createdAt")
+    .sort({ subscriptionPaidAt: -1, createdAt: -1 })
+    .lean();
+
+  res.json({
+    count: subscribers.length,
+    subscribers: subscribers.map((s) => ({
+      id: s._id,
+      name: s.name,
+      email: s.email,
+      phone: s.phone || null,
+      className: s.className || null,
+      rollNumber: s.rollNumber || null,
+      subscriptionPaidAt: s.subscriptionPaidAt || null,
+      subscriptionAmountInr: s.subscriptionAmountInr || null,
+      subscriptionPaymentId: s.subscriptionPaymentId || null,
+      createdAt: s.createdAt,
+    })),
+  });
+});
+
+/**
+ * Teachers can manually unlock a student (e.g. offline payment / scholarship)
+ * when Razorpay is unavailable or payment was collected elsewhere.
+ */
+const grantSubscription = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  if (!email || typeof email !== "string") {
+    return res.status(400).json({ message: "Student email is required." });
+  }
+
+  const student = await User.findOne({ email: email.toLowerCase().trim(), role: "student" });
+  if (!student) {
+    return res.status(404).json({ message: "No student found with that email." });
+  }
+  if (student.subscriptionActive) {
+    return res.json({
+      message: "Student already has full access.",
+      user: student.toSafeObject(),
+    });
+  }
+
+  student.subscriptionActive = true;
+  student.subscriptionPaidAt = new Date();
+  student.subscriptionAmountInr = SUBSCRIPTION_AMOUNT_INR;
+  student.subscriptionPaymentId = `manual_${req.user._id}_${Date.now()}`;
+  student.subscriptionOrderId = `manual_grant`;
+  await student.save();
+
+  res.json({
+    message: `${student.name} now has full access.`,
+    user: student.toSafeObject(),
+  });
+});
+
+module.exports = { getPlan, createOrder, verifyPayment, webhook, listSubscribers, grantSubscription };

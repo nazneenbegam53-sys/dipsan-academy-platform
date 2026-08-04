@@ -179,12 +179,25 @@ function MarketingLanding() {
       </div>
       )}
 
-      {/* Mobile/desktop top actions — always show Alerts icon */}
+      {/* Mobile/desktop top actions — Subscribe (students) · Alerts · Support · logo */}
       <div
         className={`fixed right-2 top-2 z-[80] flex flex-nowrap items-center justify-end gap-2 transition-all duration-700 sm:right-5 sm:top-5 md:right-8 md:top-6 ${
           phase === "ready" ? "opacity-100 translate-y-0" : "pointer-events-none opacity-0 -translate-y-1"
         }`}
       >
+        {(!user || user.role === "student") && (
+          <Link
+            to="/subscribe"
+            className={`inline-flex shrink-0 items-center justify-center rounded-full px-3 py-2 text-[11px] font-bold tracking-wide transition sm:px-3.5 sm:text-xs ${
+              user?.subscriptionActive
+                ? "border border-emerald-400/40 bg-emerald-500/15 text-emerald-200"
+                : "border border-gold/50 bg-gold text-ink hover:bg-champagne"
+            }`}
+            aria-label={user?.subscriptionActive ? "Subscription active" : "Subscribe for ₹2000"}
+          >
+            {user?.subscriptionActive ? "Subscribed" : "Subscribe ₹2000"}
+          </Link>
+        )}
         <NotificationBell />
         <SupportButton />
         <BrandLogo size="sm" glow spinRing />

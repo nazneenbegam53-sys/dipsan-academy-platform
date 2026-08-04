@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { api } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { Exam } from "../types";
-import { Button, Badge, Spinner, PageShell, Card, AppHeader } from "../components/ui";
+import { Button, Badge, Spinner, PageShell, Card, AppHeader, ErrorBanner } from "../components/ui";
 import { BrandLogo } from "../components/BrandLogo";
 import { NotificationBell } from "../components/NotificationBell";
 import { SupportButton } from "../components/SupportButton";
@@ -15,23 +15,44 @@ interface DashboardSummary {
   averageMarks: number;
 }
 
+interface Subscriber {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  className: string | null;
+  rollNumber: string | null;
+  subscriptionPaidAt: string | null;
+  subscriptionAmountInr: number | null;
+  subscriptionPaymentId: string | null;
+}
+
 export default function TeacherDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [exams, setExams] = useState<Exam[]>([]);
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [subscriberCount, setSubscriberCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [grantEmail, setGrantEmail] = useState("");
+  const [grantBusy, setGrantBusy] = useState(false);
+  const [grantMsg, setGrantMsg] = useState("");
+  const [grantError, setGrantError] = useState("");
 
   function load() {
     setLoading(true);
     Promise.all([
       api.get<{ exams: Exam[] }>("/exams/mine"),
       api.get<DashboardSummary>("/analytics/dashboard"),
+      api.get<{ count: number; subscribers: Subscriber[] }>("/payments/subscribers"),
     ])
-      .then(([e, s]) => {
+      .then(([e, s, sub]) => {
         setExams(e.exams);
         setSummary(s);
+        setSubscribers(sub.subscribers);
+        setSubscriberCount(sub.count);
       })
       .finally(() => setLoading(false));
   }
@@ -50,6 +71,25 @@ export default function TeacherDashboard() {
     await api.del(`/exams/${id}`);
     setConfirmDeleteId(null);
     load();
+  }
+
+  async function grantAccess(e: React.FormEvent) {
+    e.preventDefault();
+    setGrantError("");
+    setGrantMsg("");
+    setGrantBusy(true);
+    try {
+      const res = await api.post<{ message: string }>("/payments/grant", {
+        email: grantEmail.trim(),
+      });
+      setGrantMsg(res.message);
+      setGrantEmail("");
+      load();
+    } catch (err) {
+      setGrantError(err instanceof Error ? err.message : "Could not grant access.");
+    } finally {
+      setGrantBusy(false);
+    }
   }
 
   return (
@@ -84,12 +124,13 @@ export default function TeacherDashboard() {
         />
 
         {summary && (
-          <div className="mb-12 grid grid-cols-2 gap-6 border-y border-gold/15 py-8 sm:grid-cols-4">
+          <div className="mb-12 grid grid-cols-2 gap-6 border-y border-gold/15 py-8 sm:grid-cols-5">
             {[
               { label: "Exams", value: summary.examCount },
               { label: "Published", value: summary.publishedCount },
               { label: "Submissions", value: summary.studentSubmissionCount },
               { label: "Avg marks", value: summary.averageMarks },
+              { label: "Subscribers", value: subscriberCount },
             ].map((stat, i) => (
               <div
                 key={stat.label}
@@ -104,6 +145,92 @@ export default function TeacherDashboard() {
             ))}
           </div>
         )}
+
+        <section id="subscribers" className="mb-14">
+          <h2 className="font-display text-2xl font-semibold text-champagne">Subscribed students</h2>
+          <p className="mt-1 text-sm text-bronze">
+            Students who paid ₹2000 (or were granted access) and can take all mock tests.
+          </p>
+
+          <Card className="mt-5 overflow-hidden">
+            <form
+              onSubmit={grantAccess}
+              className="flex flex-col gap-3 border-b border-gold/10 bg-charcoal/40 px-5 py-4 sm:flex-row sm:items-end"
+            >
+              <label className="min-w-0 flex-1 text-xs text-bronze">
+                Grant access by email
+                <input
+                  type="email"
+                  required
+                  value={grantEmail}
+                  onChange={(ev) => setGrantEmail(ev.target.value)}
+                  placeholder="student@email.com"
+                  className="mt-1.5 w-full rounded-xl border border-white/15 bg-paper px-3 py-2.5 text-sm text-mist outline-none focus:border-gold/50"
+                />
+              </label>
+              <Button type="submit" disabled={grantBusy || !grantEmail.trim()}>
+                {grantBusy ? "Granting…" : "Unlock student"}
+              </Button>
+            </form>
+            <div className="px-5 py-3">
+              <ErrorBanner message={grantError} />
+              {grantMsg && <p className="mb-3 text-sm text-emerald-200">{grantMsg}</p>}
+            </div>
+
+            {loading && subscribers.length === 0 ? (
+              <div className="px-5 pb-5">
+                <Spinner />
+              </div>
+            ) : subscribers.length === 0 ? (
+              <p className="px-5 pb-5 text-sm text-bronze">
+                No subscribers yet. When a student pays ₹2000, they appear here.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-paper/40 text-left text-xs text-gold">
+                      <th className="px-5 py-3 font-semibold">Name</th>
+                      <th className="px-4 py-3 font-semibold">Email</th>
+                      <th className="px-4 py-3 font-semibold">Class</th>
+                      <th className="px-4 py-3 font-semibold">Paid</th>
+                      <th className="px-4 py-3 font-semibold">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {subscribers.map((s) => (
+                      <tr key={s.id} className="border-t border-gold/10">
+                        <td className="px-5 py-3.5 font-medium text-mist">{s.name}</td>
+                        <td className="px-4 py-3.5 text-bronze">{s.email}</td>
+                        <td className="px-4 py-3.5 text-bronze">
+                          {s.className || "—"}
+                          {s.rollNumber ? ` · ${s.rollNumber}` : ""}
+                        </td>
+                        <td className="px-4 py-3.5 text-xs text-bronze">
+                          {s.subscriptionPaidAt
+                            ? new Date(s.subscriptionPaidAt).toLocaleString("en-IN")
+                            : "—"}
+                        </td>
+                        <td className="px-4 py-3.5 text-gold">
+                          <span className="mr-2">
+                            {s.subscriptionAmountInr != null
+                              ? `₹${s.subscriptionAmountInr}`
+                              : "—"}
+                          </span>
+                          {s.subscriptionPaymentId?.startsWith("manual_") && (
+                            <Badge tone="ink">manual</Badge>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Card>
+        </section>
+
+        <h2 className="mb-4 font-display text-2xl font-semibold text-champagne">Your exams</h2>
 
         {loading && exams.length === 0 ? (
           <Spinner />
