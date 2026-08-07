@@ -38,17 +38,11 @@ function groupAttemptsByExam(attempts: Attempt[]): ExamAttemptGroup[] {
 }
 
 export default function StudentDashboard() {
-  const { user, logout, refreshUser } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [exams, setExams] = useState<Exam[]>([]);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [loading, setLoading] = useState(true);
-  const subscribed = Boolean(user?.subscriptionActive);
-
-  useEffect(() => {
-    // Pick up subscription status after payment / teacher grant.
-    refreshUser().catch(() => undefined);
-  }, [refreshUser]);
 
   useEffect(() => {
     Promise.all([
@@ -74,14 +68,6 @@ export default function StudentDashboard() {
   return (
     <PageShell>
       <div className="fixed right-2 top-2 z-[80] flex flex-nowrap items-center gap-2 sm:right-5 sm:top-5 md:right-8 md:top-6">
-        {!subscribed && (
-          <Link
-            to="/subscribe"
-            className="inline-flex shrink-0 items-center justify-center rounded-full border border-gold/50 bg-gold px-3 py-2 text-[11px] font-bold tracking-wide text-ink transition hover:bg-champagne sm:px-3.5 sm:text-xs"
-          >
-            Subscribe ₹2000
-          </Link>
-        )}
         <NotificationBell />
         <SupportButton />
         <BrandLogo size="sm" glow spinRing />
@@ -102,28 +88,6 @@ export default function StudentDashboard() {
             </>
           }
         />
-
-        {!subscribed && (
-          <section className="mb-10 overflow-hidden rounded-2xl border border-gold/25 bg-gradient-to-br from-gold/15 via-charcoal/40 to-transparent p-6 sm:p-8">
-            <Badge tone="marigold">SUBSCRIPTION</Badge>
-            <h2 className="mt-3 font-display text-2xl font-semibold text-champagne sm:text-3xl">
-              Unlock all mock tests &amp; solutions
-            </h2>
-            <p className="mt-2 max-w-xl text-sm text-bronze">
-              One-time payment of <span className="font-semibold text-mist">₹2000</span> gives you
-              access to every published paper and full answer explanations.
-            </p>
-            <div className="mt-5">
-              <Button onClick={() => navigate("/subscribe")}>Subscribe for ₹2000</Button>
-            </div>
-          </section>
-        )}
-
-        {subscribed && (
-          <p className="mb-8 text-sm text-emerald-200/90">
-            Full access active — all mock tests and solutions are unlocked.
-          </p>
-        )}
 
         <section className="mb-14">
           <h2 className="font-display text-2xl font-semibold text-champagne">Available exams</h2>
@@ -152,15 +116,9 @@ export default function StudentDashboard() {
                       {e.questionCount} questions · {e.durationMinutes} min · {e.totalMarks} marks
                     </div>
                   </div>
-                  {subscribed ? (
-                    <Button onClick={() => navigate(`/student/exam/${e._id}/instructions`)}>
-                      Start test
-                    </Button>
-                  ) : (
-                    <Button variant="ghost" onClick={() => navigate("/subscribe")}>
-                      Unlock to start
-                    </Button>
-                  )}
+                  <Button onClick={() => navigate(`/student/exam/${e._id}/instructions`)}>
+                    Start test
+                  </Button>
                 </li>
               ))}
             </ul>
@@ -217,16 +175,10 @@ export default function StudentDashboard() {
                             </td>
                             <td className="px-4 py-3.5 text-right">
                               <button
-                                onClick={() =>
-                                  navigate(
-                                    subscribed
-                                      ? `/student/result/${a._id}`
-                                      : "/subscribe"
-                                  )
-                                }
+                                onClick={() => navigate(`/student/result/${a._id}`)}
                                 className="text-xs font-semibold text-gold hover:text-champagne"
                               >
-                                {subscribed ? "View →" : "Unlock solutions →"}
+                                View →
                               </button>
                             </td>
                           </tr>

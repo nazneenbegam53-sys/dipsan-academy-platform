@@ -20,9 +20,6 @@ const config: CapacitorConfig = {
       "dipsan-academy-platform.vercel.app",
       "*.vercel.app",
       "dipsan-academy-platform.onrender.com",
-      "*.razorpay.com",
-      "checkout.razorpay.com",
-      "api.razorpay.com",
     ],
   },
   plugins: {

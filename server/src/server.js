@@ -48,15 +48,7 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json({
-  limit: "2mb",
-  verify(req, _res, buf) {
-    // Razorpay webhook signature needs the exact raw body bytes.
-    if (req.originalUrl && req.originalUrl.startsWith("/api/payments/webhook")) {
-      req.rawBody = buf;
-    }
-  },
-}));
+app.use(express.json({ limit: "2mb" }));
 
 // Legacy local-disk files (older uploads). New uploads go to Cloudinary or GridFS.
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
@@ -77,7 +69,6 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/media", mediaRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/notifications", require("./routes/notificationRoutes"));
-app.use("/api/payments", require("./routes/paymentRoutes"));
 
 app.use((req, res) => res.status(404).json({ message: "Route not found." }));
 app.use(errorHandler);

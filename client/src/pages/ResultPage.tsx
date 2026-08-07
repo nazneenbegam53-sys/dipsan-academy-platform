@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import jsPDF from "jspdf";
-import { api, ApiError } from "../services/api";
+import { api } from "../services/api";
 import { Attempt, Exam, Question } from "../types";
 import { Card, Spinner, Button, Badge, PageShell } from "../components/ui";
 import { BrandLogo } from "../components/BrandLogo";
@@ -39,12 +39,10 @@ function fitImage(doc: jsPDF, dataUrl: string, format: "PNG" | "JPEG", y: number
 
 export default function ResultPage() {
   const { attemptId } = useParams();
-  const navigate = useNavigate();
   const [attempt, setAttempt] = useState<Attempt | null>(null);
   const [exam, setExam] = useState<Exam | null>(null);
   const [loading, setLoading] = useState(true);
   const [pdfBusy, setPdfBusy] = useState(false);
-  const [needsSubscription, setNeedsSubscription] = useState(false);
   const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
@@ -55,10 +53,6 @@ export default function ResultPage() {
         setExam(r.exam);
       })
       .catch((err: unknown) => {
-        if (err instanceof ApiError && err.code === "SUBSCRIPTION_REQUIRED") {
-          setNeedsSubscription(true);
-          return;
-        }
         setLoadError(err instanceof Error ? err.message : "Could not load result.");
       })
       .finally(() => setLoading(false));
@@ -167,27 +161,6 @@ export default function ResultPage() {
     return (
       <PageShell className="flex min-h-screen items-center justify-center">
         <Spinner />
-      </PageShell>
-    );
-  }
-  if (needsSubscription) {
-    return (
-      <PageShell className="flex min-h-screen items-center justify-center px-6">
-        <Card className="w-full max-w-md p-8 text-center">
-          <Badge tone="marigold">SOLUTIONS LOCKED</Badge>
-          <h1 className="mt-3 font-display text-2xl font-semibold text-mist">
-            Subscribe to view solutions
-          </h1>
-          <p className="mt-2 text-sm text-bronze">
-            A ₹2000 one-time subscription unlocks all mock tests and detailed answer explanations.
-          </p>
-          <div className="mt-6 flex flex-col gap-3">
-            <Button onClick={() => navigate("/subscribe")}>Subscribe for ₹2000</Button>
-            <Link to="/student" className="text-sm text-gold hover:text-champagne">
-              ← Back to dashboard
-            </Link>
-          </div>
-        </Card>
       </PageShell>
     );
   }

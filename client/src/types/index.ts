@@ -8,10 +8,6 @@ export interface User {
   className?: string;
   rollNumber?: string;
   phone?: string;
-  /** One-time ₹2000 full-access subscription (students) */
-  subscriptionActive?: boolean;
-  subscriptionPaidAt?: string | null;
-  subscriptionAmountInr?: number | null;
 }
 
 export interface Question {

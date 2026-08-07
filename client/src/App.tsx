@@ -13,7 +13,6 @@ import ExamEditor from "./pages/ExamEditor";
 import TeacherResults from "./pages/TeacherResults";
 import Analytics from "./pages/Analytics";
 import VideoSolutions from "./pages/VideoSolutions";
-import Subscribe from "./pages/Subscribe";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export default function App() {
@@ -24,7 +23,6 @@ export default function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/install" element={<InstallApp />} />
-      <Route path="/subscribe" element={<Subscribe />} />
 
       {/* Student */}
       <Route path="/student" element={<ProtectedRoute role="student"><StudentDashboard /></ProtectedRoute>} />

@@ -85,20 +85,6 @@ function AccountIcon({ active }: { active: boolean }) {
   );
 }
 
-function SubscribeIcon({ active }: { active: boolean }) {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M12 3.5 14.2 9h5.3l-4.3 3.3 1.6 5.2L12 14.8 7.2 17.5l1.6-5.2L4.5 9h5.3L12 3.5Z"
-        stroke={active ? "#F0E0B8" : "#9DB0C0"}
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-        fill={active ? "rgba(212,176,106,0.22)" : "none"}
-      />
-    </svg>
-  );
-}
-
 function shouldHideTabBar(path: string) {
   if (path === "/login" || path === "/register" || path === "/install" || path === "/privacy") return true;
   if (path.includes("/attempt/") || path.includes("/instructions")) return true;
@@ -129,17 +115,17 @@ export function MobileTabBar() {
       icon: (a) => <HomeIcon active={a} />,
     },
     {
-      key: "subscribe",
-      to: "/subscribe",
-      label: "Subscribe",
-      active: pathname === "/subscribe",
-      icon: (a) => <SubscribeIcon active={a} />,
-    },
-    {
       key: "login",
       to: "/login",
       label: "Log in",
       active: pathname === "/login",
+      icon: (a) => <AccountIcon active={a} />,
+    },
+    {
+      key: "register",
+      to: "/register",
+      label: "Sign up",
+      active: pathname === "/register",
       icon: (a) => <AccountIcon active={a} />,
     },
   ];
@@ -158,13 +144,6 @@ export function MobileTabBar() {
       label: "Exams",
       active: pathname === "/student" || pathname.startsWith("/student/exam"),
       icon: (a) => <ExamsIcon active={a} />,
-    },
-    {
-      key: "subscribe",
-      to: "/subscribe",
-      label: user?.subscriptionActive ? "Plan" : "Subscribe",
-      active: pathname === "/subscribe",
-      icon: (a) => <SubscribeIcon active={a} />,
     },
     {
       key: "results",
@@ -191,13 +170,6 @@ export function MobileTabBar() {
         pathname === "/teacher" ||
         (pathname.startsWith("/teacher/exam") && !pathname.includes("/results")),
       icon: (a) => <ExamsIcon active={a} />,
-    },
-    {
-      key: "subscribers",
-      to: "/teacher#subscribers",
-      label: "Subs",
-      active: pathname === "/teacher",
-      icon: (a) => <SubscribeIcon active={a} />,
     },
     {
       key: "results",
