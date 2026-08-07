@@ -1,7 +1,7 @@
-/* PWA service worker — keeps the installed app in sync with the live website.
- * Navigations + JS/CSS are network-first so deploys show up on the next open.
+/* PWA service worker — busts old caches so website deploys (e.g. removing
+ * subscription) show up in the installed app immediately.
  */
-const CACHE = "dipsan-academy-v2";
+const CACHE = "dipsan-academy-v3-nosub";
 const PRECACHE = [
   "/",
   "/manifest.webmanifest",
@@ -22,10 +22,16 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
-      .then(() => self.clients.claim())
+    (async () => {
+      const keys = await caches.keys();
+      // Drop every previous cache (including v1/v2 with subscription UI).
+      await Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)));
+      await self.clients.claim();
+      const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      for (const client of clients) {
+        client.postMessage({ type: "DIPSAN_SW_UPDATED", cache: CACHE });
+      }
+    })()
   );
 });
 
@@ -48,10 +54,10 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Always prefer network for HTML / JS / CSS so website deploys sync into the app.
+  // Network-first for app shell so deploys sync into the installed app.
   if (request.mode === "navigate" || isAppShellAsset(url)) {
     event.respondWith(
-      fetch(request)
+      fetch(request, { cache: "no-store" })
         .then((res) => {
           if (res.ok) {
             const copy = res.clone();
@@ -64,7 +70,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Icons / images: cache-first with background refresh.
   event.respondWith(
     caches.match(request).then((cached) => {
       const fetched = fetch(request)
@@ -76,7 +81,13 @@ self.addEventListener("fetch", (event) => {
           return res;
         })
         .catch(() => cached);
-      return cached || fetched;
+      return fetched.then((res) => res || cached);
     })
   );
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
