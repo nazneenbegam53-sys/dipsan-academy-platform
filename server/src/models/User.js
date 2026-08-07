@@ -12,13 +12,6 @@ const userSchema = new mongoose.Schema(
     className: { type: String, trim: true }, // e.g. "12th", "Dropper Batch"
     rollNumber: { type: String, trim: true },
     phone: { type: String, trim: true },
-
-    // One-time full-access subscription (₹2000 INR via Razorpay)
-    subscriptionActive: { type: Boolean, default: false },
-    subscriptionPaidAt: { type: Date },
-    subscriptionAmountInr: { type: Number },
-    subscriptionPaymentId: { type: String },
-    subscriptionOrderId: { type: String },
   },
   { timestamps: true }
 );
@@ -42,9 +35,6 @@ userSchema.methods.toSafeObject = function () {
     className: this.className,
     rollNumber: this.rollNumber,
     phone: this.phone,
-    subscriptionActive: Boolean(this.subscriptionActive),
-    subscriptionPaidAt: this.subscriptionPaidAt || null,
-    subscriptionAmountInr: this.subscriptionAmountInr || null,
   };
 };
 

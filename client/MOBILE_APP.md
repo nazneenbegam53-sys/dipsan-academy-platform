@@ -13,7 +13,7 @@ To get a real full-screen app icon:
 That installed icon runs standalone (no address bar), with an app-style home and bottom tabs.
 
 **Website ↔ app sync:** the free install and Capacitor store builds load the **live** site at
-`https://dipsan-academy-platform.vercel.app`. Every Vercel deploy (subscription, exams, teacher
+`https://dipsan-academy-platform.vercel.app`. Every Vercel deploy (exams, teacher
 tools, etc.) is the same product students and teachers see in the app. Same API:
 `https://dipsan-academy-platform.onrender.com/api`.
 
@@ -24,7 +24,7 @@ Official Play Store / App Store builds still need paid developer accounts — se
 
 Native shells for **Dipsan Academy** are built with [Capacitor](https://capacitorjs.com/).
 `capacitor.config.ts` sets `server.url` to the live Vercel site so native apps do **not** ship a
-stale snapshot of the UI — they always open the current website (plus Razorpay checkout domains).
+stale snapshot of the UI — they always open the current website.
 
 | Field | Value |
 |-------|-------|
@@ -115,7 +115,6 @@ Icon: `store-assets/app-store-icon-1024.png`.
 - Auth uses email/password (JWT). State why you collect email, name, class, roll number.
 - Exam anti-cheat uses focus/visibility signals in the WebView — disclose this in the privacy policy.
 - Camera/mic are only needed if teachers record video solutions; declare those permissions when enabled.
-- Payments use Razorpay (₹2000 full-access subscription); disclose payment data handling.
 - Provide a demo teacher + student account for store reviewers.
 
 ---

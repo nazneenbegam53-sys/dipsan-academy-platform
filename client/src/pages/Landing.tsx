@@ -179,25 +179,12 @@ function MarketingLanding() {
       </div>
       )}
 
-      {/* Mobile/desktop top actions — Subscribe (students) · Alerts · Support · logo */}
+      {/* Mobile/desktop top actions — Alerts · Support · logo */}
       <div
         className={`fixed right-2 top-2 z-[80] flex flex-nowrap items-center justify-end gap-2 transition-all duration-700 sm:right-5 sm:top-5 md:right-8 md:top-6 ${
           phase === "ready" ? "opacity-100 translate-y-0" : "pointer-events-none opacity-0 -translate-y-1"
         }`}
       >
-        {(!user || user.role === "student") && (
-          <Link
-            to="/subscribe"
-            className={`inline-flex shrink-0 items-center justify-center rounded-full px-3 py-2 text-[11px] font-bold tracking-wide transition sm:px-3.5 sm:text-xs ${
-              user?.subscriptionActive
-                ? "border border-emerald-400/40 bg-emerald-500/15 text-emerald-200"
-                : "border border-gold/50 bg-gold text-ink hover:bg-champagne"
-            }`}
-            aria-label={user?.subscriptionActive ? "Subscription active" : "Subscribe for ₹2000"}
-          >
-            {user?.subscriptionActive ? "Subscribed" : "Subscribe ₹2000"}
-          </Link>
-        )}
         <NotificationBell />
         <SupportButton />
         <BrandLogo size="sm" glow spinRing />
@@ -326,14 +313,6 @@ function MarketingLanding() {
                         >
                           Go to dashboard
                         </Link>
-                        {user.role === "student" && !user.subscriptionActive && (
-                          <Link
-                            to="/subscribe"
-                            className="inline-flex items-center rounded-full border border-gold/40 bg-gold/10 px-5 py-2.5 text-xs font-bold tracking-wide text-champagne transition hover:border-gold hover:text-gold sm:px-8 sm:py-3.5 sm:text-sm"
-                          >
-                            Subscribe ₹2000
-                          </Link>
-                        )}
                         <button
                           type="button"
                           onClick={logout}
@@ -486,14 +465,6 @@ function MarketingLanding() {
                 >
                   Open dashboard
                 </Link>
-                {user.role === "student" && !user.subscriptionActive && (
-                  <Link
-                    to="/subscribe"
-                    className="inline-flex rounded-full border border-gold/40 bg-gold/10 px-8 py-3.5 text-sm font-bold text-champagne transition hover:border-gold hover:text-gold"
-                  >
-                    Subscribe ₹2000
-                  </Link>
-                )}
                 <button
                   type="button"
                   onClick={logout}

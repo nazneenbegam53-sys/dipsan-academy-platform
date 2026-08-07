@@ -14,7 +14,7 @@ export default function InstallApp() {
         <p className="mt-3 text-sm leading-relaxed text-bronze">
           You do <span className="text-champagne">not</span> need the Play Store or App Store.
           Install from this website at no cost. It opens like a normal app from your home screen —
-          and stays in sync with the website (exams, results, ₹2000 subscription, teacher tools).
+          and stays in sync with the website (exams, results, teacher tools).
         </p>
 
         <div className="mt-8">
@@ -50,7 +50,7 @@ export default function InstallApp() {
             <p className="mt-3 text-sm text-bronze">
               The installed app uses the same live site and API as{" "}
               <span className="text-mist">dipsan-academy-platform.vercel.app</span>. When we ship
-              website updates (subscription, exams, solutions), they appear in the app the next time
+              website updates (exams, solutions), they appear in the app the next time
               you open it — same login, same progress.
             </p>
           </section>
@@ -68,9 +68,6 @@ export default function InstallApp() {
         </div>
 
         <div className="mt-10 flex flex-wrap gap-4">
-          <Link to="/subscribe" className="text-sm font-semibold text-gold hover:text-champagne">
-            Subscribe ₹2000 →
-          </Link>
           <Link to="/" className="text-sm font-semibold text-gold hover:text-champagne">
             ← Back to Dipsan Academy
           </Link>

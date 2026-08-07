@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { api, ApiError } from "../services/api";
-import { useAuth } from "../context/AuthContext";
+import { useParams, useNavigate } from "react-router-dom";
+import { api } from "../services/api";
 import { Exam } from "../types";
 import { Button, Card, Spinner, Badge } from "../components/ui";
 import { BrandLogo } from "../components/BrandLogo";
@@ -9,13 +8,11 @@ import { BrandLogo } from "../components/BrandLogo";
 export default function ExamInstructions() {
   const { examId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [exam, setExam] = useState<Exam | null>(null);
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState("");
-  const subscribed = Boolean(user?.subscriptionActive);
 
   useEffect(() => {
     api
@@ -25,10 +22,6 @@ export default function ExamInstructions() {
   }, [examId]);
 
   async function handleStart() {
-    if (!subscribed) {
-      navigate("/subscribe");
-      return;
-    }
     setStarting(true);
     setError("");
     try {
@@ -39,10 +32,6 @@ export default function ExamInstructions() {
         state: { startedAt: res.attempt.startedAt },
       });
     } catch (err) {
-      if (err instanceof ApiError && err.code === "SUBSCRIPTION_REQUIRED") {
-        navigate("/subscribe");
-        return;
-      }
       setError(err instanceof Error ? err.message : "Could not start the test.");
     } finally {
       setStarting(false);
@@ -70,18 +59,6 @@ export default function ExamInstructions() {
       <Card className="w-full max-w-lg p-8">
         <Badge tone="marigold">{exam.subject}</Badge>
         <h1 className="mb-4 mt-3 font-display text-3xl font-semibold text-mist">{exam.title}</h1>
-
-        {!subscribed && (
-          <div className="mb-5 rounded-sm border border-gold/30 bg-gold/10 p-4 text-sm text-mist">
-            <p className="font-semibold text-champagne">Subscription required</p>
-            <p className="mt-1 text-bronze">
-              Pay ₹2000 once to unlock all mock tests and solutions.
-            </p>
-            <Link to="/subscribe" className="mt-3 inline-block text-sm font-semibold text-gold">
-              Subscribe now →
-            </Link>
-          </div>
-        )}
 
         <div className="mb-5 grid grid-cols-3 gap-3">
           <div className="rounded-sm border border-gold/10 bg-paper p-3 text-center">
@@ -126,11 +103,7 @@ export default function ExamInstructions() {
           I have read the instructions and I&apos;m ready to begin.
         </label>
         <Button className="w-full" disabled={!agreed || starting} onClick={handleStart}>
-          {starting
-            ? "Starting…"
-            : subscribed
-              ? "Start Test"
-              : "Subscribe to start"}
+          {starting ? "Starting…" : "Start Test"}
         </Button>
       </Card>
     </div>

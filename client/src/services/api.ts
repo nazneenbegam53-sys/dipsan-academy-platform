@@ -7,14 +7,12 @@ function getToken() {
 export class ApiError extends Error {
   status: number;
   code?: string;
-  subscribePath?: string;
 
-  constructor(message: string, status: number, code?: string, subscribePath?: string) {
+  constructor(message: string, status: number, code?: string) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.code = code;
-    this.subscribePath = subscribePath;
   }
 }
 
@@ -35,8 +33,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     throw new ApiError(
       data.message || `Request failed (${res.status})`,
       res.status,
-      data.code,
-      data.subscribePath
+      data.code
     );
   }
   return data as T;
