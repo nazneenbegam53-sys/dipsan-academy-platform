@@ -7,6 +7,7 @@ import { BrandLogo } from "../components/BrandLogo";
 import { NotificationBell } from "../components/NotificationBell";
 import { SupportButton } from "../components/SupportButton";
 import { VideoSolutionRecorder } from "../components/VideoSolutionRecorder";
+import { SolutionVideoPlayer } from "../components/SolutionVideoPlayer";
 
 function formatDuration(sec?: number | null) {
   if (!sec && sec !== 0) return "—";
@@ -345,11 +346,8 @@ export default function VideoSolutions() {
 
                       {active.explanationVideoUrl && (
                         <div className="mt-4 space-y-3">
-                          <video
-                            key={active.explanationVideoUrl}
+                          <SolutionVideoPlayer
                             src={active.explanationVideoUrl}
-                            controls
-                            playsInline
                             className="aspect-video w-full rounded-xl border border-white/10 bg-black"
                           />
                           <div className="flex flex-wrap gap-2">

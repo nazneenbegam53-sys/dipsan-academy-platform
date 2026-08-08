@@ -5,6 +5,7 @@ import { api } from "../services/api";
 import { Attempt, Exam, Question } from "../types";
 import { Card, Spinner, Button, Badge, PageShell } from "../components/ui";
 import { BrandLogo } from "../components/BrandLogo";
+import { SolutionVideoPlayer } from "../components/SolutionVideoPlayer";
 
 async function loadImageDataUrl(url: string): Promise<{ dataUrl: string; format: "PNG" | "JPEG" } | null> {
   try {
@@ -297,13 +298,7 @@ export default function ResultPage() {
                         <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-gold">
                           Video solution
                         </p>
-                        <video
-                          src={q.explanationVideoUrl}
-                          controls
-                          playsInline
-                          preload="metadata"
-                          className="aspect-video w-full max-w-xl rounded-xl border border-gold/20 bg-black"
-                        />
+                        <SolutionVideoPlayer src={q.explanationVideoUrl} />
                       </div>
                     )}
                   </div>
