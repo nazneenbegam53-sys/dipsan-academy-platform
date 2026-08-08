@@ -55,6 +55,9 @@ async function transcodeBufferToMp4(inputBuffer, { inputExt = ".webm" } = {}) {
         "-y",
         "-i",
         inFile,
+        // libx264 requires even width/height (canvas capture often has odd sizes).
+        "-vf",
+        "scale=trunc(iw/2)*2:trunc(ih/2)*2",
         "-c:v",
         "libx264",
         "-pix_fmt",
