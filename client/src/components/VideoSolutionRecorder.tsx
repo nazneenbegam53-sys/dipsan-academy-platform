@@ -5,9 +5,6 @@ type RecMode = "board" | "screen";
 type DrawTool = "pen" | "eraser" | "line" | "rect" | "circle" | "ellipse" | "triangle";
 
 interface Props {
-  questionLabel: string;
-  questionText: string;
-  questionImageUrl?: string | null;
   disabled?: boolean;
   onSave: (blob: Blob, durationSeconds: number) => Promise<void>;
 }
@@ -28,9 +25,6 @@ const TOOLS: { id: DrawTool; label: string }[] = [
  * Board mode: pen, eraser, shapes, multi-page — Apple Pencil / stylus friendly.
  */
 export function VideoSolutionRecorder({
-  questionLabel,
-  questionText,
-  questionImageUrl,
   disabled,
   onSave,
 }: Props) {
@@ -89,21 +83,6 @@ export function VideoSolutionRecorder({
     return () => window.clearInterval(id);
   }, [recording]);
 
-  function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number) {
-    const words = text.split(/\s+/);
-    const lines: string[] = [];
-    let cur = "";
-    for (const word of words) {
-      const next = cur ? `${cur} ${word}` : word;
-      if (ctx.measureText(next).width > maxWidth && cur) {
-        lines.push(cur);
-        cur = word;
-      } else cur = next;
-    }
-    if (cur) lines.push(cur);
-    return lines;
-  }
-
   function paintBackground(ctx: CanvasRenderingContext2D, w: number, h: number, pageNo: number) {
     ctx.setTransform(dprRef.current, 0, 0, dprRef.current, 0, 0);
     ctx.globalCompositeOperation = "source-over";
@@ -123,13 +102,10 @@ export function VideoSolutionRecorder({
       ctx.lineTo(w, y);
       ctx.stroke();
     }
-    ctx.fillStyle = "rgba(212,176,106,0.9)";
-    ctx.font = "600 13px ui-sans-serif, system-ui, sans-serif";
-    ctx.fillText(`${questionLabel} · Page ${pageNo}`, 16, 28);
-    ctx.fillStyle = "rgba(232,240,245,0.85)";
-    ctx.font = "14px ui-sans-serif, system-ui, sans-serif";
-    const lines = wrapText(ctx, questionText.slice(0, 220), w - 32);
-    lines.slice(0, 3).forEach((line, i) => ctx.fillText(line, 16, 52 + i * 20));
+    // Page number only — question text/options stay in the panel, not burned into the video.
+    ctx.fillStyle = "rgba(157,176,192,0.45)";
+    ctx.font = "500 12px ui-sans-serif, system-ui, sans-serif";
+    ctx.fillText(`Page ${pageNo}`, 16, 24);
   }
 
   function getCtx() {
@@ -195,7 +171,7 @@ export function VideoSolutionRecorder({
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [questionLabel, questionText]);
+  }, []);
 
   function pointerPos(e: React.PointerEvent<HTMLCanvasElement>) {
     const canvas = canvasRef.current!;
@@ -651,14 +627,6 @@ export function VideoSolutionRecorder({
             />
           </div>
         </div>
-      )}
-
-      {questionImageUrl && (
-        <img
-          src={questionImageUrl}
-          alt="Question figure"
-          className="max-h-40 rounded-xl border border-white/10"
-        />
       )}
 
       <div className="flex flex-wrap items-center gap-3">
