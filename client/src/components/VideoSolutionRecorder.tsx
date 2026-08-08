@@ -407,11 +407,13 @@ export function VideoSolutionRecorder({
       }
 
       const mimeCandidates = [
+        // Prefer MP4 when available (Safari / iOS); WebM works in Chrome/Firefox.
+        "video/mp4;codecs=avc1.42E01E,mp4a.40.2",
+        "video/mp4",
         "video/webm;codecs=vp8,opus",
         "video/webm;codecs=vp9,opus",
         "video/webm;codecs=vp8",
         "video/webm",
-        "video/mp4",
       ];
       const mimeType =
         typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported
@@ -419,7 +421,9 @@ export function VideoSolutionRecorder({
           : "";
       const recorder = new MediaRecorder(
         combined,
-        mimeType ? { mimeType, audioBitsPerSecond: 128000 } : { audioBitsPerSecond: 128000 }
+        mimeType
+          ? { mimeType, audioBitsPerSecond: 128000, videoBitsPerSecond: 2_500_000 }
+          : { audioBitsPerSecond: 128000, videoBitsPerSecond: 2_500_000 }
       );
       chunks.current = [];
       recorder.ondataavailable = (ev) => {
@@ -437,14 +441,15 @@ export function VideoSolutionRecorder({
         const duration = Math.max(1, Math.round((Date.now() - startedAt.current) / 1000));
         setPendingBlob(blob);
         setPendingDuration(duration);
-        const url = URL.createObjectURL(blob);
-        setBlobUrl(url);
+        const objectUrl = URL.createObjectURL(blob);
+        setBlobUrl(objectUrl);
         setPreviewKey((k) => k + 1);
         stopTracks();
       };
 
       mediaRecorder.current = recorder;
-      recorder.start(500);
+      // One complete file (no timeslice) so the WebM/MP4 has proper duration metadata.
+      recorder.start();
       startedAt.current = Date.now();
       setElapsed(0);
       setRecording(true);
@@ -462,6 +467,7 @@ export function VideoSolutionRecorder({
     const rec = mediaRecorder.current;
     if (rec && rec.state !== "inactive") {
       try {
+        // Flush final data before stop (needed when start() has no timeslice).
         if (rec.state === "recording") rec.requestData();
       } catch {
         /* ignore */

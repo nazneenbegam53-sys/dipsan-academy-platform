@@ -187,15 +187,23 @@ async function streamFromBucket(bucketName, _id, req, res) {
   const file = files[0];
   const size = file.length || 0;
   const contentType = guessContentType(file.filename, file.contentType, bucketName);
+  const isVideo = contentType.startsWith("video/");
 
   res.setHeader("Content-Type", contentType);
+  // Videos: claim ranges only when we will honor them. Always set for images.
   res.setHeader("Accept-Ranges", "bytes");
-  res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  res.setHeader("Cache-Control", isVideo ? "public, max-age=3600" : "public, max-age=31536000, immutable");
   res.setHeader("Content-Disposition", `inline; filename="${file.filename || "media"}"`);
   // Needed when Vercel client plays media hosted on Render
   res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Expose-Headers", "Accept-Ranges, Content-Range, Content-Length, Content-Type");
 
-  const range = parseRange(req.headers.range, size);
+  // For small videos, prefer full-file responses — MediaRecorder WebM often
+  // buffers forever when browsers try byte-range progressive playback.
+  const preferFullFile = isVideo && size > 0 && size < 80 * 1024 * 1024 && !req.headers.range;
+
+  const range = preferFullFile ? null : parseRange(req.headers.range, size);
 
   if (range) {
     const { start, end } = range;
