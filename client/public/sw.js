@@ -1,7 +1,7 @@
 /* PWA service worker — busts old caches so website deploys (e.g. removing
  * subscription) show up in the installed app immediately.
  */
-const CACHE = "dipsan-academy-v5-mobile-mp4";
+const CACHE = "dipsan-academy-v6-mobile-webm";
 const PRECACHE = [
   "/",
   "/manifest.webmanifest",
