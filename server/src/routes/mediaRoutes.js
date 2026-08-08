@@ -66,10 +66,11 @@ router.head(
         : byExt[ext] || (bucketName === VIDEO_BUCKET ? "video/webm" : "application/octet-stream");
 
     res.setHeader("Content-Type", contentType);
-    res.setHeader("Accept-Ranges", "bytes");
+    res.setHeader("Accept-Ranges", contentType.includes("webm") ? "none" : "bytes");
     res.setHeader("Content-Length", file.length || 0);
-    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    res.setHeader("Cache-Control", "public, max-age=3600");
     res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    res.setHeader("Access-Control-Allow-Origin", "*");
     res.status(200).end();
   })
 );

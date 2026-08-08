@@ -36,7 +36,6 @@ export default function Login() {
       } catch {
         /* ignore */
       }
-      // Role redirect handled by the effect above once user is set.
     } catch (err: any) {
       setError(err.message || "Login failed.");
       setLoading(false);
@@ -47,16 +46,19 @@ export default function Login() {
     "w-full rounded-xl border border-gold/25 bg-charcoal px-3.5 py-3 text-sm text-mist outline-none transition placeholder:text-bronze/60 focus:border-gold focus:ring-2 focus:ring-gold/25";
 
   return (
-    <PageShell className="relative flex min-h-screen items-center justify-center px-6 py-16">
+    <PageShell
+      quiet
+      className="relative flex min-h-screen items-center justify-center px-6 py-16"
+    >
       <LoginScienceBg />
 
       <div className="fixed right-5 top-5 z-20 md:right-8 md:top-6">
-        <BrandLogo size="sm" glow spinRing />
+        <BrandLogo size="sm" />
       </div>
 
       <div className="relative z-10 w-full max-w-md animate-fade-up luxury-panel rounded-3xl p-8 md:p-10">
         <div className="mb-8 flex flex-col items-center text-center">
-          <BrandLogo size="lg" glow spinRing />
+          <BrandLogo size="lg" />
           <p className="mt-4 font-display text-sm font-semibold tracking-[0.22em] gold-text">
             DIPSAN ACADEMY
           </p>
@@ -79,6 +81,10 @@ export default function Login() {
               onChange={(e) => setEmail(e.target.value)}
               className={fieldClass}
               autoComplete="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              inputMode="email"
             />
           </label>
           <label className="block">
@@ -92,6 +98,7 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
               className={fieldClass}
               autoComplete="current-password"
+              spellCheck={false}
             />
           </label>
           <Button type="submit" className="w-full" disabled={loading}>
