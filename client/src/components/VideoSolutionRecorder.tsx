@@ -83,6 +83,29 @@ export function VideoSolutionRecorder({
     return () => window.clearInterval(id);
   }, [recording]);
 
+  // Keep feeding canvas.captureStream while recording — idle canvases produce
+  // sparse frames that many browsers fail to decode on playback.
+  useEffect(() => {
+    if (!recording || mode !== "board") return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    let raf = 0;
+    const tick = () => {
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        // Touch a no-op pixel so the capture stream keeps emitting frames.
+        ctx.save();
+        ctx.globalCompositeOperation = "source-over";
+        ctx.fillStyle = "rgba(0,0,0,0.002)";
+        ctx.fillRect(0, 0, 1, 1);
+        ctx.restore();
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [recording, mode]);
+
   function paintBackground(ctx: CanvasRenderingContext2D, w: number, h: number, pageNo: number) {
     ctx.setTransform(dprRef.current, 0, 0, dprRef.current, 0, 0);
     ctx.globalCompositeOperation = "source-over";
@@ -374,10 +397,10 @@ export function VideoSolutionRecorder({
       if (mode === "board") {
         const canvas = canvasRef.current;
         if (!canvas) throw new Error("Drawing board not ready.");
-        videoStream = canvas.captureStream(30);
+        videoStream = canvas.captureStream(24);
       } else {
         videoStream = await navigator.mediaDevices.getDisplayMedia({
-          video: { frameRate: 30 },
+          video: { frameRate: 24 },
           audio: true,
         });
         videoStream.getVideoTracks().forEach((t) => {
@@ -419,11 +442,12 @@ export function VideoSolutionRecorder({
         typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported
           ? mimeCandidates.find((m) => MediaRecorder.isTypeSupported(m)) || ""
           : "";
+      // Lower bitrate → smaller GridFS files → faster load on Render.
       const recorder = new MediaRecorder(
         combined,
         mimeType
-          ? { mimeType, audioBitsPerSecond: 128000, videoBitsPerSecond: 2_500_000 }
-          : { audioBitsPerSecond: 128000, videoBitsPerSecond: 2_500_000 }
+          ? { mimeType, audioBitsPerSecond: 96000, videoBitsPerSecond: 1_200_000 }
+          : { audioBitsPerSecond: 96000, videoBitsPerSecond: 1_200_000 }
       );
       chunks.current = [];
       recorder.ondataavailable = (ev) => {

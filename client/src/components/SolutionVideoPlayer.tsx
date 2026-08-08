@@ -2,11 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { resolveMediaUrl } from "../lib/mediaUrl";
 
 /**
- * Plays solution videos reliably.
- *
- * MediaRecorder WebM files often hang forever when streamed over HTTP Range
- * from GridFS ("buffering only"). We download the full file, then play a local
- * blob URL — that matches how the teacher preview works after recording.
+ * Plays solution videos from GridFS or CDN.
+ * Tries native progressive playback first (fast start). If the browser cannot
+ * decode the stream (common with some MediaRecorder WebM files), downloads the
+ * full file and plays a local blob URL.
  */
 export function SolutionVideoPlayer({
   src,
@@ -16,130 +15,251 @@ export function SolutionVideoPlayer({
   className?: string;
 }) {
   const url = resolveMediaUrl(src);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const objectUrlRef = useRef<string | null>(null);
+  const blobTriedRef = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
+
   const [playUrl, setPlayUrl] = useState<string | null>(null);
+  const [mode, setMode] = useState<"stream" | "blob">("stream");
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const objectUrlRef = useRef<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
 
-  useEffect(() => {
-    if (!url) {
-      setPlayUrl(null);
-      return;
+  const revokeObjectUrl = () => {
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
     }
+  };
 
-    let cancelled = false;
-    const isGridFs = /\/api\/media\//i.test(url);
+  const downloadAsBlob = async (mediaUrl: string) => {
+    if (blobTriedRef.current) return;
+    blobTriedRef.current = true;
 
-    // Cloudinary / external CDN can stream normally.
-    if (!isGridFs) {
-      setPlayUrl(url);
-      setLoading(false);
-      setProgress(100);
-      setError("");
-      return;
-    }
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
 
+    setMode("blob");
     setLoading(true);
     setProgress(0);
     setError("");
     setPlayUrl(null);
+    revokeObjectUrl();
 
-    (async () => {
-      try {
-        const res = await fetch(url, { mode: "cors", credentials: "omit", cache: "no-store" });
-        if (!res.ok) throw new Error(`Video download failed (${res.status})`);
+    const response = await fetch(mediaUrl, {
+      method: "GET",
+      credentials: "omit",
+      cache: "no-store",
+      signal: controller.signal,
+      headers: { Accept: "video/*,*/*" },
+    });
 
-        const total = Number(res.headers.get("Content-Length") || 0);
-        const reader = res.body?.getReader();
-        if (!reader) {
-          const blob = await res.blob();
-          if (cancelled) return;
-          const objectUrl = URL.createObjectURL(blob);
-          objectUrlRef.current = objectUrl;
-          setPlayUrl(objectUrl);
-          setProgress(100);
-          setLoading(false);
-          return;
-        }
+    if (!response.ok) {
+      throw new Error(`Could not download video (HTTP ${response.status}).`);
+    }
 
-        const chunks: Uint8Array[] = [];
-        let received = 0;
-        for (;;) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          if (value) {
-            chunks.push(value);
-            received += value.length;
-            if (total > 0) setProgress(Math.min(99, Math.round((received / total) * 100)));
-            else setProgress((p) => Math.min(90, p + 2));
+    const total = Number(response.headers.get("Content-Length") || 0);
+    const mime =
+      response.headers.get("Content-Type")?.split(";")[0]?.trim() || "video/webm";
+
+    let blob: Blob;
+    if (!response.body) {
+      blob = await response.blob();
+    } else {
+      const reader = response.body.getReader();
+      const chunks: BlobPart[] = [];
+      let received = 0;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) {
+          chunks.push(value);
+          received += value.length;
+          if (total > 0) {
+            setProgress(Math.min(99, Math.round((received / total) * 100)));
           }
         }
-
-        const mime =
-          (res.headers.get("Content-Type") || "").split(";")[0].trim() || "video/webm";
-        const blob = new Blob(chunks as BlobPart[], { type: mime.startsWith("video/") ? mime : "video/webm" });
-        if (blob.size < 100) throw new Error("Video file is empty or incomplete.");
-
-        if (cancelled) return;
-        if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
-        const objectUrl = URL.createObjectURL(blob);
-        objectUrlRef.current = objectUrl;
-        setPlayUrl(objectUrl);
-        setProgress(100);
-        setLoading(false);
-      } catch (err) {
-        if (cancelled) return;
-        setLoading(false);
-        setError(err instanceof Error ? err.message : "Could not load video.");
-        // Last resort: try direct URL (may still buffer on some browsers).
-        setPlayUrl(url);
       }
-    })();
+      if (!received) throw new Error("Downloaded video was empty.");
+      blob = new Blob(chunks, { type: mime });
+    }
+
+    if (!blob.size) throw new Error("Downloaded video was empty.");
+
+    const objectUrl = URL.createObjectURL(blob);
+    objectUrlRef.current = objectUrl;
+    setPlayUrl(objectUrl);
+    setProgress(100);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    abortRef.current?.abort();
+    revokeObjectUrl();
+    blobTriedRef.current = false;
+    setError("");
+    setProgress(0);
+    setMode("stream");
+
+    if (!url) {
+      setPlayUrl(null);
+      setLoading(false);
+      return;
+    }
+
+    const isGridFs = /\/api\/media\//i.test(url);
+
+    // CDN / Cloudinary can stream natively.
+    if (!isGridFs) {
+      setPlayUrl(url);
+      setLoading(false);
+      setProgress(100);
+      return;
+    }
+
+    // GridFS: start native playback immediately (server returns full WebM as 200).
+    setLoading(true);
+    setPlayUrl(url);
+
+    // Warm Render (cold start) in parallel — does not block attaching src.
+    const warm = new AbortController();
+    abortRef.current = warm;
+    void fetch(url, {
+      method: "HEAD",
+      credentials: "omit",
+      cache: "no-store",
+      signal: warm.signal,
+    }).catch(() => undefined);
 
     return () => {
-      cancelled = true;
-      if (objectUrlRef.current) {
-        URL.revokeObjectURL(objectUrlRef.current);
-        objectUrlRef.current = null;
+      warm.abort();
+      revokeObjectUrl();
+    };
+  }, [url, retryKey]);
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el || !playUrl) return;
+
+    let settled = false;
+    let stallTimer: number | undefined;
+
+    const clear = () => {
+      if (stallTimer) window.clearTimeout(stallTimer);
+      stallTimer = undefined;
+    };
+
+    const markReady = () => {
+      settled = true;
+      clear();
+      setLoading(false);
+      setProgress(100);
+    };
+
+    const tryBlob = () => {
+      if (settled || mode === "blob" || !url || blobTriedRef.current) return;
+      clear();
+      setLoading(true);
+      void downloadAsBlob(url).catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        setLoading(false);
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Could not play this video. Ask the teacher to re-record, then publish again."
+        );
+      });
+    };
+
+    const onCanPlay = () => {
+      markReady();
+      el.play().catch(() => undefined);
+    };
+    const onPlaying = () => markReady();
+    const onError = () => {
+      if (mode === "stream") tryBlob();
+      else {
+        setLoading(false);
+        setError(
+          "Could not play this video. Re-record in Chrome (WebM) or Safari (MP4), then publish again."
+        );
       }
     };
-  }, [url]);
+    const onWaiting = () => {
+      if (mode !== "stream" || settled) return;
+      clear();
+      stallTimer = window.setTimeout(() => {
+        if (!settled && el.readyState < 2) tryBlob();
+      }, 8000);
+    };
 
-  if (!url) return null;
+    el.addEventListener("canplay", onCanPlay);
+    el.addEventListener("playing", onPlaying);
+    el.addEventListener("error", onError);
+    el.addEventListener("waiting", onWaiting);
+    el.addEventListener("stalled", onWaiting);
+
+    // If native never becomes playable, fall back.
+    stallTimer = window.setTimeout(() => {
+      if (!settled && mode === "stream" && el.readyState < 2) tryBlob();
+    }, 10000);
+
+    return () => {
+      clear();
+      el.removeEventListener("canplay", onCanPlay);
+      el.removeEventListener("playing", onPlaying);
+      el.removeEventListener("error", onError);
+      el.removeEventListener("waiting", onWaiting);
+      el.removeEventListener("stalled", onWaiting);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playUrl, mode, url]);
+
+  if (!src && !url) {
+    return <p className="text-xs text-bronze">No video recorded for this question yet.</p>;
+  }
 
   return (
-    <div>
+    <div className="w-full">
       {loading && (
-        <div className="mb-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-bronze">
-            Loading video… {progress}%
-          </p>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
-            <div
-              className="h-full rounded-full bg-gold transition-all"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+        <div className="mb-2 text-xs text-bronze">
+          {mode === "blob"
+            ? `Preparing video… ${progress > 0 ? `${progress}%` : ""}`
+            : "Starting video…"}
         </div>
       )}
       {playUrl && (
         <video
-          key={playUrl}
+          key={`${playUrl}-${retryKey}`}
+          ref={videoRef}
           src={playUrl}
           controls
           playsInline
           preload="auto"
           controlsList="nodownload"
           className={className}
-          onError={() =>
-            setError(
-              "Could not play this video. Re-record in Chrome (WebM) or Safari (MP4), then publish again."
-            )
-          }
         />
       )}
-      {error && <p className="mt-2 text-xs text-ember">{error}</p>}
+      {error && (
+        <div className="mt-2 space-y-2">
+          <p className="text-xs text-ember">{error}</p>
+          <button
+            type="button"
+            className="text-xs font-semibold text-gold underline underline-offset-2"
+            onClick={() => {
+              abortRef.current?.abort();
+              setRetryKey((k) => k + 1);
+            }}
+          >
+            Try again
+          </button>
+        </div>
+      )}
     </div>
   );
 }
+
+export default SolutionVideoPlayer;

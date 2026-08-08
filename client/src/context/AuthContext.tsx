@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useMemo, ReactNode } from "react";
 import { api } from "../services/api";
 import { User, Role } from "../types";
 
@@ -34,26 +34,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false));
   }, []);
 
-  async function login(email: string, password: string) {
-    const res = await api.post<{ token: string; user: User }>("/auth/login", { email, password });
-    localStorage.setItem("dipsan_token", res.token);
-    setUser(res.user);
-  }
-
-  async function register(data: {
-    name: string; email: string; password: string; role: Role;
-    className?: string; rollNumber?: string; phone?: string;
-  }) {
-    const res = await api.post<{ token: string; user: User }>("/auth/register", data);
-    localStorage.setItem("dipsan_token", res.token);
-    setUser(res.user);
-  }
-
-  function logout() {
-    localStorage.removeItem("dipsan_token");
-    setUser(null);
-  }
-
   const refreshUser = useCallback(async () => {
     const res = await api.get<{ user: User }>("/auth/me");
     setUser(res.user);
@@ -63,10 +43,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(next);
   }, []);
 
+  const loginCb = useCallback(async (email: string, password: string) => {
+    const res = await api.post<{ token: string; user: User }>("/auth/login", { email, password });
+    localStorage.setItem("dipsan_token", res.token);
+    setUser(res.user);
+  }, []);
+
+  const registerCb = useCallback(async (data: {
+    name: string; email: string; password: string; role: Role;
+    className?: string; rollNumber?: string; phone?: string;
+  }) => {
+    const res = await api.post<{ token: string; user: User }>("/auth/register", data);
+    localStorage.setItem("dipsan_token", res.token);
+    setUser(res.user);
+  }, []);
+
+  const logoutCb = useCallback(() => {
+    localStorage.removeItem("dipsan_token");
+    setUser(null);
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      user,
+      loading,
+      login: loginCb,
+      register: registerCb,
+      logout: logoutCb,
+      refreshUser,
+      setUserFromServer,
+    }),
+    [user, loading, loginCb, registerCb, logoutCb, refreshUser, setUserFromServer]
+  );
+
   return (
-    <AuthContext.Provider
-      value={{ user, loading, login, register, logout, refreshUser, setUserFromServer }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

@@ -94,9 +94,12 @@ export function Spinner() {
 export function PageShell({
   children,
   className = "",
+  quiet = false,
 }: {
   children: ReactNode;
   className?: string;
+  /** Skip drifting logo animations (use on login/register for snappy typing). */
+  quiet?: boolean;
 }) {
   return (
     <div
@@ -108,16 +111,20 @@ export function PageShell({
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
         <div className="absolute -left-24 top-0 h-72 w-72 rounded-full bg-aurora/10 blur-3xl" />
         <div className="absolute -right-16 bottom-10 h-80 w-80 rounded-full bg-gold/10 blur-3xl" />
-        <img
-          src="/dipsan-logo.png"
-          alt=""
-          className="absolute left-[-10%] top-[10%] h-[50vmin] w-[50vmin] rounded-full object-contain opacity-[0.05] animate-logo-drift"
-        />
-        <img
-          src="/dipsan-logo.png"
-          alt=""
-          className="absolute bottom-[-12%] right-[-8%] h-[44vmin] w-[44vmin] rounded-full object-contain opacity-[0.04] animate-logo-drift-delayed"
-        />
+        {!quiet && (
+          <>
+            <img
+              src="/dipsan-logo.png"
+              alt=""
+              className="absolute left-[-10%] top-[10%] h-[50vmin] w-[50vmin] rounded-full object-contain opacity-[0.05] animate-logo-drift"
+            />
+            <img
+              src="/dipsan-logo.png"
+              alt=""
+              className="absolute bottom-[-12%] right-[-8%] h-[44vmin] w-[44vmin] rounded-full object-contain opacity-[0.04] animate-logo-drift-delayed"
+            />
+          </>
+        )}
       </div>
       <div className="relative z-10">{children}</div>
     </div>

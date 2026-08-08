@@ -190,8 +190,6 @@ async function streamFromBucket(bucketName, _id, req, res) {
   const isVideo = contentType.startsWith("video/");
 
   res.setHeader("Content-Type", contentType);
-  // Videos: claim ranges only when we will honor them. Always set for images.
-  res.setHeader("Accept-Ranges", "bytes");
   res.setHeader("Cache-Control", isVideo ? "public, max-age=3600" : "public, max-age=31536000, immutable");
   res.setHeader("Content-Disposition", `inline; filename="${file.filename || "media"}"`);
   // Needed when Vercel client plays media hosted on Render
@@ -199,11 +197,27 @@ async function streamFromBucket(bucketName, _id, req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Expose-Headers", "Accept-Ranges, Content-Range, Content-Length, Content-Type");
 
-  // For small videos, prefer full-file responses — MediaRecorder WebM often
-  // buffers forever when browsers try byte-range progressive playback.
-  const preferFullFile = isVideo && size > 0 && size < 80 * 1024 * 1024 && !req.headers.range;
+  // MediaRecorder WebM rarely has cue points. Serving 206 byte-ranges makes
+  // Chrome/Safari sit on "buffering" forever. Always return the full file for
+  // WebM (and other non-MP4 solution recordings under ~100MB).
+  const isWebm =
+    contentType.includes("webm") ||
+    contentType.includes("matroska") ||
+    /\.webm$/i.test(file.filename || "");
+  const isMp4 =
+    contentType.includes("mp4") ||
+    contentType.includes("quicktime") ||
+    /\.(mp4|mov)$/i.test(file.filename || "");
+  const forceFullFile =
+    isVideo && (isWebm || (!isMp4 && size > 0 && size < 100 * 1024 * 1024));
 
-  const range = preferFullFile ? null : parseRange(req.headers.range, size);
+  if (forceFullFile) {
+    res.setHeader("Accept-Ranges", "none");
+  } else {
+    res.setHeader("Accept-Ranges", "bytes");
+  }
+
+  const range = forceFullFile ? null : parseRange(req.headers.range, size);
 
   if (range) {
     const { start, end } = range;
