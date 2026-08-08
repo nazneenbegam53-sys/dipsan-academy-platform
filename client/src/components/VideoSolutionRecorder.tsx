@@ -443,12 +443,12 @@ export function VideoSolutionRecorder({
         typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported
           ? mimeCandidates.find((m) => MediaRecorder.isTypeSupported(m)) || ""
           : "";
-      // Lower bitrate → smaller GridFS files → faster load on Render.
+      // Lower bitrate → smaller GridFS files → safer on Render free memory.
       const recorder = new MediaRecorder(
         combined,
         mimeType
-          ? { mimeType, audioBitsPerSecond: 96000, videoBitsPerSecond: 1_200_000 }
-          : { audioBitsPerSecond: 96000, videoBitsPerSecond: 1_200_000 }
+          ? { mimeType, audioBitsPerSecond: 64000, videoBitsPerSecond: 800_000 }
+          : { audioBitsPerSecond: 64000, videoBitsPerSecond: 800_000 }
       );
       chunks.current = [];
       recorder.ondataavailable = (ev) => {

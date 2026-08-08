@@ -6,7 +6,13 @@ const {
   isLikelyWebm,
   isLikelyMp4,
   transcodeBufferToMp4,
+  transcodeFileToMp4,
+  streamToTempFile,
+  unlinkQuiet,
+  MAX_UPLOAD_TRANSCODE_BYTES,
+  MAX_LAZY_TRANSCODE_BYTES,
 } = require("./videoTranscode");
+const fs = require("fs");
 
 const IMAGE_BUCKET = "questionImages";
 const VIDEO_BUCKET = "questionVideos";
@@ -136,7 +142,8 @@ async function storeImage(file, { baseUrl } = {}) {
 
 /**
  * Persist a video solution recording.
- * Converts WebM → MP4 when possible so phones/apps (Safari, WKWebView) can play.
+ * Converts small WebM → MP4 when possible so phones/apps can play.
+ * Large files stay WebM and convert lazily via /api/media/:id/mp4 (disk-based).
  */
 async function storeVideo(file, { baseUrl } = {}) {
   if (!file?.buffer) {
@@ -147,17 +154,25 @@ async function storeVideo(file, { baseUrl } = {}) {
   const mime = (file.mimetype || "").toLowerCase();
   const name = file.originalname || "";
 
-  if (!isLikelyMp4(mime, name) && isLikelyWebm(mime, name)) {
-    const mp4 = await transcodeBufferToMp4(file.buffer, {
-      inputExt: path.extname(name) || ".webm",
-    });
-    if (mp4) {
-      toStore = {
-        ...file,
-        buffer: mp4,
-        mimetype: "video/mp4",
-        originalname: (name || "solution.webm").replace(/\.(webm|mkv)$/i, ".mp4"),
-      };
+  if (
+    !isLikelyMp4(mime, name) &&
+    isLikelyWebm(mime, name) &&
+    file.buffer.length <= MAX_UPLOAD_TRANSCODE_BYTES
+  ) {
+    try {
+      const mp4 = await transcodeBufferToMp4(file.buffer, {
+        inputExt: path.extname(name) || ".webm",
+      });
+      if (mp4) {
+        toStore = {
+          ...file,
+          buffer: mp4,
+          mimetype: "video/mp4",
+          originalname: (name || "solution.webm").replace(/\.(webm|mkv)$/i, ".mp4"),
+        };
+      }
+    } catch (err) {
+      console.warn("[media] upload MP4 convert skipped:", err?.message || err);
     }
   }
 
@@ -204,14 +219,35 @@ function parseRange(rangeHeader, size) {
   return { start, end };
 }
 
-async function downloadGridFSBuffer(bucketName, _id) {
-  const bucket = getBucket(bucketName);
-  const chunks = [];
+async function uploadFilePathToGridFS(filePath, { mimetype, originalname, extraMeta = {} } = {}) {
+  const bucket = getBucket(VIDEO_BUCKET);
+  const ext = path.extname(originalname || "") || ".mp4";
+  const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+  const contentType = guessContentType(filename, mimetype, VIDEO_BUCKET);
+
   return new Promise((resolve, reject) => {
-    const download = bucket.openDownloadStream(_id);
-    download.on("data", (c) => chunks.push(c));
-    download.on("error", reject);
-    download.on("end", () => resolve(Buffer.concat(chunks)));
+    const uploadStream = bucket.openUploadStream(filename, {
+      contentType,
+      metadata: {
+        originalName: originalname,
+        uploadedAt: new Date().toISOString(),
+        bucket: VIDEO_BUCKET,
+        ...extraMeta,
+      },
+    });
+
+    uploadStream.on("error", reject);
+    uploadStream.on("finish", () => {
+      resolve({
+        id: uploadStream.id.toString(),
+        filename,
+        contentType,
+        provider: "gridfs",
+        bucket: VIDEO_BUCKET,
+      });
+    });
+
+    fs.createReadStream(filePath).pipe(uploadStream);
   });
 }
 
@@ -227,7 +263,7 @@ const mp4Jobs = new Map();
 
 /**
  * Ensure an MP4 exists for a GridFS video (cache derivative for mobile/iOS).
- * Returns the ObjectId string to stream, or null if conversion is impossible.
+ * Streams GridFS → disk → ffmpeg → GridFS so we never hold the whole video in RAM.
  */
 async function ensureMp4Id(sourceId) {
   if (!mongoose.Types.ObjectId.isValid(sourceId)) return null;
@@ -252,29 +288,37 @@ async function ensureMp4Id(sourceId) {
       const existing = await findMp4Derivative(sourceId);
       if (existing) return existing._id.toString();
 
-      // Cap source size to avoid OOM on free Render instances.
-      if ((file.length || 0) > 80 * 1024 * 1024) {
-        throw new Error("Video is too large to convert for mobile playback.");
+      if ((file.length || 0) > MAX_LAZY_TRANSCODE_BYTES) {
+        throw new Error(
+          "Video is too large to convert on this server. Please re-record a shorter solution."
+        );
       }
 
-      const input = await downloadGridFSBuffer(bucketName, _id);
-      const mp4 = await transcodeBufferToMp4(input, {
-        inputExt: path.extname(file.filename || "") || ".webm",
-      });
-      if (!mp4) {
-        throw new Error("MP4 conversion is unavailable on the server.");
-      }
+      let inFile;
+      let outFile;
+      try {
+        const streamed = await streamToTempFile(
+          bucket.openDownloadStream(_id),
+          path.extname(file.filename || "") || ".webm"
+        );
+        inFile = streamed.inFile;
+        outFile = streamed.outFile;
 
-      const stored = await uploadToGridFS(
-        {
-          buffer: mp4,
+        await transcodeFileToMp4(inFile, outFile);
+
+        // Free input file before uploading output (peak disk, not peak RAM).
+        await unlinkQuiet(inFile);
+        inFile = null;
+
+        const stored = await uploadFilePathToGridFS(outFile, {
           mimetype: "video/mp4",
           originalname: `${sourceId}.mp4`,
-        },
-        VIDEO_BUCKET,
-        { sourceId: String(sourceId), derivative: "mp4" }
-      );
-      return stored.id;
+          extraMeta: { sourceId: String(sourceId), derivative: "mp4" },
+        });
+        return stored.id;
+      } finally {
+        if (inFile || outFile) await unlinkQuiet(inFile, outFile);
+      }
     }
 
     return null;
