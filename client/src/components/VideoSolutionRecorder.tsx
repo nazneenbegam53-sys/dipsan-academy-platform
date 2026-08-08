@@ -171,11 +171,12 @@ export function VideoSolutionRecorder({
 
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     dprRef.current = dpr;
-    const w = parent.clientWidth;
-    const h = Math.max(340, Math.round(parent.clientWidth * 0.62));
+    // Even CSS + buffer sizes so H.264/mobile MP4 conversion never fails on odd widths.
+    const w = Math.max(2, Math.floor(parent.clientWidth / 2) * 2);
+    const h = Math.max(340, Math.floor((parent.clientWidth * 0.62) / 2) * 2);
     sizeRef.current = { w, h };
-    canvas.width = Math.floor(w * dpr);
-    canvas.height = Math.floor(h * dpr);
+    canvas.width = Math.floor(w * dpr / 2) * 2;
+    canvas.height = Math.floor(h * dpr / 2) * 2;
     canvas.style.width = `${w}px`;
     canvas.style.height = `${h}px`;
 
