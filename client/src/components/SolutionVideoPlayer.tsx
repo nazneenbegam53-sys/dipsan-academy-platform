@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { resolveMediaUrl } from "../lib/mediaUrl";
+import { deviceNeedsMp4, resolveMediaUrl, resolvePlaybackUrl } from "../lib/mediaUrl";
 
 /**
  * Plays solution videos from GridFS or CDN.
- * Tries native progressive playback first (fast start). If the browser cannot
- * decode the stream (common with some MediaRecorder WebM files), downloads the
- * full file and plays a local blob URL.
+ * Phones/apps request an MP4 derivative (iOS cannot play WebM).
+ * Desktop tries native progressive playback, with blob fallback if needed.
  */
 export function SolutionVideoPlayer({
   src,
@@ -14,7 +13,8 @@ export function SolutionVideoPlayer({
   src?: string | null;
   className?: string;
 }) {
-  const url = resolveMediaUrl(src);
+  const baseUrl = resolveMediaUrl(src);
+  const url = resolvePlaybackUrl(src);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const objectUrlRef = useRef<string | null>(null);
   const blobTriedRef = useRef(false);
@@ -24,6 +24,7 @@ export function SolutionVideoPlayer({
   const [mode, setMode] = useState<"stream" | "blob">("stream");
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const [retryKey, setRetryKey] = useState(0);
 
@@ -46,6 +47,7 @@ export function SolutionVideoPlayer({
     setLoading(true);
     setProgress(0);
     setError("");
+    setStatus("Downloading video for this device…");
     setPlayUrl(null);
     revokeObjectUrl();
 
@@ -54,7 +56,7 @@ export function SolutionVideoPlayer({
       credentials: "omit",
       cache: "no-store",
       signal: controller.signal,
-      headers: { Accept: "video/*,*/*" },
+      headers: { Accept: "video/mp4,video/*,*/*" },
     });
 
     if (!response.ok) {
@@ -63,7 +65,8 @@ export function SolutionVideoPlayer({
 
     const total = Number(response.headers.get("Content-Length") || 0);
     const mime =
-      response.headers.get("Content-Type")?.split(";")[0]?.trim() || "video/webm";
+      response.headers.get("Content-Type")?.split(";")[0]?.trim() ||
+      (deviceNeedsMp4() ? "video/mp4" : "video/webm");
 
     let blob: Blob;
     if (!response.body) {
@@ -94,6 +97,7 @@ export function SolutionVideoPlayer({
     setPlayUrl(objectUrl);
     setProgress(100);
     setLoading(false);
+    setStatus("");
   };
 
   useEffect(() => {
@@ -103,6 +107,7 @@ export function SolutionVideoPlayer({
     setError("");
     setProgress(0);
     setMode("stream");
+    setStatus("");
 
     if (!url) {
       setPlayUrl(null);
@@ -111,8 +116,8 @@ export function SolutionVideoPlayer({
     }
 
     const isGridFs = /\/api\/media\//i.test(url);
+    const needsConvert = deviceNeedsMp4() && /\/mp4$/i.test(new URL(url).pathname);
 
-    // CDN / Cloudinary can stream natively.
     if (!isGridFs) {
       setPlayUrl(url);
       setLoading(false);
@@ -120,11 +125,12 @@ export function SolutionVideoPlayer({
       return;
     }
 
-    // GridFS: start native playback immediately (server returns full WebM as 200).
     setLoading(true);
+    if (needsConvert) {
+      setStatus("Preparing mobile-friendly video (first open can take a minute)…");
+    }
     setPlayUrl(url);
 
-    // Warm Render (cold start) in parallel — does not block attaching src.
     const warm = new AbortController();
     abortRef.current = warm;
     void fetch(url, {
@@ -157,19 +163,37 @@ export function SolutionVideoPlayer({
       clear();
       setLoading(false);
       setProgress(100);
+      setStatus("");
     };
 
-    const tryBlob = () => {
-      if (settled || mode === "blob" || !url || blobTriedRef.current) return;
+    const tryBlob = (fallbackUrl?: string | null) => {
+      const target = fallbackUrl || url;
+      if (settled || mode === "blob" || !target || blobTriedRef.current) return;
       clear();
       setLoading(true);
-      void downloadAsBlob(url).catch((err: unknown) => {
+      void downloadAsBlob(target).catch((err: unknown) => {
         if (err instanceof DOMException && err.name === "AbortError") return;
+        // Last resort: try original WebM URL on Android if MP4 path failed.
+        if (fallbackUrl !== baseUrl && baseUrl && baseUrl !== target) {
+          blobTriedRef.current = false;
+          void downloadAsBlob(baseUrl).catch((err2: unknown) => {
+            if (err2 instanceof DOMException && err2.name === "AbortError") return;
+            setLoading(false);
+            setStatus("");
+            setError(
+              err2 instanceof Error
+                ? err2.message
+                : "Could not play this video on your phone. Please try again on Wi‑Fi."
+            );
+          });
+          return;
+        }
         setLoading(false);
+        setStatus("");
         setError(
           err instanceof Error
             ? err.message
-            : "Could not play this video. Ask the teacher to re-record, then publish again."
+            : "Could not play this video on your phone. Please try again on Wi‑Fi."
         );
       });
     };
@@ -180,11 +204,12 @@ export function SolutionVideoPlayer({
     };
     const onPlaying = () => markReady();
     const onError = () => {
-      if (mode === "stream") tryBlob();
+      if (mode === "stream") tryBlob(url);
       else {
         setLoading(false);
+        setStatus("");
         setError(
-          "Could not play this video. Re-record in Chrome (WebM) or Safari (MP4), then publish again."
+          "This video cannot play on your phone yet. Open it once on Wi‑Fi to finish conversion, or ask the teacher to re-save the solution."
         );
       }
     };
@@ -192,8 +217,8 @@ export function SolutionVideoPlayer({
       if (mode !== "stream" || settled) return;
       clear();
       stallTimer = window.setTimeout(() => {
-        if (!settled && el.readyState < 2) tryBlob();
-      }, 8000);
+        if (!settled && el.readyState < 2) tryBlob(url);
+      }, deviceNeedsMp4() ? 20000 : 8000);
     };
 
     el.addEventListener("canplay", onCanPlay);
@@ -202,10 +227,10 @@ export function SolutionVideoPlayer({
     el.addEventListener("waiting", onWaiting);
     el.addEventListener("stalled", onWaiting);
 
-    // If native never becomes playable, fall back.
+    // First MP4 conversion on Render can be slow — wait longer on mobile.
     stallTimer = window.setTimeout(() => {
-      if (!settled && mode === "stream" && el.readyState < 2) tryBlob();
-    }, 10000);
+      if (!settled && mode === "stream" && el.readyState < 2) tryBlob(url);
+    }, deviceNeedsMp4() ? 45000 : 10000);
 
     return () => {
       clear();
@@ -216,7 +241,7 @@ export function SolutionVideoPlayer({
       el.removeEventListener("stalled", onWaiting);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playUrl, mode, url]);
+  }, [playUrl, mode, url, baseUrl]);
 
   if (!src && !url) {
     return <p className="text-xs text-bronze">No video recorded for this question yet.</p>;
@@ -224,11 +249,12 @@ export function SolutionVideoPlayer({
 
   return (
     <div className="w-full">
-      {loading && (
+      {(loading || status) && (
         <div className="mb-2 text-xs text-bronze">
-          {mode === "blob"
-            ? `Preparing video… ${progress > 0 ? `${progress}%` : ""}`
-            : "Starting video…"}
+          {status ||
+            (mode === "blob"
+              ? `Preparing video… ${progress > 0 ? `${progress}%` : ""}`
+              : "Starting video…")}
         </div>
       )}
       {playUrl && (
@@ -241,6 +267,8 @@ export function SolutionVideoPlayer({
           preload="auto"
           controlsList="nodownload"
           className={className}
+          // Helps iOS inline playback inside Capacitor / Safari.
+          {...({ "webkit-playsinline": "true", "x5-playsinline": "true" } as Record<string, string>)}
         />
       )}
       {error && (
