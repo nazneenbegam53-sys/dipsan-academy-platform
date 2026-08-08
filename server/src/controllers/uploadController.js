@@ -31,6 +31,17 @@ const uploadVideo = asyncHandler(async (req, res) => {
     });
   }
 
+  // Browsers sometimes send application/octet-stream — normalize so players get a real video MIME.
+  const rawMime = (req.file.mimetype || "").toLowerCase().split(";")[0].trim();
+  const name = (req.file.originalname || "").toLowerCase();
+  if (!rawMime.startsWith("video/") || rawMime === "application/octet-stream") {
+    if (name.endsWith(".mp4") || name.endsWith(".m4v") || name.endsWith(".mov")) {
+      req.file.mimetype = name.endsWith(".mov") ? "video/quicktime" : "video/mp4";
+    } else {
+      req.file.mimetype = "video/webm";
+    }
+  }
+
   const stored = await storeVideo(req.file, { baseUrl: requestBaseUrl(req) });
 
   res.json({

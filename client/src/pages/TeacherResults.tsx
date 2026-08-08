@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../services/api";
 import { Attempt, Exam, User } from "../types";
 import { Button, Card, Spinner, Badge, PageShell } from "../components/ui";
+import { SolutionVideoPlayer } from "../components/SolutionVideoPlayer";
 import { violationLabel } from "../hooks/useAntiCheat";
 
 function countTabSwitches(violations: Attempt["violations"] = []) {
@@ -232,10 +233,8 @@ export default function TeacherResults() {
                           Video solution
                           {q.explanationVideoStatus === "published" ? " · published" : " · draft"}
                         </p>
-                        <video
+                        <SolutionVideoPlayer
                           src={q.explanationVideoUrl}
-                          controls
-                          playsInline
                           className="aspect-video w-full max-w-xl rounded-xl border border-white/10 bg-black"
                         />
                       </div>

@@ -46,6 +46,8 @@ app.use(
       return callback(null, allowedOrigins[0] || true);
     },
     credentials: true,
+    // So cross-origin <video> players can read range / length headers.
+    exposedHeaders: ["Accept-Ranges", "Content-Range", "Content-Length", "Content-Type"],
   })
 );
 app.use(express.json({ limit: "2mb" }));
