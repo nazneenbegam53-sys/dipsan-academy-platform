@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { resolvePlaybackUrl } from "../lib/mediaUrl";
+import { canPlayWebm, resolveMediaUrl, resolvePlaybackCandidates } from "../lib/mediaUrl";
 
 const PLAYING = new Set<HTMLVideoElement>();
 
@@ -12,8 +12,10 @@ function pauseOthers(current: HTMLVideoElement) {
 }
 
 /**
- * Solution video player — no autoplay, no blob download.
- * Only one solution video plays at a time across the page.
+ * Solution video player — one at a time, no autoplay, no blob download.
+ *
+ * Android/desktop Chrome play the original WebM.
+ * iOS uses the MP4 derivative, with automatic fallback either way.
  */
 export function SolutionVideoPlayer({
   src,
@@ -22,12 +24,17 @@ export function SolutionVideoPlayer({
   src?: string | null;
   className?: string;
 }) {
-  const url = resolvePlaybackUrl(src);
+  const candidates = resolvePlaybackCandidates(src);
+  const baseUrl = resolveMediaUrl(src);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const instanceId = useId();
+  const triedFallback = useRef(false);
+
   const [open, setOpen] = useState(false);
+  const [activeUrl, setActiveUrl] = useState<string | undefined>(candidates.primary);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [hint, setHint] = useState("");
 
   useEffect(() => {
     const onExclusive = (ev: Event) => {
@@ -49,13 +56,34 @@ export function SolutionVideoPlayer({
     if (!open) {
       setLoading(false);
       setError("");
+      setHint("");
+      triedFallback.current = false;
+      setActiveUrl(candidates.primary);
       return;
     }
+    triedFallback.current = false;
+    setActiveUrl(candidates.primary);
     setLoading(true);
     setError("");
-  }, [open, url]);
+    setHint(
+      !canPlayWebm()
+        ? "Preparing mobile video (first open may take a moment)…"
+        : "Loading video…"
+    );
+  }, [open, candidates.primary]);
 
-  if (!src && !url) {
+  function tryFallback() {
+    const fb = candidates.fallback;
+    if (!fb || triedFallback.current || fb === activeUrl) return false;
+    triedFallback.current = true;
+    setHint("Trying alternate format…");
+    setLoading(true);
+    setError("");
+    setActiveUrl(fb);
+    return true;
+  }
+
+  if (!src && !baseUrl) {
     return <p className="text-xs text-bronze">No video recorded for this question yet.</p>;
   }
 
@@ -71,7 +99,10 @@ export function SolutionVideoPlayer({
         }}
         className="inline-flex items-center gap-2 rounded-xl border border-gold/30 bg-gold/10 px-3.5 py-2.5 text-xs font-semibold text-gold transition hover:bg-gold/20"
       >
-        <span aria-hidden className="inline-block h-0 w-0 border-y-[5px] border-l-[8px] border-y-transparent border-l-gold" />
+        <span
+          aria-hidden
+          className="inline-block h-0 w-0 border-y-[5px] border-l-[8px] border-y-transparent border-l-gold"
+        />
         Play video solution
       </button>
     );
@@ -94,27 +125,33 @@ export function SolutionVideoPlayer({
           Close
         </button>
       </div>
-      {loading && !error && (
-        <p className="text-xs text-bronze">Loading video…</p>
-      )}
-      {url && (
+      {loading && !error && <p className="text-xs text-bronze">{hint || "Loading video…"}</p>}
+      {activeUrl && (
         <video
+          key={activeUrl}
           ref={videoRef}
-          src={url}
+          src={activeUrl}
           controls
           playsInline
-          preload="metadata"
+          preload="auto"
           controlsList="nodownload noplaybackrate"
           disablePictureInPicture
           className={className}
           onLoadStart={() => setLoading(true)}
-          onLoadedData={() => setLoading(false)}
-          onCanPlay={() => setLoading(false)}
+          onLoadedData={() => {
+            setLoading(false);
+            setHint("");
+          }}
+          onCanPlay={() => {
+            setLoading(false);
+            setHint("");
+          }}
           onPlay={(e) => {
             const el = e.currentTarget;
             PLAYING.add(el);
             pauseOthers(el);
             setLoading(false);
+            setHint("");
           }}
           onPause={(e) => {
             PLAYING.delete(e.currentTarget);
@@ -123,9 +160,13 @@ export function SolutionVideoPlayer({
             PLAYING.delete(e.currentTarget);
           }}
           onError={() => {
+            if (tryFallback()) return;
             setLoading(false);
+            setHint("");
             setError(
-              "Could not play this video. Try again on Wi‑Fi, or ask the teacher to re-save the solution."
+              canPlayWebm()
+                ? "Could not play this video. Check your connection and try again."
+                : "Could not play this video on this phone. Keep the screen open once on Wi‑Fi so it can convert, then try again."
             );
           }}
           {...({ "webkit-playsinline": "true", "x5-playsinline": "true" } as Record<string, string>)}
@@ -138,9 +179,10 @@ export function SolutionVideoPlayer({
             type="button"
             className="text-xs font-semibold text-gold underline underline-offset-2"
             onClick={() => {
+              triedFallback.current = false;
               setError("");
               setLoading(true);
-              videoRef.current?.load();
+              setActiveUrl(candidates.primary);
             }}
           >
             Try again

@@ -5,11 +5,10 @@ const { cloudinary, isConfigured: cloudinaryConfigured } = require("../config/cl
 const {
   isLikelyWebm,
   isLikelyMp4,
-  transcodeBufferToMp4,
   transcodeFileToMp4,
   streamToTempFile,
   unlinkQuiet,
-  MAX_UPLOAD_TRANSCODE_BYTES,
+  tempPair,
   MAX_LAZY_TRANSCODE_BYTES,
 } = require("./videoTranscode");
 const fs = require("fs");
@@ -142,51 +141,62 @@ async function storeImage(file, { baseUrl } = {}) {
 
 /**
  * Persist a video solution recording.
- * Converts small WebM → MP4 when possible so phones/apps can play.
- * Large files stay WebM and convert lazily via /api/media/:id/mp4 (disk-based).
+ * Prefer storing MP4 (works on every phone). Convert on disk up to the lazy cap
+ * so we never keep both WebM + MP4 buffers in RAM.
  */
 async function storeVideo(file, { baseUrl } = {}) {
   if (!file?.buffer) {
     throw new Error("No video file provided.");
   }
 
-  let toStore = file;
   const mime = (file.mimetype || "").toLowerCase();
   const name = file.originalname || "";
+  const origin = (baseUrl || "").replace(/\/$/, "");
 
-  if (
-    !isLikelyMp4(mime, name) &&
-    isLikelyWebm(mime, name) &&
-    file.buffer.length <= MAX_UPLOAD_TRANSCODE_BYTES
-  ) {
-    try {
-      const mp4 = await transcodeBufferToMp4(file.buffer, {
-        inputExt: path.extname(name) || ".webm",
-      });
-      if (mp4) {
-        toStore = {
-          ...file,
-          buffer: mp4,
-          mimetype: "video/mp4",
-          originalname: (name || "solution.webm").replace(/\.(webm|mkv)$/i, ".mp4"),
-        };
-      }
-    } catch (err) {
-      console.warn("[media] upload MP4 convert skipped:", err?.message || err);
-    }
-  }
-
+  // Cloudinary auto-delivers playable formats — upload as-is (asks for mp4 format).
   if (cloudinaryConfigured) {
+    let toStore = file;
+    if (!isLikelyMp4(mime, name) && isLikelyWebm(mime, name)) {
+      // Still prefer mp4 container when Cloudinary re-encodes.
+      toStore = { ...file, originalname: (name || "solution.webm").replace(/\.(webm|mkv)$/i, ".mp4") };
+    }
     return uploadToCloudinary(toStore, {
       resourceType: "video",
       folder: "dipsan/video-solutions",
     });
   }
 
-  const stored = await uploadToGridFS(toStore, VIDEO_BUCKET, {
-    transcoded: toStore !== file,
-  });
-  const origin = (baseUrl || "").replace(/\/$/, "");
+  // Disk convert WebM → MP4 for universal mobile playback (skip only if too large).
+  if (
+    !isLikelyMp4(mime, name) &&
+    isLikelyWebm(mime, name) &&
+    file.buffer.length <= MAX_LAZY_TRANSCODE_BYTES
+  ) {
+    const { inFile, outFile } = tempPair(path.extname(name) || ".webm");
+    try {
+      await fs.promises.writeFile(inFile, file.buffer);
+      await transcodeFileToMp4(inFile, outFile);
+      await unlinkQuiet(inFile);
+
+      const stored = await uploadFilePathToGridFS(outFile, {
+        mimetype: "video/mp4",
+        originalname: (name || "solution.webm").replace(/\.(webm|mkv)$/i, ".mp4"),
+        extraMeta: { transcoded: true },
+      });
+      await unlinkQuiet(outFile);
+      return {
+        url: `${origin}/api/media/${stored.id}`,
+        provider: "gridfs",
+        id: stored.id,
+      };
+    } catch (err) {
+      console.warn("[media] upload MP4 convert failed, storing WebM:", err?.message || err);
+      await unlinkQuiet(inFile, outFile);
+      // Fall through — store original WebM (Android Chrome can still play it).
+    }
+  }
+
+  const stored = await uploadToGridFS(file, VIDEO_BUCKET, { transcoded: false });
   return {
     url: `${origin}/api/media/${stored.id}`,
     provider: "gridfs",
