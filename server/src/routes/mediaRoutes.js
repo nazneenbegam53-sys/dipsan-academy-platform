@@ -25,24 +25,42 @@ async function findMediaFile(id) {
   return null;
 }
 
-function wantsMp4(req) {
-  const fmt = String(req.query.fmt || req.query.format || "").toLowerCase();
-  if (fmt === "mp4" || fmt === "h264") return true;
-  if (fmt === "webm" || fmt === "original") return false;
-
-  const ua = String(req.get("user-agent") || "");
-  // iPhone / iPad / iPod / iPadOS-as-Mac / many in-app WebViews need MP4.
-  if (/iPhone|iPad|iPod/i.test(ua)) return true;
-  if (/Macintosh/i.test(ua) && /Mobile/i.test(ua)) return true;
-  // Capacitor / Android WebView often reports ; wv) — prefer MP4 for reliability.
-  if (/\bwv\b/.test(ua) || /Capacitor/i.test(ua)) return true;
-  return false;
-}
-
 function setCors(res) {
   res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Expose-Headers", "Accept-Ranges, Content-Range, Content-Length, Content-Type");
+  res.setHeader(
+    "Access-Control-Expose-Headers",
+    "Accept-Ranges, Content-Range, Content-Length, Content-Type"
+  );
+}
+
+async function respondHead(res, id) {
+  const hit = await findMediaFile(id);
+  if (!hit) return res.status(404).end();
+
+  const { file, bucketName } = hit;
+  const mime = (file.contentType || "").split(";")[0].trim().toLowerCase();
+  const ext = path.extname(file.filename || "").toLowerCase();
+  const byExt = {
+    ".webm": "video/webm",
+    ".mp4": "video/mp4",
+    ".mov": "video/quicktime",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".webp": "image/webp",
+  };
+  const contentType =
+    mime && mime !== "application/octet-stream"
+      ? mime
+      : byExt[ext] || (bucketName === VIDEO_BUCKET ? "video/webm" : "application/octet-stream");
+
+  setCors(res);
+  res.setHeader("Content-Type", contentType);
+  res.setHeader("Accept-Ranges", contentType.includes("webm") ? "none" : "bytes");
+  res.setHeader("Content-Length", file.length || 0);
+  res.setHeader("Cache-Control", "public, max-age=3600");
+  res.status(200).end();
 }
 
 // Public read — exam images / video solutions must be fetchable by the browser.
@@ -54,7 +72,8 @@ router.get(
     });
 
     try {
-      const preferMp4 = wantsMp4(req);
+      // Only convert on the dedicated /mp4 route — avoids surprise OOM on every mobile GET.
+      const preferMp4 = false;
       const found = await streamGridFSFile(req.params.id, req, res, { preferMp4 });
       if (!found) {
         return res.status(404).json({ message: "Media not found." });
@@ -86,45 +105,34 @@ router.get(
   })
 );
 
-// Probe size / type without downloading the body (helps some players).
+// Probe only — never trigger ffmpeg here (HEAD was causing RAM spikes).
 router.head(
   "/:id",
   asyncHandler(async (req, res) => {
-    let id = req.params.id;
-    if (wantsMp4(req)) {
-      try {
-        const mp4Id = await ensureMp4Id(id);
-        if (mp4Id) id = mp4Id;
-      } catch {
-        /* keep original */
-      }
+    await respondHead(res, req.params.id);
+  })
+);
+
+router.head(
+  "/:id/mp4",
+  asyncHandler(async (req, res) => {
+    // If a cached derivative exists, describe it; otherwise describe the source
+    // without converting (conversion happens on GET /:id/mp4).
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).end();
+    const bucket = getBucket(VIDEO_BUCKET);
+    const cached = await bucket
+      .find({
+        "metadata.sourceId": String(req.params.id),
+        "metadata.derivative": "mp4",
+      })
+      .toArray();
+    if (cached[0]) {
+      return respondHead(res, cached[0]._id.toString());
     }
-
-    const hit = await findMediaFile(id);
-    if (!hit) return res.status(404).end();
-
-    const { file, bucketName } = hit;
-    const mime = (file.contentType || "").split(";")[0].trim().toLowerCase();
-    const ext = path.extname(file.filename || "").toLowerCase();
-    const byExt = {
-      ".webm": "video/webm",
-      ".mp4": "video/mp4",
-      ".mov": "video/quicktime",
-      ".png": "image/png",
-      ".jpg": "image/jpeg",
-      ".jpeg": "image/jpeg",
-      ".webp": "image/webp",
-    };
-    const contentType =
-      mime && mime !== "application/octet-stream"
-        ? mime
-        : byExt[ext] || (bucketName === VIDEO_BUCKET ? "video/webm" : "application/octet-stream");
-
     setCors(res);
-    res.setHeader("Content-Type", contentType);
-    res.setHeader("Accept-Ranges", contentType.includes("webm") ? "none" : "bytes");
-    res.setHeader("Content-Length", file.length || 0);
-    res.setHeader("Cache-Control", "public, max-age=3600");
+    res.setHeader("Content-Type", "video/mp4");
+    res.setHeader("Accept-Ranges", "bytes");
+    res.setHeader("Cache-Control", "no-store");
     res.status(200).end();
   })
 );
