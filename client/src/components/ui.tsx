@@ -27,7 +27,7 @@ export function Button({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`rounded-full px-5 py-2.5 text-sm font-semibold tracking-wide transition disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${className}`}
+      className={`inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-semibold tracking-wide transition disabled:cursor-not-allowed disabled:opacity-50 sm:px-5 ${variants[variant]} ${className}`}
     >
       {children}
     </button>
@@ -141,14 +141,14 @@ export function AppHeader({
   actions?: ReactNode;
 }) {
   return (
-    <header className="mb-10 flex flex-wrap items-end justify-between gap-4 border-b border-white/10 pb-8">
-      <div>
-        <h1 className="font-display text-3xl font-semibold tracking-tight text-mist md:text-4xl">
+    <header className="mb-8 flex flex-col gap-4 border-b border-white/10 pb-6 sm:mb-10 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between sm:pb-8">
+      <div className="min-w-0">
+        <h1 className="break-anywhere font-display text-2xl font-semibold tracking-tight text-mist sm:text-3xl md:text-4xl">
           {title}
         </h1>
         {subtitle && <p className="mt-1 text-sm text-bronze">{subtitle}</p>}
       </div>
-      {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
+      {actions && <div className="flex w-full flex-wrap gap-2 sm:w-auto">{actions}</div>}
     </header>
   );
 }

@@ -188,13 +188,13 @@ export function MobileTabBar() {
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       aria-label="Primary"
     >
-      <div className="mx-auto flex max-w-lg items-stretch justify-around px-2 pb-1 pt-1.5">
+      <div className="mx-auto flex max-w-lg items-stretch justify-around px-1 pb-1 pt-1.5 sm:px-2">
         {tabs.map((tab) => (
           <NavLink
             key={tab.key}
             to={tab.to}
             onClick={() => void tapHaptic()}
-            className={`flex min-w-[4.5rem] flex-col items-center gap-0.5 rounded-xl px-3 py-2 text-[10px] font-semibold tracking-wide transition ${
+            className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-xl px-1 py-2 text-[10px] font-semibold tracking-wide transition sm:min-w-[4.5rem] sm:px-3 ${
               tab.active ? "text-champagne" : "text-bronze"
             }`}
           >
@@ -210,7 +210,7 @@ export function MobileTabBar() {
               logout();
               window.location.assign("/");
             }}
-            className="flex min-w-[4.5rem] flex-col items-center gap-0.5 rounded-xl px-3 py-2 text-[10px] font-semibold tracking-wide text-bronze transition hover:text-champagne"
+            className="flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-xl px-1 py-2 text-[10px] font-semibold tracking-wide text-bronze transition hover:text-champagne sm:min-w-[4.5rem] sm:px-3"
           >
             <AccountIcon active={false} />
             <span>Log out</span>

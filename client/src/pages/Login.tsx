@@ -48,21 +48,21 @@ export default function Login() {
   return (
     <PageShell
       quiet
-      className="relative flex min-h-screen items-center justify-center px-6 py-16"
+      className="relative flex min-h-[100dvh] items-center justify-center px-4 py-12 sm:px-6 sm:py-16"
     >
       <LoginScienceBg />
 
-      <div className="fixed right-5 top-5 z-20 md:right-8 md:top-6">
+      <div className="safe-top-right">
         <BrandLogo size="sm" />
       </div>
 
-      <div className="relative z-10 w-full max-w-md animate-fade-up luxury-panel rounded-3xl p-8 md:p-10">
+      <div className="relative z-10 w-full max-w-md animate-fade-up luxury-panel rounded-3xl p-5 sm:p-8 md:p-10">
         <div className="mb-8 flex flex-col items-center text-center">
           <BrandLogo size="lg" />
           <p className="mt-4 font-display text-sm font-semibold tracking-[0.22em] gold-text">
             DIPSAN ACADEMY
           </p>
-          <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight text-mist">
+          <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight text-mist sm:text-4xl">
             Welcome back
           </h1>
           <p className="mt-2 text-sm text-bronze">Log in to continue your mock series.</p>

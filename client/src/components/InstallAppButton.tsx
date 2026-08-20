@@ -155,7 +155,7 @@ export function registerServiceWorker() {
 
   window.addEventListener("load", () => {
     void navigator.serviceWorker
-      .register(`/sw.js?v=3-nosub`)
+      .register(`/sw.js?v=7-mobile-fit`)
       .then((reg) => {
         if (reg.waiting) {
           reg.waiting.postMessage({ type: "SKIP_WAITING" });

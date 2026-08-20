@@ -52,11 +52,11 @@ export default function ExamInstructions() {
     );
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-paper px-6 py-10">
-      <div className="fixed right-5 top-5 z-20 md:right-8 md:top-6">
+    <div className="flex min-h-[100dvh] items-center justify-center bg-paper px-4 py-8 sm:px-6 sm:py-10">
+      <div className="safe-top-right">
         <BrandLogo size="xs" rounded />
       </div>
-      <Card className="w-full max-w-lg p-8">
+      <Card className="w-full max-w-lg p-5 sm:p-8">
         <Badge tone="marigold">{exam.subject}</Badge>
         <h1 className="mb-4 mt-3 font-display text-3xl font-semibold text-mist">{exam.title}</h1>
 

@@ -3,71 +3,59 @@ import { BrandLogo } from "../components/BrandLogo";
 import { InstallAppButton } from "../components/InstallAppButton";
 import { PageShell } from "../components/ui";
 
+const INSTALL_URL = "https://dipsan-academy-platform.vercel.app/install";
+
 export default function InstallApp() {
   return (
     <PageShell>
-      <div className="mx-auto max-w-2xl px-6 py-12">
+      <div className="mx-auto max-w-lg screen-pad py-10 sm:max-w-2xl">
         <BrandLogo size="md" showWordmark glow />
-        <h1 className="mt-8 font-display text-3xl font-semibold text-mist">
-          Install Dipsan Academy — free
-        </h1>
+        <h1 className="mt-8 font-display text-3xl font-semibold text-mist">Get the app</h1>
         <p className="mt-3 text-sm leading-relaxed text-bronze">
-          You do <span className="text-champagne">not</span> need the Play Store or App Store.
-          Install from this website at no cost. It opens like a normal app from your home screen —
-          and stays in sync with the website (exams, results, teacher tools).
+          Same logins, exams, results, and teacher tools as the website — sized for a phone.
+          No Play Store or App Store.
         </p>
 
         <div className="mt-8">
           <InstallAppButton variant="solid" />
         </div>
 
-        <div className="mt-10 space-y-8">
+        <div className="mt-10 space-y-6">
           <section className="rounded-2xl border border-white/10 bg-charcoal/50 p-5">
-            <h2 className="font-display text-xl font-semibold text-champagne">Android (Chrome)</h2>
+            <h2 className="font-display text-xl font-semibold text-champagne">Android</h2>
             <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-bronze">
-              <li>Open this site in Chrome.</li>
+              <li>Open this page in Chrome.</li>
               <li>
-                Tap <span className="text-mist">Install free app</span> above, or the browser menu →
-                Install app.
+                Tap <span className="text-mist">Install free app</span>, or Chrome menu → Install app.
               </li>
-              <li>Confirm — the Dipsan Academy icon appears on your home screen.</li>
+              <li>Leave the browser and open the new Dipsan Academy home-screen icon.</li>
             </ol>
           </section>
 
           <section className="rounded-2xl border border-white/10 bg-charcoal/50 p-5">
-            <h2 className="font-display text-xl font-semibold text-champagne">iPhone / iPad (Safari)</h2>
+            <h2 className="font-display text-xl font-semibold text-champagne">iPhone</h2>
+            <p className="mt-2 text-sm text-bronze">
+              Apple does not allow installing unsigned apps from a download link. Use Safari:
+            </p>
             <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-bronze">
-              <li>Open this site in Safari (not Chrome).</li>
+              <li>Open this page in Safari (not Chrome).</li>
               <li>
-                Tap Share → <span className="text-mist">Add to Home Screen</span>.
+                Tap Share → <span className="text-mist">Add to Home Screen</span> → Add.
               </li>
-              <li>Tap Add — done. No Apple fee.</li>
+              <li>Leave Safari and open the home-screen icon.</li>
             </ol>
           </section>
 
           <section className="rounded-2xl border border-gold/20 bg-gold/5 p-5">
-            <h2 className="font-display text-xl font-semibold text-champagne">One product everywhere</h2>
-            <p className="mt-3 text-sm text-bronze">
-              The installed app uses the same live site and API as{" "}
-              <span className="text-mist">dipsan-academy-platform.vercel.app</span>. When we ship
-              website updates (exams, solutions), they appear in the app the next time
-              you open it — same login, same progress.
-            </p>
-          </section>
-
-          <section className="rounded-2xl border border-white/10 bg-charcoal/50 p-5">
-            <h2 className="font-display text-xl font-semibold text-champagne">
-              Play Store / App Store later?
-            </h2>
-            <p className="mt-3 text-sm text-bronze">
-              Official stores are paid (Google ~$25 once, Apple ~$99/year). The free install above
-              works today. Store shells also load this live website so they stay in sync — see{" "}
-              <code className="text-mist">client/MOBILE_APP.md</code>.
+            <h2 className="font-display text-xl font-semibold text-champagne">Share this link</h2>
+            <p className="mt-3 break-all text-sm font-semibold text-mist">{INSTALL_URL}</p>
+            <p className="mt-2 text-sm text-bronze">
+              Works on both iPhone and Android. The installed app stays in sync with the live website.
             </p>
           </section>
         </div>
 
-        <div className="mt-10 flex flex-wrap gap-4">
+        <div className="mt-10">
           <Link to="/" className="text-sm font-semibold text-gold hover:text-champagne">
             ← Back to Dipsan Academy
           </Link>

@@ -181,7 +181,7 @@ function MarketingLanding() {
 
       {/* Mobile/desktop top actions — Alerts · Support · logo */}
       <div
-        className={`fixed right-2 top-2 z-[80] flex flex-nowrap items-center justify-end gap-2 transition-all duration-700 sm:right-5 sm:top-5 md:right-8 md:top-6 ${
+        className={`safe-top-right flex flex-nowrap items-center justify-end gap-2 transition-all duration-700 ${
           phase === "ready" ? "opacity-100 translate-y-0" : "pointer-events-none opacity-0 -translate-y-1"
         }`}
       >
@@ -192,7 +192,7 @@ function MarketingLanding() {
 
       {user && (
         <div
-          className={`fixed left-3 top-3 z-40 flex max-w-[42vw] items-center gap-2 transition-all duration-700 sm:left-5 sm:top-5 sm:max-w-[50vw] sm:gap-3 md:left-8 md:top-6 md:max-w-none ${
+          className={`safe-top-left flex max-w-[42vw] items-center gap-2 transition-all duration-700 sm:max-w-[50vw] sm:gap-3 md:max-w-none ${
             phase === "ready" ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
           }`}
         >
@@ -369,7 +369,7 @@ function MarketingLanding() {
         </section>
 
         <section className="relative overflow-hidden border-t border-white/10 bg-coal">
-          <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-16 md:grid-cols-2 md:px-10 md:py-24">
+          <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 sm:px-6 sm:py-16 md:grid-cols-2 md:px-10 md:py-24">
             <div className="animate-fade-up">
               <div className="mb-4 flex items-center gap-3">
                 <BrandLogo size="xs" glow />
@@ -446,7 +446,7 @@ function MarketingLanding() {
             }}
             aria-hidden
           />
-          <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center px-6 py-16 text-center md:px-10 md:py-20">
+          <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center px-4 py-12 text-center sm:px-6 sm:py-16 md:px-10 md:py-20">
             <BrandLogo size="lg" glow spinRing />
             <h2 className="mt-8 font-display text-4xl font-semibold text-mist md:text-5xl">
               Ready when you are.
@@ -492,7 +492,7 @@ function MarketingLanding() {
           </div>
         </section>
 
-        <footer className="border-t border-white/10 bg-paper px-6 py-8 md:px-10">
+        <footer className="border-t border-white/10 bg-paper px-4 py-8 sm:px-6 md:px-10">
           <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-4 sm:grid-cols-3">
             <div className="flex justify-center sm:justify-start">
               <BrandLogo size="sm" showWordmark glow />

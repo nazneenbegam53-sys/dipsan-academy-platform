@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
 import { isStandaloneApp } from "../lib/native";
 
@@ -16,6 +17,7 @@ function isIos() {
  * show a persistent app-install gate so they know this is not the real app yet.
  */
 export function BrowserInstallGate() {
+  const { pathname } = useLocation();
   const [inBrowser, setInBrowser] = useState(false);
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [iosOpen, setIosOpen] = useState(false);
@@ -53,6 +55,7 @@ export function BrowserInstallGate() {
   }, []);
 
   if (!inBrowser || dismissed) return null;
+  if (pathname === "/install" || pathname.startsWith("/install/")) return null;
 
   async function install() {
     if (deferred) {
