@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { isStandaloneApp, tapHaptic } from "../lib/native";
+import { tapHaptic } from "../lib/native";
 
 type Tab = {
   key: string;
@@ -96,8 +96,7 @@ function shouldHideTabBar(path: string) {
 export function MobileTabBar() {
   const { user, logout } = useAuth();
   const { pathname } = useLocation();
-  const appMode = isStandaloneApp();
-  const visible = (Boolean(user) || appMode) && !shouldHideTabBar(pathname);
+  const visible = !shouldHideTabBar(pathname);
 
   useEffect(() => {
     document.body.classList.toggle("has-mobile-tabs", visible);
@@ -184,7 +183,7 @@ export function MobileTabBar() {
 
   return (
     <nav
-      className="mobile-tab-bar fixed inset-x-0 bottom-0 z-[90] border-t border-white/10 bg-[#07121C] md:hidden"
+      className="mobile-tab-bar fixed inset-x-0 bottom-0 z-[90] border-t border-white/10 bg-[#07121C]"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       aria-label="Primary"
     >

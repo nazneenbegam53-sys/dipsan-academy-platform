@@ -145,23 +145,16 @@ body.app-shell {
   touch-action: manipulation;
 }
 
-body.in-browser {
-  padding-bottom: 0;
+.mobile-tab-bar {
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.28);
+}
+
+body.has-mobile-tabs,
+body.in-browser.has-mobile-tabs {
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 @media (max-width: 767px) {
-  .mobile-tab-bar {
-    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.28);
-    backdrop-filter: none;
-  }
-
-  body.has-mobile-tabs {
-    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
-  }
-
-  body.in-browser.has-mobile-tabs {
-    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
-  }
 
   .gold-text {
     animation: none;

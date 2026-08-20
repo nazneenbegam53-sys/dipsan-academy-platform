@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { BrandLogo } from "./BrandLogo";
+import { NotificationBell } from "./NotificationBell";
+import { SupportButton } from "./SupportButton";
 import { isStandaloneApp } from "../lib/native";
 
-/**
- * Fast phone / installed-app home. No marketing intro, no canvas, no redirect.
- */
+/** Same home on the website and in the installed app. */
 export function AppHomeScreen() {
   const { user, loading, logout } = useAuth();
   const standalone = isStandaloneApp();
@@ -18,6 +18,11 @@ export function AppHomeScreen() {
         paddingBottom: "calc(5.25rem + env(safe-area-inset-bottom, 0px))",
       }}
     >
+      <div className="safe-top-right flex flex-nowrap items-center gap-2">
+        <NotificationBell />
+        <SupportButton />
+      </div>
+
       <div className="relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col px-5 pt-8">
         <div className="flex items-center gap-3">
           <BrandLogo to={null} size="md" />

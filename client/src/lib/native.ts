@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 
 export function isNativeApp() {
@@ -35,33 +34,6 @@ export function isStandaloneApp() {
     fromAppStart = false;
   }
   return displayModeIsApp() || ios || twa || fromAppStart;
-}
-
-/** Phone-sized viewport — used to skip the heavy marketing site. */
-export function isPhoneViewport() {
-  if (typeof window === "undefined") return false;
-  try {
-    return window.matchMedia("(max-width: 767px)").matches;
-  } catch {
-    return /Mobi|Android|iPhone/i.test(navigator.userAgent);
-  }
-}
-
-export function useIsAppHome() {
-  const [show, setShow] = useState(() => isStandaloneApp() || isPhoneViewport());
-  useEffect(() => {
-    const update = () => setShow(isStandaloneApp() || isPhoneViewport());
-    const mqs = [
-      window.matchMedia("(max-width: 767px)"),
-      window.matchMedia("(display-mode: standalone)"),
-      window.matchMedia("(display-mode: fullscreen)"),
-      window.matchMedia("(display-mode: minimal-ui)"),
-    ];
-    mqs.forEach((mq) => mq.addEventListener("change", update));
-    update();
-    return () => mqs.forEach((mq) => mq.removeEventListener("change", update));
-  }, []);
-  return show;
 }
 
 /** Soft haptic tap — no-ops on web browser; works in Capacitor. */
