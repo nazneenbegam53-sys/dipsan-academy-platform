@@ -1,77 +1,101 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { BrandLogo } from "./BrandLogo";
-import { useEffect } from "react";
+import { NotificationBell } from "./NotificationBell";
+import { SupportButton } from "./SupportButton";
+import { isStandaloneApp } from "../lib/native";
 
-/**
- * Compact home shown when the app is installed (standalone / native).
- * Same accounts, exams, and teacher tools as the website.
- */
+/** Same home on the website and in the installed app. */
 export function AppHomeScreen() {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (loading || !user) return;
-    navigate(user.role === "teacher" ? "/teacher" : "/student", { replace: true });
-  }, [user, loading, navigate]);
-
-  if (loading) {
-    return (
-      <div className="flex min-h-[100dvh] items-center justify-center science-atmosphere text-mist">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-gold/30 border-t-gold" />
-      </div>
-    );
-  }
-
-  if (user) {
-    return (
-      <div className="flex min-h-[100dvh] items-center justify-center science-atmosphere text-mist">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-gold/30 border-t-gold" />
-      </div>
-    );
-  }
+  const { user, loading, logout } = useAuth();
+  const standalone = isStandaloneApp();
 
   return (
     <div
       className="relative flex min-h-[100dvh] flex-col science-atmosphere text-mist"
       style={{
         paddingTop: "env(safe-area-inset-top, 0px)",
-        paddingBottom: "calc(5.5rem + env(safe-area-inset-bottom, 0px))",
+        paddingBottom: "calc(5.25rem + env(safe-area-inset-bottom, 0px))",
       }}
     >
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-        <div className="absolute -left-20 top-10 h-64 w-64 rounded-full bg-aurora/15 blur-3xl" />
-        <div className="absolute -right-16 bottom-24 h-72 w-72 rounded-full bg-gold/10 blur-3xl" />
+      <div className="safe-top-right flex flex-nowrap items-center gap-2">
+        <NotificationBell />
+        <SupportButton />
       </div>
 
-      <div className="relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-6 text-center">
-        <BrandLogo to={null} size="xl" glow spinRing />
-        <p className="mt-6 text-xs font-semibold uppercase tracking-[0.28em] text-aurora/90">
-          Dipsan Academy
-        </p>
-        <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">
-          <span className="gold-text">Mock exams</span>
-          <br />
-          ready when you are
-        </h1>
-        <p className="mt-3 max-w-xs text-sm text-bronze">
-          Timed NEET &amp; JEE practice — same account and data as the website.
+      <div className="relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col px-5 pt-8">
+        <div className="flex items-center gap-3">
+          <BrandLogo to={null} size="md" />
+          <div className="min-w-0">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-aurora/90">
+              Dipsan Academy
+            </p>
+            <h1 className="font-display text-2xl font-semibold leading-tight text-mist">
+              {loading ? "Home" : user ? `Hi, ${user.name.trim().split(/\s+/)[0] || user.name}` : "Home"}
+            </h1>
+          </div>
+        </div>
+
+        <p className="mt-4 text-sm leading-relaxed text-bronze">
+          {user
+            ? user.role === "teacher"
+              ? "Create papers, publish mocks, and review every attempt."
+              : "Timed NEET & JEE mocks — same account as the website."
+            : "Timed mock exams. Log in or create an account to start."}
         </p>
 
-        <div className="mt-8 flex w-full flex-col gap-3">
-          <Link
-            to="/login"
-            className="inline-flex w-full items-center justify-center rounded-full bg-gold px-6 py-3.5 text-sm font-bold tracking-wide text-ink"
-          >
-            Log in
-          </Link>
-          <Link
-            to="/register"
-            className="inline-flex w-full items-center justify-center rounded-full border border-white/20 bg-white/5 px-6 py-3.5 text-sm font-semibold text-mist"
-          >
-            Create account
-          </Link>
+        <div className="mt-8 flex flex-col gap-3">
+          {loading ? (
+            <div className="h-12 w-full animate-pulse rounded-full bg-white/10" />
+          ) : user ? (
+            <>
+              <Link
+                to={user.role === "teacher" ? "/teacher" : "/student"}
+                className="inline-flex w-full items-center justify-center rounded-full bg-gold px-6 py-3.5 text-sm font-bold tracking-wide text-ink"
+              >
+                {user.role === "teacher" ? "Teacher dashboard" : "Available exams"}
+              </Link>
+              <Link
+                to={user.role === "teacher" ? "/teacher/results" : "/student#history"}
+                className="inline-flex w-full items-center justify-center rounded-full border border-white/20 bg-white/5 px-6 py-3.5 text-sm font-semibold text-mist"
+              >
+                Results
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  logout();
+                  window.location.assign("/");
+                }}
+                className="inline-flex w-full items-center justify-center rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-bronze"
+              >
+                Log out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="inline-flex w-full items-center justify-center rounded-full bg-gold px-6 py-3.5 text-sm font-bold tracking-wide text-ink"
+              >
+                Log in
+              </Link>
+              <Link
+                to="/register"
+                className="inline-flex w-full items-center justify-center rounded-full border border-white/20 bg-white/5 px-6 py-3.5 text-sm font-semibold text-mist"
+              >
+                Create account
+              </Link>
+              {!standalone && (
+                <a
+                  href="/install/"
+                  className="inline-flex w-full items-center justify-center rounded-full border border-aurora/35 bg-aurora/10 px-6 py-3 text-sm font-semibold text-champagne"
+                >
+                  Add to home screen
+                </a>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -131,61 +131,15 @@ export function InstallAppButton({
   );
 }
 
-/** Registers the free PWA service worker once on the web.
- * Forces activation of new workers and one reload so deploys (e.g. removing
- * subscription) replace a stale installed-app cache.
- */
+/** Registers the PWA service worker. Does not force a reload (that made the app hang). */
 export function registerServiceWorker() {
   if (typeof window === "undefined") return;
   if (!("serviceWorker" in navigator)) return;
   if (Capacitor.isNativePlatform()) return;
 
-  const RELOAD_KEY = "dipsan_sw_reload_v3";
-
-  navigator.serviceWorker.addEventListener("message", (event) => {
-    if (event.data?.type !== "DIPSAN_SW_UPDATED") return;
-    try {
-      if (sessionStorage.getItem(RELOAD_KEY) === "1") return;
-      sessionStorage.setItem(RELOAD_KEY, "1");
-    } catch {
-      /* ignore */
-    }
-    window.location.reload();
-  });
-
   window.addEventListener("load", () => {
-    void navigator.serviceWorker
-      .register(`/sw.js?v=3-nosub`)
-      .then((reg) => {
-        if (reg.waiting) {
-          reg.waiting.postMessage({ type: "SKIP_WAITING" });
-        }
-        reg.addEventListener("updatefound", () => {
-          const worker = reg.installing;
-          if (!worker) return;
-          worker.addEventListener("statechange", () => {
-            if (worker.state === "installed" && navigator.serviceWorker.controller) {
-              worker.postMessage({ type: "SKIP_WAITING" });
-            }
-          });
-        });
-        void reg.update();
-      })
-      .catch(() => {
-        /* offline / unsupported — ignore */
-      });
-  });
-
-  let refreshing = false;
-  navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (refreshing) return;
-    refreshing = true;
-    try {
-      if (sessionStorage.getItem(RELOAD_KEY) === "1") return;
-      sessionStorage.setItem(RELOAD_KEY, "1");
-    } catch {
-      /* ignore */
-    }
-    window.location.reload();
+    void navigator.serviceWorker.register("/sw.js").catch(() => {
+      /* offline / unsupported — ignore */
+    });
   });
 }

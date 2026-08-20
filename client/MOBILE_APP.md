@@ -6,7 +6,8 @@ Opening the website in Chrome/Safari is **not** the app — you’ll still see t
 
 To get a real full-screen app icon:
 
-1. On your phone open https://dipsan-academy-platform.vercel.app/install  
+1. On your phone open **https://dipsan-academy-platform.vercel.app/install**  
+   That is the download/install link for both iPhone and Android.  
 2. Tap **Install to home screen** (Android) or Safari Share → **Add to Home Screen** (iPhone)  
 3. **Leave the browser** and open the new **Dipsan Academy** icon  
 

@@ -179,13 +179,13 @@ export default function ResultPage() {
 
   return (
     <PageShell>
-      <div className="fixed right-5 top-5 z-20 md:right-8 md:top-6">
+      <div className="safe-top-right">
         <BrandLogo size="xs" rounded />
       </div>
-      <div className="mx-auto max-w-3xl animate-fade-up px-6 py-10 pr-20">
-        <div className="mb-6 text-center">
+      <div className="mx-auto max-w-3xl animate-fade-up screen-pad py-8 sm:py-10">
+          <div className="mb-6 text-center">
           <Badge tone="ink">RESULT</Badge>
-          <div className="mt-4 font-display text-5xl font-semibold text-mist">
+          <div className="mt-4 font-display text-4xl font-semibold text-mist sm:text-5xl">
             {attempt.score}
             <span className="text-2xl text-bronze"> / {attempt.totalMarks}</span>
           </div>
@@ -233,7 +233,7 @@ export default function ResultPage() {
                   <img
                     src={q.imageUrl}
                     alt=""
-                    className="mb-3 max-h-64 rounded-lg border border-gold/10"
+                    className="mb-3 max-h-64 w-full rounded-lg border border-gold/10 object-contain"
                   />
                 )}
                 <div className="space-y-2">

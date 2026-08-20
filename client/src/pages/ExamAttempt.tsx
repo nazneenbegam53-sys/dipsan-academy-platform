@@ -144,10 +144,13 @@ export default function ExamAttempt() {
     violationAlert?.type === "visibility-hidden" || violationAlert?.type === "tab-blur";
 
   return (
-    <div className="min-h-screen bg-paper">
-      <div className="flex items-center justify-between px-6 py-4 bg-soft text-mist border-b border-white/10">
-        <div>
-          <div className="font-bold">{exam.title}</div>
+    <div
+      className="min-h-[100dvh] bg-paper"
+      style={{ paddingTop: "env(safe-area-inset-top, 0px)", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+    >
+      <div className="flex flex-col gap-3 bg-soft px-4 py-3 text-mist sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4 border-b border-white/10">
+        <div className="min-w-0">
+          <div className="truncate font-bold">{exam.title}</div>
           <div className="text-xs text-bronze">
             Question {qIndex + 1} of {total}
             {violationCount > 0 && (
@@ -156,7 +159,7 @@ export default function ExamAttempt() {
           </div>
         </div>
         <div
-          className={`font-mono flex items-center gap-2 rounded-sm px-4 py-2 font-bold text-lg ${
+          className={`font-mono flex shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-2 font-bold text-lg ${
             low ? "bg-ember text-white" : "bg-gold/90 text-ink"
           }`}
         >
@@ -164,11 +167,15 @@ export default function ExamAttempt() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-[1fr_280px] gap-6 px-6 py-6 max-w-6xl mx-auto">
-        <Card className="p-6">
-          <div className="text-base font-medium mb-4 text-mist">{q.text}</div>
+      <div className="mx-auto grid max-w-6xl gap-4 px-4 py-4 sm:gap-6 sm:px-6 sm:py-6 lg:grid-cols-[minmax(0,1fr)_280px]">
+        <Card className="p-4 sm:p-6">
+          <div className="mb-4 break-anywhere text-base font-medium text-mist">{q.text}</div>
           {q.imageUrl && (
-            <img src={q.imageUrl} alt="" className="max-h-72 rounded-xl mb-5 border border-white/10" />
+            <img
+              src={q.imageUrl}
+              alt=""
+              className="mb-5 max-h-72 w-full rounded-xl border border-white/10 object-contain"
+            />
           )}
 
           <div className="space-y-3">
@@ -176,7 +183,7 @@ export default function ExamAttempt() {
               <button
                 key={oi}
                 onClick={() => persistAnswer(q._id, { selected: oi })}
-                className={`w-full text-left rounded-xl px-4 py-3 flex items-center gap-3 border ${
+                className={`flex w-full items-start gap-3 rounded-xl border px-3 py-3 text-left sm:items-center sm:px-4 ${
                   currentEntry?.selected === oi
                     ? "border-gold bg-gold/15"
                     : "border-white/15 bg-charcoal"
@@ -191,7 +198,7 @@ export default function ExamAttempt() {
                 >
                   {"ABCD"[oi]}
                 </span>
-                <span className="text-sm text-mist">{opt}</span>
+                <span className="min-w-0 break-anywhere text-sm text-mist">{opt}</span>
               </button>
             ))}
           </div>

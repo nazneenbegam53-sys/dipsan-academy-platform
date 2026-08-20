@@ -44,7 +44,7 @@ export default function Analytics() {
   };
 
   return (
-    <div className="min-h-screen bg-paper px-6 py-8 max-w-4xl mx-auto">
+    <div className="mx-auto min-h-[100dvh] max-w-4xl bg-paper px-4 py-6 sm:px-6 sm:py-8">
       <Button variant="ghost" onClick={() => navigate("/teacher")} className="mb-5">← Dashboard</Button>
       <h1 className="text-xl font-bold text-mist mb-6">Exam Analytics</h1>
 
@@ -60,18 +60,27 @@ export default function Analytics() {
             <Card className="p-4"><div className="text-xs text-bronze">PASS %</div><div className="text-lg font-bold text-mist">{data.passPercentage}%</div></Card>
           </div>
 
-          <Card className="p-6 mb-8">
+          <Card className="mb-8 overflow-hidden p-4 sm:p-6">
             <div className="font-semibold text-mist mb-4">Question-wise accuracy</div>
-            <Bar data={chartData} options={{ responsive: true, scales: { y: { min: 0, max: 100 } } }} />
+            <div className="h-64 w-full sm:h-80">
+              <Bar
+                data={chartData}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: { y: { min: 0, max: 100 } },
+                }}
+              />
+            </div>
           </Card>
 
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <div className="font-semibold text-mist mb-4">Most difficult questions</div>
             <div className="space-y-2">
-              {[...data.questionAccuracy].sort((a, b) => a.accuracyPercent - b.accuracyPercent).slice(0, 5).map((q, i) => (
-                <div key={q.questionId} className="flex items-center justify-between text-sm border-b border-gray-100 pb-2">
-                  <span className="text-mist">{q.text}</span>
-                  <span className="font-mono text-orange-600">{q.accuracyPercent}%</span>
+              {[...data.questionAccuracy].sort((a, b) => a.accuracyPercent - b.accuracyPercent).slice(0, 5).map((q) => (
+                <div key={q.questionId} className="flex items-start justify-between gap-3 border-b border-white/10 pb-2 text-sm">
+                  <span className="min-w-0 break-anywhere text-mist">{q.text}</span>
+                  <span className="shrink-0 font-mono text-orange-600">{q.accuracyPercent}%</span>
                 </div>
               ))}
             </div>

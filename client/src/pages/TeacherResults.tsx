@@ -89,7 +89,7 @@ export default function TeacherResults() {
     const tabSwitches = countTabSwitches(violations);
 
     return (
-      <div className="min-h-screen bg-paper px-6 py-8 max-w-3xl mx-auto">
+      <div className="mx-auto min-h-[100dvh] max-w-3xl bg-paper px-4 py-6 sm:px-6 sm:py-8">
         <Button variant="ghost" onClick={() => setDetail(null)} className="mb-5">
           ← Back to results
         </Button>
@@ -251,7 +251,7 @@ export default function TeacherResults() {
 
   return (
     <PageShell>
-      <div className="mx-auto max-w-5xl px-6 py-8">
+      <div className="mx-auto max-w-5xl screen-pad py-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <Button variant="ghost" onClick={() => navigate("/teacher")}>
             ← Dashboard
@@ -314,7 +314,8 @@ export default function TeacherResults() {
                   {attempts.length === 0 ? (
                     <div className="px-5 py-8 text-sm text-bronze">No submissions yet for this exam.</div>
                   ) : (
-                    <div className="overflow-x-auto">
+                    <>
+                      <div className="hidden overflow-x-auto md:block">
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="bg-paper/50 text-left text-xs text-gold">
@@ -367,7 +368,50 @@ export default function TeacherResults() {
                           })}
                         </tbody>
                       </table>
-                    </div>
+                      </div>
+                      <ul className="divide-y divide-white/10 md:hidden">
+                        {attempts.map((a) => {
+                          const s = a.student as User;
+                          const tabs = countTabSwitches(a.violations);
+                          const totalV = a.violations?.length || 0;
+                          return (
+                            <li key={a._id} className="px-4 py-4">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <div className="truncate font-medium text-mist">{s.name}</div>
+                                  <div className="mt-1 text-xs text-bronze">
+                                    {a.submittedAt
+                                      ? new Date(a.submittedAt).toLocaleString()
+                                      : "—"}
+                                  </div>
+                                </div>
+                                <div className="shrink-0 font-semibold text-gold">
+                                  {a.score}/{a.totalMarks}
+                                </div>
+                              </div>
+                              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                                <span className="text-aurora">Correct {a.correctCount}</span>
+                                <span className="text-ember">Wrong {a.wrongCount}</span>
+                                {totalV > 0 ? (
+                                  <Badge tone="danger">
+                                    {tabs} tab · {totalV} total
+                                  </Badge>
+                                ) : (
+                                  <span className="text-bronze">No alerts</span>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => openDetail(exam, a._id)}
+                                className="mt-3 text-xs font-semibold text-champagne"
+                              >
+                                View result →
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </>
                   )}
                 </div>
               );

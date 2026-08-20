@@ -170,29 +170,31 @@ export default function ExamEditor() {
 
   return (
     <PageShell>
-      <div className="fixed right-5 top-5 z-20 md:right-8 md:top-6">
+      <div className="safe-top-right">
         <BrandLogo size="xs" rounded />
       </div>
 
-      <div className="mx-auto max-w-6xl animate-fade-up px-6 py-8 pr-20">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="font-display text-3xl font-semibold text-mist">
+      <div className="mx-auto max-w-6xl animate-fade-up screen-pad py-8">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="font-display text-2xl font-semibold text-mist sm:text-3xl">
               {isNew ? "Create Exam" : "Edit Exam"}
             </h1>
             <p className="text-sm text-bronze">Add question and solution images as needed</p>
           </div>
-          <Button variant="ghost" onClick={() => navigate("/teacher")}>
-            ← Back to dashboard
-          </Button>
-          {savedExamId && (
-            <Button
-              variant="accent"
-              onClick={() => navigate(`/teacher/exam/${savedExamId}/video-solutions`)}
-            >
-              Video solutions
+          <div className="flex flex-wrap gap-2">
+            <Button variant="ghost" onClick={() => navigate("/teacher")}>
+              ← Back to dashboard
             </Button>
-          )}
+            {savedExamId && (
+              <Button
+                variant="accent"
+                onClick={() => navigate(`/teacher/exam/${savedExamId}/video-solutions`)}
+              >
+                Video solutions
+              </Button>
+            )}
+          </div>
         </div>
 
         <ErrorBanner message={error} />
@@ -354,7 +356,7 @@ export default function ExamEditor() {
                 ))}
               </div>
 
-              <div className="mb-4 grid grid-cols-3 gap-3">
+              <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <input
                   placeholder="Chapter"
                   value={form.chapter}
@@ -442,7 +444,7 @@ export default function ExamEditor() {
                   {questions.map((q, i) => (
                     <div
                       key={q._id}
-                      className="flex items-start justify-between gap-3 rounded-xl bg-soft/80 p-3"
+                      className="flex flex-col gap-3 rounded-xl bg-soft/80 p-3 sm:flex-row sm:items-start sm:justify-between"
                     >
                       <div className="flex min-w-0 gap-3">
                         {q.imageUrl && (
@@ -454,7 +456,7 @@ export default function ExamEditor() {
                         )}
                         <div className="min-w-0">
                           <div className="mb-0.5 font-mono text-xs text-orange-600">Q{i + 1}</div>
-                          <div className="max-w-sm truncate text-sm text-mist">{q.text}</div>
+                          <div className="break-anywhere text-sm text-mist sm:max-w-sm sm:truncate">{q.text}</div>
                           {q.explanationImageUrl && (
                             <div className="mt-1 text-[11px] text-bronze">Has solution image</div>
                           )}

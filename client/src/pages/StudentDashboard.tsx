@@ -67,13 +67,13 @@ export default function StudentDashboard() {
 
   return (
     <PageShell>
-      <div className="fixed right-2 top-2 z-[80] flex flex-nowrap items-center gap-2 sm:right-5 sm:top-5 md:right-8 md:top-6">
+      <div className="safe-top-right flex flex-nowrap items-center gap-2">
         <NotificationBell />
         <SupportButton />
         <BrandLogo size="sm" glow spinRing />
       </div>
 
-      <div className="mx-auto max-w-5xl animate-fade-up px-6 py-10 pr-20">
+      <div className="mx-auto max-w-5xl animate-fade-up screen-pad py-8 sm:py-10">
         <AppHeader
           title={`Hi, ${user?.name}`}
           subtitle={user?.className || "Student dashboard"}
@@ -111,7 +111,7 @@ export default function StudentDashboard() {
                 >
                   <div>
                     <Badge tone="marigold">{e.subject}</Badge>
-                    <div className="mt-2 font-display text-xl font-semibold text-mist">{e.title}</div>
+                    <div className="mt-2 break-anywhere font-display text-xl font-semibold text-mist">{e.title}</div>
                     <div className="mt-1 text-xs text-bronze">
                       {e.questionCount} questions · {e.durationMinutes} min · {e.totalMarks} marks
                     </div>

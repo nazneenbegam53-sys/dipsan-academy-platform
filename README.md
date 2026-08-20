@@ -50,8 +50,8 @@ them out incrementally without restructuring what's already there.
 
 ## Mobile app
 
-**Free (recommended first):** share the live site — users install from the browser
-with no store fees: https://dipsan-academy-platform.vercel.app/install
+**Free (recommended first):** share this install link — iPhone and Android, no store fees:
+https://dipsan-academy-platform.vercel.app/install
 
 The installed app and Capacitor store shells load that **same live website**, so
 exams and teacher tools stay in sync whenever you deploy to Vercel.

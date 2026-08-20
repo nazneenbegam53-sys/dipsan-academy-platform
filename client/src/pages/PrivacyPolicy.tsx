@@ -5,7 +5,7 @@ import { PageShell } from "../components/ui";
 export default function PrivacyPolicy() {
   return (
     <PageShell>
-      <div className="mx-auto max-w-2xl px-6 py-12">
+      <div className="mx-auto max-w-2xl screen-pad py-12">
         <BrandLogo size="md" showWordmark glow />
         <h1 className="mt-8 font-display text-3xl font-semibold text-mist">Privacy Policy</h1>
         <p className="mt-2 text-sm text-bronze">Last updated: August 2026 · Dipsan Academy</p>

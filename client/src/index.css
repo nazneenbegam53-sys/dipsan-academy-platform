@@ -15,6 +15,8 @@
 
 html {
   scroll-behavior: smooth;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 body {
@@ -24,6 +26,94 @@ body {
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+#root {
+  min-height: 100dvh;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+img,
+video,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Fit every screen: edge padding, logo clearance, no horizontal scroll */
+.screen-pad {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .screen-pad {
+    padding-left: 1.5rem;
+    padding-right: 5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .screen-pad {
+    padding-left: 1.5rem;
+    padding-right: 5rem;
+  }
+}
+
+.safe-top-right {
+  position: fixed;
+  z-index: 80;
+  right: max(0.5rem, env(safe-area-inset-right, 0px));
+  top: max(0.5rem, env(safe-area-inset-top, 0px));
+}
+
+@media (min-width: 640px) {
+  .safe-top-right {
+    right: max(1.25rem, env(safe-area-inset-right, 0px));
+    top: max(1.25rem, env(safe-area-inset-top, 0px));
+  }
+}
+
+@media (min-width: 768px) {
+  .safe-top-right {
+    right: max(2rem, env(safe-area-inset-right, 0px));
+    top: max(1.5rem, env(safe-area-inset-top, 0px));
+  }
+}
+
+.safe-top-left {
+  position: fixed;
+  z-index: 40;
+  left: max(0.75rem, env(safe-area-inset-left, 0px));
+  top: max(0.75rem, env(safe-area-inset-top, 0px));
+}
+
+@media (min-width: 640px) {
+  .safe-top-left {
+    left: max(1.25rem, env(safe-area-inset-left, 0px));
+    top: max(1.25rem, env(safe-area-inset-top, 0px));
+  }
+}
+
+@media (min-width: 768px) {
+  .safe-top-left {
+    left: max(2rem, env(safe-area-inset-left, 0px));
+    top: max(1.5rem, env(safe-area-inset-top, 0px));
+  }
+}
+
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
 }
 
 /* Native Capacitor shell — notch / home-indicator safe areas */
@@ -55,21 +145,23 @@ body.app-shell {
   touch-action: manipulation;
 }
 
-body.in-browser {
-  padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
+.mobile-tab-bar {
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.28);
+}
+
+body.has-mobile-tabs,
+body.in-browser.has-mobile-tabs {
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 @media (max-width: 767px) {
-  .mobile-tab-bar {
-    box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.35);
+
+  .gold-text {
+    animation: none;
   }
 
-  body.has-mobile-tabs {
-    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
-  }
-
-  body.in-browser.has-mobile-tabs {
-    padding-bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
+  .luxury-panel {
+    backdrop-filter: none;
   }
 }
 

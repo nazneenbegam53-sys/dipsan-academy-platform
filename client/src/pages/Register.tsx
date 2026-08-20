@@ -46,18 +46,18 @@ export default function Register() {
     "w-full rounded-xl border border-gold/25 bg-charcoal px-3.5 py-3 text-sm text-mist outline-none transition placeholder:text-bronze/60 focus:border-gold focus:ring-2 focus:ring-gold/25";
 
   return (
-    <PageShell quiet className="flex min-h-screen items-center justify-center px-6 py-12">
-      <div className="fixed right-5 top-5 z-20 md:right-8 md:top-6">
+    <PageShell quiet className="flex min-h-[100dvh] items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
+      <div className="safe-top-right">
         <BrandLogo size="sm" />
       </div>
 
-      <div className="w-full max-w-md animate-fade-up luxury-panel rounded-3xl p-8 md:p-10">
+      <div className="w-full max-w-md animate-fade-up luxury-panel rounded-3xl p-5 sm:p-8 md:p-10">
         <div className="mb-6 flex flex-col items-center text-center">
           <BrandLogo size="lg" />
           <p className="mt-4 font-display text-sm font-semibold tracking-[0.22em] gold-text">
             DIPSAN ACADEMY
           </p>
-          <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight text-mist">
+          <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight text-mist sm:text-4xl">
             Sign up
           </h1>
           <p className="mt-2 text-sm text-bronze">Join the mock series.</p>
