@@ -50,7 +50,9 @@ export default function Login() {
       quiet
       className="relative flex min-h-[100dvh] items-center justify-center px-4 py-12 sm:px-6 sm:py-16"
     >
-      <LoginScienceBg />
+      <div className="hidden md:block">
+        <LoginScienceBg />
+      </div>
 
       <div className="safe-top-right">
         <BrandLogo size="sm" />

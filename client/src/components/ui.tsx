@@ -103,25 +103,25 @@ export function PageShell({
 }) {
   return (
     <div
-      className={`relative min-h-screen min-h-[100dvh] overflow-x-hidden luxury-atmosphere text-mist ${className}`}
+      className={`relative min-h-screen min-h-[100dvh] overflow-x-hidden text-mist ${quiet ? "bg-paper" : "luxury-atmosphere"} ${className}`}
       style={{
         paddingTop: "env(safe-area-inset-top, 0px)",
       }}
     >
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-        <div className="absolute -left-24 top-0 h-72 w-72 rounded-full bg-aurora/10 blur-3xl" />
-        <div className="absolute -right-16 bottom-10 h-80 w-80 rounded-full bg-gold/10 blur-3xl" />
+        <div className="absolute -left-24 top-0 hidden h-72 w-72 rounded-full bg-aurora/10 blur-3xl md:block" />
+        <div className="absolute -right-16 bottom-10 hidden h-80 w-80 rounded-full bg-gold/10 blur-3xl md:block" />
         {!quiet && (
           <>
             <img
               src="/dipsan-logo.png"
               alt=""
-              className="absolute left-[-10%] top-[10%] h-[50vmin] w-[50vmin] rounded-full object-contain opacity-[0.05] animate-logo-drift"
+              className="deco-logo absolute left-[-10%] top-[10%] hidden h-[50vmin] w-[50vmin] rounded-full object-contain opacity-[0.05] animate-logo-drift md:block"
             />
             <img
               src="/dipsan-logo.png"
               alt=""
-              className="absolute bottom-[-12%] right-[-8%] h-[44vmin] w-[44vmin] rounded-full object-contain opacity-[0.04] animate-logo-drift-delayed"
+              className="deco-logo absolute bottom-[-12%] right-[-8%] hidden h-[44vmin] w-[44vmin] rounded-full object-contain opacity-[0.04] animate-logo-drift-delayed md:block"
             />
           </>
         )}

@@ -56,6 +56,8 @@ export function BrowserInstallGate() {
 
   if (!inBrowser || dismissed) return null;
   if (pathname === "/install" || pathname.startsWith("/install/")) return null;
+  // Phone home is AppHomeScreen — this banner was covering it and adding lag.
+  if (pathname === "/" || window.matchMedia("(max-width: 767px)").matches) return null;
 
   async function install() {
     if (deferred) {

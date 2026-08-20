@@ -146,12 +146,13 @@ body.app-shell {
 }
 
 body.in-browser {
-  padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: 0;
 }
 
 @media (max-width: 767px) {
   .mobile-tab-bar {
-    box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.28);
+    backdrop-filter: none;
   }
 
   body.has-mobile-tabs {
@@ -159,7 +160,15 @@ body.in-browser {
   }
 
   body.in-browser.has-mobile-tabs {
-    padding-bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .gold-text {
+    animation: none;
+  }
+
+  .luxury-panel {
+    backdrop-filter: none;
   }
 }
 

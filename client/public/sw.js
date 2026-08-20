@@ -1,14 +1,6 @@
-/* PWA service worker — busts old caches so website deploys (e.g. removing
- * subscription) show up in the installed app immediately.
- */
-const CACHE = "dipsan-academy-v7-mobile-fit";
-const PRECACHE = [
-  "/",
-  "/manifest.webmanifest",
-  "/dipsan-logo.png",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png",
-];
+/* PWA service worker — hashed assets cache-first; HTML network-first. */
+const CACHE = "dipsan-academy-v8-home-fast";
+const PRECACHE = ["/manifest.webmanifest", "/dipsan-logo.png", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -24,28 +16,11 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
       const keys = await caches.keys();
-      // Drop every previous cache (including v1/v2 with subscription UI).
       await Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)));
       await self.clients.claim();
-      const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-      for (const client of clients) {
-        client.postMessage({ type: "DIPSAN_SW_UPDATED", cache: CACHE });
-      }
     })()
   );
 });
-
-function isAppShellAsset(url) {
-  const path = url.pathname;
-  return (
-    path.endsWith(".js") ||
-    path.endsWith(".css") ||
-    path.endsWith(".html") ||
-    path === "/" ||
-    path.endsWith("/index.html") ||
-    path.startsWith("/assets/")
-  );
-}
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
@@ -54,8 +29,24 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Network-first for app shell so deploys sync into the installed app.
-  if (request.mode === "navigate" || isAppShellAsset(url)) {
+  // Vite hashed bundles — cache first so the app opens instantly.
+  if (url.pathname.startsWith("/assets/")) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached;
+        return fetch(request).then((res) => {
+          if (res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put(request, copy));
+          }
+          return res;
+        });
+      })
+    );
+    return;
+  }
+
+  if (request.mode === "navigate" || url.pathname === "/" || url.pathname.endsWith(".html")) {
     event.respondWith(
       fetch(request, { cache: "no-store" })
         .then((res) => {

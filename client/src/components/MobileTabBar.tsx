@@ -184,7 +184,7 @@ export function MobileTabBar() {
 
   return (
     <nav
-      className="mobile-tab-bar fixed inset-x-0 bottom-0 z-[90] border-t border-white/10 bg-[#07121C]/92 backdrop-blur-xl md:hidden"
+      className="mobile-tab-bar fixed inset-x-0 bottom-0 z-[90] border-t border-white/10 bg-[#07121C] md:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       aria-label="Primary"
     >
