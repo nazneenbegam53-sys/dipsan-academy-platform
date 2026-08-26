@@ -4,15 +4,16 @@ const bcrypt = require("bcryptjs");
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
-    email: { type: String, unique: true, sparse: true, lowercase: true, trim: true },
+    // Unique only when a real email string is present. A unique+sparse index still
+    // indexes { email: null }, so the second OTP teacher/student hit E11000.
+    email: { type: String, lowercase: true, trim: true },
     // Optional when the account is OTP-only; kept for legacy password users.
     password: { type: String, minlength: 6, required: false, select: false },
     role: { type: String, enum: ["student", "teacher"], required: true },
 
     className: { type: String, trim: true },
     rollNumber: { type: String, trim: true },
-    // Required for new OTP signups; sparse unique so legacy users without phone still work.
-    phone: { type: String, trim: true, sparse: true, unique: true },
+    phone: { type: String, trim: true },
 
     emailVerified: { type: Boolean, default: false },
     phoneVerified: { type: Boolean, default: false },
@@ -26,7 +27,39 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+userSchema.index(
+  { email: 1 },
+  {
+    unique: true,
+    name: "email_unique_partial",
+    partialFilterExpression: { email: { $exists: true, $type: "string" } },
+  }
+);
+userSchema.index(
+  { phone: 1 },
+  {
+    unique: true,
+    name: "phone_unique_partial",
+    partialFilterExpression: { phone: { $exists: true, $type: "string" } },
+  }
+);
+
+function unsetBlankContactFields() {
+  if (this.email == null || this.email === "") {
+    this.set("email", undefined);
+  }
+  if (this.phone == null || this.phone === "") {
+    this.set("phone", undefined);
+  }
+}
+
+userSchema.pre("validate", function (next) {
+  unsetBlankContactFields.call(this);
+  next();
+});
+
 userSchema.pre("save", async function (next) {
+  unsetBlankContactFields.call(this);
   if (!this.isModified("password") || !this.password) return next();
   this.password = await bcrypt.hash(this.password, 10);
   next();

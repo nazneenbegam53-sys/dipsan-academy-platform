@@ -70,9 +70,8 @@ const verifyRegisterOtp = asyncHandler(async (req, res) => {
     name: challenge.name,
     phone: challenge.phone,
     role: challenge.role,
-    className: challenge.className,
-    rollNumber: challenge.rollNumber,
-    emailVerified: false,
+    className: challenge.className || undefined,
+    rollNumber: challenge.rollNumber || undefined,
     phoneVerified: true,
   });
 
