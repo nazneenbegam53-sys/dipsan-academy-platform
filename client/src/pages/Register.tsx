@@ -37,8 +37,8 @@ export default function Register() {
     try {
       const res = await sendRegisterOtp({ ...form, role });
       setChallengeId(res.challengeId);
-      setDevOtp(res.devOtp || "");
-      setInfo(res.message || "OTP sent by SMS.");
+      setDevOtp(res.otp || res.devOtp || "");
+      setInfo(res.message || "Enter the OTP shown on this screen.");
       setStep("otp");
       setOtp("");
     } catch (err: any) {
@@ -86,8 +86,8 @@ export default function Register() {
           </h1>
           <p className="mt-2 text-sm text-bronze">
             {step === "otp"
-              ? "Enter the OTP sent by SMS"
-              : "Sign up with your mobile number — OTP by SMS"}
+              ? "Enter the 6-digit code shown below"
+              : "Sign up with your mobile number"}
           </p>
         </div>
 
@@ -119,7 +119,7 @@ export default function Register() {
               />
               <input
                 required
-                placeholder="Mobile number (for SMS OTP)"
+                placeholder="Mobile number"
                 value={form.phone}
                 onChange={(e) => update("phone", e.target.value)}
                 className={fieldClass}
@@ -145,7 +145,7 @@ export default function Register() {
               )}
 
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Sending SMS OTP…" : "Send SMS OTP"}
+                {loading ? "Getting OTP…" : "Get OTP"}
               </Button>
             </form>
           </>
@@ -157,11 +157,11 @@ export default function Register() {
             {info && <p className="text-xs text-aurora">{info}</p>}
             {devOtp && (
               <p className="rounded-lg border border-gold/20 bg-gold/10 px-3 py-2 text-xs text-champagne">
-                Dev OTP: <strong className="tracking-widest text-gold">{devOtp}</strong>
+                Your OTP: <strong className="tracking-widest text-gold">{devOtp}</strong>
               </p>
             )}
             <p className="text-xs text-bronze">
-              SMS OTP sent to <span className="text-mist">{form.phone}</span>
+              Code for <span className="text-mist">{form.phone}</span>
             </p>
             <input
               required

@@ -7,6 +7,7 @@ export type OtpSendResponse = {
   expiresInSeconds: number;
   message?: string;
   devOtp?: string;
+  otp?: string;
   needsPhone?: boolean;
   sentTo?: { sms?: boolean; email?: boolean };
 };

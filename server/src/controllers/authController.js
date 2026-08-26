@@ -3,7 +3,7 @@ const User = require("../models/User");
 const OtpChallenge = require("../models/OtpChallenge");
 const { asyncHandler } = require("../middleware/errorHandler");
 const { normalizePhone } = require("../utils/phone");
-const { sendOtpSms, messagingStatus } = require("../utils/messaging");
+const { sendOtpSms, messagingStatus, otpInApp } = require("../utils/messaging");
 
 const OTP_TTL_MS = 10 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
@@ -18,10 +18,10 @@ function otpDevEnabled() {
   return messagingStatus().otpDevMode;
 }
 
-/** OTP is delivered by SMS text only (not email / WhatsApp). */
+/** OTP is generated in our database. Shown on screen unless OTP_DELIVERY=sms. */
 async function createAndSendOtp(challengeFields) {
   if (!challengeFields.phone) {
-    throw Object.assign(new Error("A mobile number is required to send OTP by SMS."), {
+    throw Object.assign(new Error("A mobile number is required."), {
       statusCode: 400,
     });
   }
@@ -33,27 +33,30 @@ async function createAndSendOtp(challengeFields) {
     expiresAt: new Date(Date.now() + OTP_TTL_MS),
   });
 
-  try {
-    await sendOtpSms({ phone: challenge.phone, code });
-  } catch (err) {
-    console.error("[otp-sms] failed:", err.message);
-    // Still allow verify in OTP_DEV_MODE / when SMS is unset (dev logs the code).
-    if (!otpDevEnabled()) {
-      await OtpChallenge.deleteOne({ _id: challenge._id });
-      throw Object.assign(
-        new Error(err.userMessage || "Could not send SMS OTP. Please try again shortly."),
-        { statusCode: 503 }
-      );
+  const inApp = otpInApp();
+  if (!inApp) {
+    try {
+      await sendOtpSms({ phone: challenge.phone, code });
+    } catch (err) {
+      console.error("[otp-sms] failed:", err.message);
+      if (!otpDevEnabled()) {
+        await OtpChallenge.deleteOne({ _id: challenge._id });
+        throw Object.assign(
+          new Error(err.userMessage || "Could not send SMS OTP. Please try again shortly."),
+          { statusCode: 503 }
+        );
+      }
     }
   }
 
   const payload = {
     challengeId: challenge._id.toString(),
     expiresInSeconds: Math.floor(OTP_TTL_MS / 1000),
-    sentTo: { sms: true, email: false },
+    sentTo: { sms: !inApp, inApp, email: false },
     messaging: messagingStatus(),
   };
-  if (otpDevEnabled()) {
+  if (inApp || otpDevEnabled()) {
+    payload.otp = code;
     payload.devOtp = code;
   }
   return payload;
@@ -108,7 +111,7 @@ const sendRegisterOtp = asyncHandler(async (req, res) => {
     });
 
     res.json({
-      message: "OTP sent by SMS to your mobile number.",
+      message: "Enter the OTP shown on this screen.",
       ...payload,
     });
   } catch (err) {
@@ -153,9 +156,7 @@ const verifyRegisterOtp = asyncHandler(async (req, res) => {
 });
 
 /**
- * Step 1 — Login: identify by email or phone, send OTP SMS.
- * If the account has no mobile yet, client must also send `phone` so we can
- * SMS the OTP and link that number on successful verify (all users).
+ * Step 1 — Login: identify by mobile, create an in-app OTP.
  */
 const sendLoginOtp = asyncHandler(async (req, res) => {
   const { phone, identifier } = req.body;
@@ -181,7 +182,7 @@ const sendLoginOtp = asyncHandler(async (req, res) => {
     });
 
     res.json({
-      message: "OTP sent by SMS to your mobile number.",
+      message: "Enter the OTP shown on this screen.",
       ...payload,
     });
   } catch (err) {
@@ -251,7 +252,7 @@ const sendLinkPhoneOtp = asyncHandler(async (req, res) => {
     });
 
     res.json({
-      message: "OTP sent by SMS to this mobile number.",
+      message: "Enter the OTP shown on this screen.",
       ...payload,
     });
   } catch (err) {
@@ -294,7 +295,7 @@ const verifyLinkPhoneOtp = asyncHandler(async (req, res) => {
   await user.save();
 
   res.json({
-    message: "Mobile number linked. OTP and SMS notifications will use this number.",
+    message: "Mobile number linked. Use this number to log in with OTP.",
     user: user.toSafeObject(),
   });
 });
