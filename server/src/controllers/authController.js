@@ -3,77 +3,13 @@ const User = require("../models/User");
 const OtpChallenge = require("../models/OtpChallenge");
 const { asyncHandler } = require("../middleware/errorHandler");
 const { normalizePhone } = require("../utils/phone");
-const { sendOtpSms, messagingStatus, otpInApp } = require("../utils/messaging");
-
-const OTP_TTL_MS = 10 * 60 * 1000;
-const MAX_ATTEMPTS = 5;
+const { messagingStatus } = require("../utils/messaging");
+const { issueAndTextOtp, consumeOtp } = require("../auth/dipsanAuthenticator");
 
 function signToken(user) {
   return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || "7d",
   });
-}
-
-function otpDevEnabled() {
-  return messagingStatus().otpDevMode;
-}
-
-/** OTP is generated in our database. Shown on screen unless OTP_DELIVERY=sms. */
-async function createAndSendOtp(challengeFields) {
-  if (!challengeFields.phone) {
-    throw Object.assign(new Error("A mobile number is required."), {
-      statusCode: 400,
-    });
-  }
-
-  const code = OtpChallenge.generateCode();
-  const challenge = await OtpChallenge.create({
-    ...challengeFields,
-    codeHash: OtpChallenge.hashCode(code),
-    expiresAt: new Date(Date.now() + OTP_TTL_MS),
-  });
-
-  const inApp = otpInApp();
-  if (!inApp) {
-    try {
-      await sendOtpSms({ phone: challenge.phone, code });
-    } catch (err) {
-      console.error("[otp-sms] failed:", err.message);
-      if (!otpDevEnabled()) {
-        await OtpChallenge.deleteOne({ _id: challenge._id });
-        throw Object.assign(
-          new Error(err.userMessage || "Could not send SMS OTP. Please try again shortly."),
-          { statusCode: 503 }
-        );
-      }
-    }
-  }
-
-  const payload = {
-    challengeId: challenge._id.toString(),
-    expiresInSeconds: Math.floor(OTP_TTL_MS / 1000),
-    sentTo: { sms: !inApp, inApp, email: false },
-    messaging: messagingStatus(),
-  };
-  if (inApp || otpDevEnabled()) {
-    payload.otp = code;
-    payload.devOtp = code;
-  }
-  return payload;
-}
-
-async function loadValidChallenge(challengeId, purpose) {
-  const challenge = await OtpChallenge.findById(challengeId);
-  if (!challenge || challenge.purpose !== purpose || challenge.consumed) {
-    return { error: { status: 400, message: "Invalid or expired OTP session. Request a new code." } };
-  }
-  if (challenge.expiresAt.getTime() < Date.now()) {
-    return { error: { status: 400, message: "OTP expired. Request a new code." } };
-  }
-  if (challenge.attempts >= MAX_ATTEMPTS) {
-    return { error: { status: 429, message: "Too many incorrect attempts. Request a new code." } };
-  }
-  return { challenge };
 }
 
 /**
@@ -101,7 +37,7 @@ const sendRegisterOtp = asyncHandler(async (req, res) => {
   await OtpChallenge.deleteMany({ purpose: "register", phone: phoneE164 });
 
   try {
-    const payload = await createAndSendOtp({
+    const payload = await issueAndTextOtp({
       purpose: "register",
       phone: phoneE164,
       name: name.trim(),
@@ -123,23 +59,12 @@ const sendRegisterOtp = asyncHandler(async (req, res) => {
  * Step 2 — Sign up: verify OTP and create the account.
  */
 const verifyRegisterOtp = asyncHandler(async (req, res) => {
-  const { challengeId, otp } = req.body;
-  if (!challengeId || !otp) {
-    return res.status(400).json({ message: "OTP and session id are required." });
-  }
-
-  const { challenge, error } = await loadValidChallenge(challengeId, "register");
+  const { challenge, error } = await consumeOtp({
+    challengeId: req.body.challengeId,
+    purpose: "register",
+    otp: req.body.otp,
+  });
   if (error) return res.status(error.status).json({ message: error.message });
-
-  challenge.attempts += 1;
-  const match = challenge.codeHash === OtpChallenge.hashCode(String(otp).trim());
-  if (!match) {
-    await challenge.save();
-    return res.status(401).json({ message: "Incorrect OTP. Please try again." });
-  }
-
-  challenge.consumed = true;
-  await challenge.save();
 
   const user = await User.create({
     name: challenge.name,
@@ -174,7 +99,7 @@ const sendLoginOtp = asyncHandler(async (req, res) => {
   await OtpChallenge.deleteMany({ purpose: "login", phone: phoneE164 });
 
   try {
-    const payload = await createAndSendOtp({
+    const payload = await issueAndTextOtp({
       purpose: "login",
       email: user.email || undefined,
       phone: phoneE164,
@@ -194,23 +119,12 @@ const sendLoginOtp = asyncHandler(async (req, res) => {
  * Step 2 — Login: verify OTP and issue JWT.
  */
 const verifyLoginOtp = asyncHandler(async (req, res) => {
-  const { challengeId, otp } = req.body;
-  if (!challengeId || !otp) {
-    return res.status(400).json({ message: "OTP and session id are required." });
-  }
-
-  const { challenge, error } = await loadValidChallenge(challengeId, "login");
+  const { challenge, error } = await consumeOtp({
+    challengeId: req.body.challengeId,
+    purpose: "login",
+    otp: req.body.otp,
+  });
   if (error) return res.status(error.status).json({ message: error.message });
-
-  challenge.attempts += 1;
-  const match = challenge.codeHash === OtpChallenge.hashCode(String(otp).trim());
-  if (!match) {
-    await challenge.save();
-    return res.status(401).json({ message: "Incorrect OTP. Please try again." });
-  }
-
-  challenge.consumed = true;
-  await challenge.save();
 
   const user = challenge.userId
     ? await User.findById(challenge.userId)
@@ -244,7 +158,7 @@ const sendLinkPhoneOtp = asyncHandler(async (req, res) => {
   await OtpChallenge.deleteMany({ purpose: "link-phone", userId: req.user._id });
 
   try {
-    const payload = await createAndSendOtp({
+    const payload = await issueAndTextOtp({
       purpose: "link-phone",
       email: req.user.email,
       phone: phoneE164,
@@ -261,27 +175,16 @@ const sendLinkPhoneOtp = asyncHandler(async (req, res) => {
 });
 
 const verifyLinkPhoneOtp = asyncHandler(async (req, res) => {
-  const { challengeId, otp } = req.body;
-  if (!challengeId || !otp) {
-    return res.status(400).json({ message: "OTP and session id are required." });
-  }
-
-  const { challenge, error } = await loadValidChallenge(challengeId, "link-phone");
+  const { challenge, error } = await consumeOtp({
+    challengeId: req.body.challengeId,
+    purpose: "link-phone",
+    otp: req.body.otp,
+  });
   if (error) return res.status(error.status).json({ message: error.message });
 
   if (String(challenge.userId) !== String(req.user._id)) {
     return res.status(403).json({ message: "This OTP belongs to a different session." });
   }
-
-  challenge.attempts += 1;
-  const match = challenge.codeHash === OtpChallenge.hashCode(String(otp).trim());
-  if (!match) {
-    await challenge.save();
-    return res.status(401).json({ message: "Incorrect OTP. Please try again." });
-  }
-
-  challenge.consumed = true;
-  await challenge.save();
 
   const taken = await User.findOne({ phone: challenge.phone, _id: { $ne: req.user._id } });
   if (taken) {

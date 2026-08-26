@@ -34,7 +34,7 @@ export default function CompleteProfile() {
       const res = await sendLinkPhoneOtp(phone.trim());
       setChallengeId(res.challengeId);
       setDevOtp(res.otp || res.devOtp || "");
-      setInfo(res.message || "Enter the OTP shown on this screen.");
+      setInfo(res.message || "OTP sent by SMS to your mobile number.");
       setStep("otp");
       setOtp("");
     } catch (err: any) {
