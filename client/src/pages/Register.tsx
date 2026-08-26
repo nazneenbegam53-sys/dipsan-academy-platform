@@ -14,7 +14,6 @@ export default function Register() {
   const [role, setRole] = useState<Role>("student");
   const [form, setForm] = useState({
     name: "",
-    email: "",
     phone: "",
     className: "",
     rollNumber: "",
@@ -88,7 +87,7 @@ export default function Register() {
           <p className="mt-2 text-sm text-bronze">
             {step === "otp"
               ? "Enter the OTP sent by SMS"
-              : "Email + mobile required — OTP by SMS only"}
+              : "Sign up with your mobile number — OTP by SMS"}
           </p>
         </div>
 
@@ -117,15 +116,6 @@ export default function Register() {
                 value={form.name}
                 onChange={(e) => update("name", e.target.value)}
                 className={fieldClass}
-              />
-              <input
-                type="email"
-                required
-                placeholder="Email (Gmail / any)"
-                value={form.email}
-                onChange={(e) => update("email", e.target.value)}
-                className={fieldClass}
-                autoComplete="email"
               />
               <input
                 required

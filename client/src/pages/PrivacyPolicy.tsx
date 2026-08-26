@@ -19,9 +19,9 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="font-display text-xl font-semibold text-champagne">Account data</h2>
             <p className="mt-2 text-bronze">
-              When you register we store your name, email, password (hashed), role (student or
-              teacher), and optional class, roll number, and phone. We use this to authenticate you
-              and personalise your dashboard.
+              When you register we store your name, mobile number, role (student or
+              teacher), and optional class and roll number. We use this to send SMS OTP,
+              authenticate you, and personalise your dashboard.
             </p>
           </section>
 

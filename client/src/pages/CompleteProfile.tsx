@@ -67,12 +67,11 @@ export default function CompleteProfile() {
           <BrandLogo size="lg" />
           <h1 className="mt-4 font-display text-3xl font-semibold text-mist">Link your mobile</h1>
           <p className="mt-2 text-sm text-bronze">
-            All users must verify a mobile number for SMS OTP login and SMS notifications. Exam
-            results are sent to your email.
-            {user?.email ? (
+            All users must verify a mobile number for SMS OTP login and SMS notifications.
+            {user?.phone ? (
               <>
                 {" "}
-                Signed in as <span className="text-mist">{user.email}</span>.
+                Signed in as <span className="text-mist">{user.phone}</span>.
               </>
             ) : null}
           </p>

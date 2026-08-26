@@ -4,7 +4,7 @@ const bcrypt = require("bcryptjs");
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    email: { type: String, unique: true, sparse: true, lowercase: true, trim: true },
     // Optional when the account is OTP-only; kept for legacy password users.
     password: { type: String, minlength: 6, required: false, select: false },
     role: { type: String, enum: ["student", "teacher"], required: true },
