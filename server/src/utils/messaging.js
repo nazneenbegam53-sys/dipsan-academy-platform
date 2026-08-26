@@ -59,20 +59,23 @@ function otpRoute() {
 }
 
 function mapTwoFactorError(data) {
-  const text = String(data?.Details || data?.message || "").toLowerCase();
+  const text = String(data?.Details || data?.message || data?.error || "").toLowerCase();
+  if (text.includes("voice") || text.includes("call") || text.includes("ivr")) {
+    return "2Factor is set to voice call. In 2factor.in open SMS OTP (not Voice OTP). We only send SMS, never a call.";
+  }
   if (text.includes("api key") || (text.includes("invalid") && text.includes("key"))) {
     return "2Factor API key was rejected. On Render add TWOFACTOR_API_KEY from https://2factor.in (dashboard → API key).";
   }
   if (text.includes("balance") || text.includes("credit") || text.includes("insufficient")) {
-    return "2Factor free SMS credits are used up. Add more credits in 2factor.in or wait for the daily trial reset.";
+    return "2Factor SMS credits are used up. In 2factor.in add SMS credits (not voice).";
   }
   if (text.includes("dlt")) {
-    return "2Factor needs a DLT template for this account. In 2factor.in use the OTP SMS product (not promotional SMS).";
+    return "2Factor SMS needs DLT in India. In 2factor.in enable SMS OTP (text), not Voice OTP (call).";
   }
   if (text.includes("number") || text.includes("mobile")) {
     return "That mobile number was rejected. Use a 10-digit Indian number.";
   }
-  return "Could not send SMS OTP via 2Factor. Check TWOFACTOR_API_KEY on Render and free credits at 2factor.in.";
+  return "Could not send SMS text. In 2factor.in turn on SMS OTP and turn off Voice OTP / call verification. Then retry.";
 }
 
 function getTransporter() {
@@ -179,11 +182,40 @@ async function fast2smsSendOtp({ number, otp }) {
 async function twoFactorSendOtp({ number, otp }) {
   const key = twoFactorKey();
   const template = String(process.env.TWOFACTOR_TEMPLATE || "").trim();
-  const phones = [number, `91${number}`];
+  const e164 = `+91${number}`;
+  const phones = [e164, number, `91${number}`];
+
+  // 1) Official OTP send — SMS channel only (never VOICE / auto / call).
+  const v4Bodies = phones.map((to) => {
+    const body = { to, channel: "SMS", otp };
+    if (template) body.template = template;
+    return body;
+  });
+
   let lastData = {};
   let lastStatus = 0;
 
-  for (const phone of phones) {
+  for (const body of v4Bodies) {
+    const res = await fetch("https://2factor.in/API/V1/OTP/SEND", {
+      method: "POST",
+      headers: {
+        "X-API-Key": key,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({}));
+    lastData = data;
+    lastStatus = res.status;
+    const status = String(data.status || data.Status || "").toLowerCase();
+    if (res.ok && (status === "sent" || status === "success" || data.return === true)) {
+      return { ok: true, provider: "twofactor", channel: "sms" };
+    }
+  }
+
+  // 2) Legacy SMS path only — never /VOICE/.
+  for (const phone of [number, `91${number}`]) {
     const parts = [encodeURIComponent(key), "SMS", encodeURIComponent(phone), encodeURIComponent(otp)];
     if (template) parts.push(encodeURIComponent(template));
     const url = `https://2factor.in/API/V1/${parts.join("/")}`;
@@ -192,11 +224,12 @@ async function twoFactorSendOtp({ number, otp }) {
     lastData = data;
     lastStatus = res.status;
     if (String(data.Status || "").toLowerCase() === "success") {
-      return { ok: true, provider: "twofactor" };
+      return { ok: true, provider: "twofactor", channel: "sms" };
     }
   }
 
-  const err = new Error(`2Factor failed (${lastStatus}): ${lastData.Details || JSON.stringify(lastData).slice(0, 160)}`);
+  const detail = String(lastData.Details || lastData.message || lastData.error || JSON.stringify(lastData).slice(0, 160));
+  const err = new Error(`2Factor SMS failed (${lastStatus}): ${detail}`);
   err.userMessage = mapTwoFactorError(lastData);
   throw err;
 }
