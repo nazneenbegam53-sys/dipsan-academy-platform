@@ -9,6 +9,8 @@ const {
   verifyLoginOtp,
   sendLinkPhoneOtp,
   verifyLinkPhoneOtp,
+  sendSetPasswordOtp,
+  verifySetPasswordOtp,
   messagingHealth,
   listAccounts,
 } = require("../controllers/authController");
@@ -22,6 +24,8 @@ router.post("/otp/register/send", sendRegisterOtp);
 router.post("/otp/register/verify", verifyRegisterOtp);
 router.post("/otp/login/send", sendLoginOtp);
 router.post("/otp/login/verify", verifyLoginOtp);
+router.post("/otp/password/send", sendSetPasswordOtp);
+router.post("/otp/password/verify", verifySetPasswordOtp);
 router.post("/otp/phone/send", protect, sendLinkPhoneOtp);
 router.post("/otp/phone/verify", protect, verifyLinkPhoneOtp);
 router.get("/messaging-status", messagingHealth);

@@ -12,15 +12,24 @@ function signToken(user) {
   });
 }
 
+function passwordError(password) {
+  if (typeof password !== "string" || password.trim().length < 6) {
+    return "Password must be at least 6 characters.";
+  }
+  return null;
+}
+
 /**
- * Step 1 — Sign up: collect profile + send OTP SMS to mobile.
+ * Step 1 — Sign up: profile + password + OTP to the mobile number.
  */
 const sendRegisterOtp = asyncHandler(async (req, res) => {
-  const { name, phone, role, className, rollNumber } = req.body;
+  const { name, phone, role, className, rollNumber, password } = req.body;
 
   if (!name || !phone || !role) {
     return res.status(400).json({ message: "Name, mobile number, and role are required." });
   }
+  const pwdErr = passwordError(password);
+  if (pwdErr) return res.status(400).json({ message: pwdErr });
   if (!["student", "teacher"].includes(role)) {
     return res.status(400).json({ message: "Role must be 'student' or 'teacher'." });
   }
@@ -56,9 +65,12 @@ const sendRegisterOtp = asyncHandler(async (req, res) => {
 });
 
 /**
- * Step 2 — Sign up: verify OTP and create the account.
+ * Step 2 — Sign up: verify OTP and create the account with the password.
  */
 const verifyRegisterOtp = asyncHandler(async (req, res) => {
+  const pwdErr = passwordError(req.body.password);
+  if (pwdErr) return res.status(400).json({ message: pwdErr });
+
   const { challenge, error } = await consumeOtp({
     challengeId: req.body.challengeId,
     purpose: "register",
@@ -72,6 +84,7 @@ const verifyRegisterOtp = asyncHandler(async (req, res) => {
     role: challenge.role,
     className: challenge.className || undefined,
     rollNumber: challenge.rollNumber || undefined,
+    password: req.body.password,
     phoneVerified: true,
   });
 
@@ -79,13 +92,18 @@ const verifyRegisterOtp = asyncHandler(async (req, res) => {
   res.status(201).json({ token, user: user.toSafeObject() });
 });
 
+const loginOtpDisabled = asyncHandler(async (_req, res) => {
+  return res.status(400).json({
+    message: "Login uses your mobile number and password. OTP is only for sign up.",
+  });
+});
+
 /**
- * Step 1 — Login: identify by mobile, create an in-app OTP.
+ * Set or reset password with an OTP (for accounts created before passwords, or forgotten passwords).
+ * This is not login.
  */
-const sendLoginOtp = asyncHandler(async (req, res) => {
-  const { phone, identifier } = req.body;
-  const raw = (identifier || phone || "").toString().trim();
-  const phoneE164 = normalizePhone(raw);
+const sendSetPasswordOtp = asyncHandler(async (req, res) => {
+  const phoneE164 = normalizePhone(req.body.phone);
   if (!phoneE164) {
     return res.status(400).json({ message: "Enter your mobile number." });
   }
@@ -95,18 +113,17 @@ const sendLoginOtp = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: "No account found. Please sign up first." });
   }
 
-  await OtpChallenge.deleteMany({ purpose: "login", phone: phoneE164 });
+  await OtpChallenge.deleteMany({ purpose: "set-password", phone: phoneE164 });
 
   try {
     const payload = await issueAndTextOtp({
-      purpose: "login",
-      email: user.email || undefined,
+      purpose: "set-password",
       phone: phoneE164,
       userId: user._id,
     });
 
     res.json({
-      message: "Enter the OTP shown on this screen.",
+      message: "Enter the OTP shown on this screen, then choose a password.",
       ...payload,
     });
   } catch (err) {
@@ -114,34 +131,35 @@ const sendLoginOtp = asyncHandler(async (req, res) => {
   }
 });
 
-/**
- * Step 2 — Login: verify OTP and issue JWT.
- */
-const verifyLoginOtp = asyncHandler(async (req, res) => {
+const verifySetPasswordOtp = asyncHandler(async (req, res) => {
+  const pwdErr = passwordError(req.body.password);
+  if (pwdErr) return res.status(400).json({ message: pwdErr });
+
   const { challenge, error } = await consumeOtp({
     challengeId: req.body.challengeId,
-    purpose: "login",
+    purpose: "set-password",
     otp: req.body.otp,
   });
   if (error) return res.status(error.status).json({ message: error.message });
 
   const user = challenge.userId
-    ? await User.findById(challenge.userId)
-    : await User.findOne({ phone: challenge.phone });
+    ? await User.findById(challenge.userId).select("+password")
+    : await User.findOne({ phone: challenge.phone }).select("+password");
   if (!user) {
     return res.status(404).json({ message: "Account not found." });
   }
 
+  user.password = req.body.password;
   user.phoneVerified = true;
   await user.save();
 
-  const token = signToken(user);
-  res.json({ token, user: user.toSafeObject() });
+  res.json({
+    message: "Password saved. Log in with your mobile number and password.",
+  });
 });
 
 /**
- * Authenticated: send OTP SMS to a new mobile number to link it.
- * Required for every user who signed up before mobile was mandatory.
+ * Authenticated: send OTP to a new mobile number to link it.
  */
 const sendLinkPhoneOtp = asyncHandler(async (req, res) => {
   const phoneE164 = normalizePhone(req.body.phone);
@@ -197,22 +215,46 @@ const verifyLinkPhoneOtp = asyncHandler(async (req, res) => {
   await user.save();
 
   res.json({
-    message: "Mobile number linked. Use this number to log in with OTP.",
+    message: "Mobile number linked. Use this number and your password to log in.",
     user: user.toSafeObject(),
   });
 });
 
-/** Password login disabled — every user uses OTP. */
-const login = asyncHandler(async (_req, res) => {
-  return res.status(400).json({
-    message: "Password login is disabled. Use OTP with your mobile number.",
-  });
+/** Login: mobile number + password only (students and teachers). */
+const login = asyncHandler(async (req, res) => {
+  const phoneE164 = normalizePhone(req.body.phone || req.body.identifier);
+  const password = req.body.password;
+  if (!phoneE164) {
+    return res.status(400).json({ message: "Enter your mobile number." });
+  }
+  if (!password) {
+    return res.status(400).json({ message: "Enter your password." });
+  }
+
+  const user = await User.findOne({ phone: phoneE164 }).select("+password");
+  if (!user) {
+    return res.status(401).json({ message: "Incorrect mobile number or password." });
+  }
+  if (!user.password) {
+    return res.status(400).json({
+      code: "PASSWORD_REQUIRED",
+      message: "This account has no password yet. Use Set password, then log in.",
+    });
+  }
+
+  const ok = await user.comparePassword(password);
+  if (!ok) {
+    return res.status(401).json({ message: "Incorrect mobile number or password." });
+  }
+
+  const token = signToken(user);
+  res.json({ token, user: user.toSafeObject() });
 });
 
-/** Legacy register blocked — force OTP signup. */
+/** Direct register without OTP is blocked. */
 const register = asyncHandler(async (_req, res) => {
   return res.status(400).json({
-    message: "Password signup is disabled. Use OTP signup with your mobile number.",
+    message: "Use OTP signup with your mobile number and a password.",
   });
 });
 
@@ -257,8 +299,10 @@ module.exports = {
   me,
   sendRegisterOtp,
   verifyRegisterOtp,
-  sendLoginOtp,
-  verifyLoginOtp,
+  sendLoginOtp: loginOtpDisabled,
+  verifyLoginOtp: loginOtpDisabled,
+  sendSetPasswordOtp,
+  verifySetPasswordOtp,
   sendLinkPhoneOtp,
   verifyLinkPhoneOtp,
   messagingHealth,

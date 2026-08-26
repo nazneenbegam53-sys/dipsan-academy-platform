@@ -15,6 +15,8 @@ export default function Register() {
   const [form, setForm] = useState({
     name: "",
     phone: "",
+    password: "",
+    confirm: "",
     className: "",
     rollNumber: "",
   });
@@ -29,13 +31,33 @@ export default function Register() {
     setForm((f) => ({ ...f, [field]: value }));
   }
 
+  function passwordReady() {
+    if (form.password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return false;
+    }
+    if (form.password !== form.confirm) {
+      setError("Passwords do not match.");
+      return false;
+    }
+    return true;
+  }
+
   async function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setInfo("");
+    if (!passwordReady()) return;
     setLoading(true);
     try {
-      const res = await sendRegisterOtp({ ...form, role });
+      const res = await sendRegisterOtp({
+        name: form.name,
+        phone: form.phone,
+        role,
+        password: form.password,
+        className: form.className,
+        rollNumber: form.rollNumber,
+      });
       setChallengeId(res.challengeId);
       setDevOtp(res.otp || res.devOtp || "");
       setInfo(res.message || "Enter the OTP shown on this screen.");
@@ -51,9 +73,10 @@ export default function Register() {
   async function handleVerify(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    if (!passwordReady()) return;
     setLoading(true);
     try {
-      await verifyRegisterOtp(challengeId, otp.trim());
+      await verifyRegisterOtp(challengeId, otp.trim(), form.password);
       try {
         sessionStorage.setItem("dipsan_intro_done", "1");
       } catch {
@@ -87,7 +110,7 @@ export default function Register() {
           <p className="mt-2 text-sm text-bronze">
             {step === "otp"
               ? "Enter the 6-digit Dipsan code shown below"
-              : "Sign up with your mobile number"}
+              : "Sign up with your mobile number and a password"}
           </p>
         </div>
 
@@ -116,6 +139,7 @@ export default function Register() {
                 value={form.name}
                 onChange={(e) => update("name", e.target.value)}
                 className={fieldClass}
+                autoComplete="name"
               />
               <input
                 required
@@ -125,6 +149,26 @@ export default function Register() {
                 className={fieldClass}
                 inputMode="tel"
                 autoComplete="tel"
+              />
+              <input
+                required
+                type="password"
+                minLength={6}
+                placeholder="Password (min 6 characters)"
+                value={form.password}
+                onChange={(e) => update("password", e.target.value)}
+                className={fieldClass}
+                autoComplete="new-password"
+              />
+              <input
+                required
+                type="password"
+                minLength={6}
+                placeholder="Confirm password"
+                value={form.confirm}
+                onChange={(e) => update("confirm", e.target.value)}
+                className={fieldClass}
+                autoComplete="new-password"
               />
 
               {role === "student" && (
@@ -203,7 +247,7 @@ export default function Register() {
         <p className="mt-6 text-center text-sm text-bronze">
           Already have an account?{" "}
           <Link to="/login" className="font-semibold text-gold underline underline-offset-4">
-            Log in with OTP
+            Log in
           </Link>
         </p>
       </div>

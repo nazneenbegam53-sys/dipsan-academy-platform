@@ -1,8 +1,6 @@
 /**
- * Dipsan authenticator — OTP login owned by this codebase.
- * No Fast2SMS, 2Factor, or other SMS/voice gateway.
- * The 6-digit code is created here, hashed in MongoDB, shown on the login
- * screen, and checked here when the user types it.
+ * Dipsan authenticator — OTP for sign-up and password reset only.
+ * Login uses mobile number + password. No SMS/voice gateway.
  */
 
 const OtpChallenge = require("../models/OtpChallenge");

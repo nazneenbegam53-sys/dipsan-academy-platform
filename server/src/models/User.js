@@ -7,7 +7,6 @@ const userSchema = new mongoose.Schema(
     // Unique only when a real email string is present. A unique+sparse index still
     // indexes { email: null }, so the second OTP teacher/student hit E11000.
     email: { type: String, lowercase: true, trim: true },
-    // Optional when the account is OTP-only; kept for legacy password users.
     password: { type: String, minlength: 6, required: false, select: false },
     role: { type: String, enum: ["student", "teacher"], required: true },
 
@@ -81,7 +80,6 @@ userSchema.methods.toSafeObject = function () {
     phone: this.phone,
     emailVerified: Boolean(this.emailVerified),
     phoneVerified: Boolean(this.phoneVerified),
-    // Every account must have a verified mobile for OTP login.
     needsPhone: !this.phone,
     subscriptionActive: Boolean(this.subscriptionActive),
     subscriptionPaidAt: this.subscriptionPaidAt || null,
