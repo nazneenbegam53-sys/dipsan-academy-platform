@@ -1,10 +1,8 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-const OtpChallenge = require("../models/OtpChallenge");
 const { asyncHandler } = require("../middleware/errorHandler");
 const { normalizePhone } = require("../utils/phone");
 const { messagingStatus } = require("../utils/messaging");
-const { issueAndTextOtp, consumeOtp } = require("../auth/dipsanAuthenticator");
 
 function signToken(user) {
   return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
@@ -19,10 +17,8 @@ function passwordError(password) {
   return null;
 }
 
-/**
- * Step 1 — Sign up: profile + password + OTP to the mobile number.
- */
-const sendRegisterOtp = asyncHandler(async (req, res) => {
+/** Sign up with name, mobile number, password, and role. */
+const register = asyncHandler(async (req, res) => {
   const { name, phone, role, className, rollNumber, password } = req.body;
 
   if (!name || !phone || !role) {
@@ -43,48 +39,13 @@ const sendRegisterOtp = asyncHandler(async (req, res) => {
     return res.status(409).json({ message: "An account with this mobile number already exists. Please log in." });
   }
 
-  await OtpChallenge.deleteMany({ purpose: "register", phone: phoneE164 });
-
-  try {
-    const payload = await issueAndTextOtp({
-      purpose: "register",
-      phone: phoneE164,
-      name: name.trim(),
-      role,
-      className: className || undefined,
-      rollNumber: rollNumber || undefined,
-    });
-
-    res.json({
-      message: "Enter the OTP shown on this screen.",
-      ...payload,
-    });
-  } catch (err) {
-    return res.status(err.statusCode || 500).json({ message: err.message || "Could not send OTP." });
-  }
-});
-
-/**
- * Step 2 — Sign up: verify OTP and create the account with the password.
- */
-const verifyRegisterOtp = asyncHandler(async (req, res) => {
-  const pwdErr = passwordError(req.body.password);
-  if (pwdErr) return res.status(400).json({ message: pwdErr });
-
-  const { challenge, error } = await consumeOtp({
-    challengeId: req.body.challengeId,
-    purpose: "register",
-    otp: req.body.otp,
-  });
-  if (error) return res.status(error.status).json({ message: error.message });
-
   const user = await User.create({
-    name: challenge.name,
-    phone: challenge.phone,
-    role: challenge.role,
-    className: challenge.className || undefined,
-    rollNumber: challenge.rollNumber || undefined,
-    password: req.body.password,
+    name: name.trim(),
+    phone: phoneE164,
+    role,
+    className: className || undefined,
+    rollNumber: rollNumber || undefined,
+    password,
     phoneVerified: true,
   });
 
@@ -92,135 +53,7 @@ const verifyRegisterOtp = asyncHandler(async (req, res) => {
   res.status(201).json({ token, user: user.toSafeObject() });
 });
 
-const loginOtpDisabled = asyncHandler(async (_req, res) => {
-  return res.status(400).json({
-    message: "Login uses your mobile number and password. OTP is only for sign up.",
-  });
-});
-
-/**
- * Set or reset password with an OTP (for accounts created before passwords, or forgotten passwords).
- * This is not login.
- */
-const sendSetPasswordOtp = asyncHandler(async (req, res) => {
-  const phoneE164 = normalizePhone(req.body.phone);
-  if (!phoneE164) {
-    return res.status(400).json({ message: "Enter your mobile number." });
-  }
-
-  const user = await User.findOne({ phone: phoneE164 });
-  if (!user) {
-    return res.status(404).json({ message: "No account found. Please sign up first." });
-  }
-
-  await OtpChallenge.deleteMany({ purpose: "set-password", phone: phoneE164 });
-
-  try {
-    const payload = await issueAndTextOtp({
-      purpose: "set-password",
-      phone: phoneE164,
-      userId: user._id,
-    });
-
-    res.json({
-      message: "Enter the OTP shown on this screen, then choose a password.",
-      ...payload,
-    });
-  } catch (err) {
-    return res.status(err.statusCode || 500).json({ message: err.message || "Could not send OTP." });
-  }
-});
-
-const verifySetPasswordOtp = asyncHandler(async (req, res) => {
-  const pwdErr = passwordError(req.body.password);
-  if (pwdErr) return res.status(400).json({ message: pwdErr });
-
-  const { challenge, error } = await consumeOtp({
-    challengeId: req.body.challengeId,
-    purpose: "set-password",
-    otp: req.body.otp,
-  });
-  if (error) return res.status(error.status).json({ message: error.message });
-
-  const user = challenge.userId
-    ? await User.findById(challenge.userId).select("+password")
-    : await User.findOne({ phone: challenge.phone }).select("+password");
-  if (!user) {
-    return res.status(404).json({ message: "Account not found." });
-  }
-
-  user.password = req.body.password;
-  user.phoneVerified = true;
-  await user.save();
-
-  res.json({
-    message: "Password saved. Log in with your mobile number and password.",
-  });
-});
-
-/**
- * Authenticated: send OTP to a new mobile number to link it.
- */
-const sendLinkPhoneOtp = asyncHandler(async (req, res) => {
-  const phoneE164 = normalizePhone(req.body.phone);
-  if (!phoneE164) {
-    return res.status(400).json({ message: "Enter a valid mobile number." });
-  }
-
-  const taken = await User.findOne({ phone: phoneE164, _id: { $ne: req.user._id } });
-  if (taken) {
-    return res.status(409).json({ message: "This mobile number is already linked to another account." });
-  }
-
-  await OtpChallenge.deleteMany({ purpose: "link-phone", userId: req.user._id });
-
-  try {
-    const payload = await issueAndTextOtp({
-      purpose: "link-phone",
-      email: req.user.email,
-      phone: phoneE164,
-      userId: req.user._id,
-    });
-
-    res.json({
-      message: "Enter the OTP shown on this screen.",
-      ...payload,
-    });
-  } catch (err) {
-    return res.status(err.statusCode || 500).json({ message: err.message || "Could not send OTP." });
-  }
-});
-
-const verifyLinkPhoneOtp = asyncHandler(async (req, res) => {
-  const { challenge, error } = await consumeOtp({
-    challengeId: req.body.challengeId,
-    purpose: "link-phone",
-    otp: req.body.otp,
-  });
-  if (error) return res.status(error.status).json({ message: error.message });
-
-  if (String(challenge.userId) !== String(req.user._id)) {
-    return res.status(403).json({ message: "This OTP belongs to a different session." });
-  }
-
-  const taken = await User.findOne({ phone: challenge.phone, _id: { $ne: req.user._id } });
-  if (taken) {
-    return res.status(409).json({ message: "This mobile number is already linked to another account." });
-  }
-
-  const user = await User.findById(req.user._id);
-  user.phone = challenge.phone;
-  user.phoneVerified = true;
-  user.emailVerified = true;
-  await user.save();
-
-  res.json({
-    message: "Mobile number linked. Use this number and your password to log in.",
-    user: user.toSafeObject(),
-  });
-});
-
-/** Login: mobile number + password only (students and teachers). */
+/** Login: mobile number + password. */
 const login = asyncHandler(async (req, res) => {
   const phoneE164 = normalizePhone(req.body.phone || req.body.identifier);
   const password = req.body.password;
@@ -235,26 +68,44 @@ const login = asyncHandler(async (req, res) => {
   if (!user) {
     return res.status(401).json({ message: "Incorrect mobile number or password." });
   }
-  if (!user.password) {
-    return res.status(400).json({
-      code: "PASSWORD_REQUIRED",
-      message: "This account has no password yet. Use Set password, then log in.",
-    });
-  }
 
-  const ok = await user.comparePassword(password);
-  if (!ok) {
-    return res.status(401).json({ message: "Incorrect mobile number or password." });
+  if (!user.password) {
+    const pwdErr = passwordError(password);
+    if (pwdErr) return res.status(400).json({ message: pwdErr });
+    user.password = password;
+    user.phoneVerified = true;
+    await user.save();
+  } else {
+    const ok = await user.comparePassword(password);
+    if (!ok) {
+      return res.status(401).json({ message: "Incorrect mobile number or password." });
+    }
   }
 
   const token = signToken(user);
   res.json({ token, user: user.toSafeObject() });
 });
 
-/** Direct register without OTP is blocked. */
-const register = asyncHandler(async (_req, res) => {
-  return res.status(400).json({
-    message: "Use OTP signup with your mobile number and a password.",
+/** Authenticated: save a mobile number on an older account. */
+const linkPhone = asyncHandler(async (req, res) => {
+  const phoneE164 = normalizePhone(req.body.phone);
+  if (!phoneE164) {
+    return res.status(400).json({ message: "Enter a valid mobile number." });
+  }
+
+  const taken = await User.findOne({ phone: phoneE164, _id: { $ne: req.user._id } });
+  if (taken) {
+    return res.status(409).json({ message: "This mobile number is already linked to another account." });
+  }
+
+  const user = await User.findById(req.user._id);
+  user.phone = phoneE164;
+  user.phoneVerified = true;
+  await user.save();
+
+  res.json({
+    message: "Mobile number saved. Use this number and your password to log in.",
+    user: user.toSafeObject(),
   });
 });
 
@@ -266,7 +117,6 @@ const messagingHealth = asyncHandler(async (_req, res) => {
   res.json({ ok: true, messaging: messagingStatus() });
 });
 
-/** Teacher: list every student and teacher account (website + app). */
 const listAccounts = asyncHandler(async (_req, res) => {
   const users = await User.find({})
     .select("name email phone role className rollNumber phoneVerified createdAt")
@@ -297,14 +147,7 @@ module.exports = {
   register,
   login,
   me,
-  sendRegisterOtp,
-  verifyRegisterOtp,
-  sendLoginOtp: loginOtpDisabled,
-  verifyLoginOtp: loginOtpDisabled,
-  sendSetPasswordOtp,
-  verifySetPasswordOtp,
-  sendLinkPhoneOtp,
-  verifyLinkPhoneOtp,
+  linkPhone,
   messagingHealth,
   listAccounts,
 };
