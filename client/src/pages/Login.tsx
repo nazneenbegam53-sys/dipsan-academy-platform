@@ -1,20 +1,18 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { ApiError } from "../services/api";
 import { Button, ErrorBanner, PageShell } from "../components/ui";
 import { BrandLogo } from "../components/BrandLogo";
 import { LoginScienceBg } from "../components/LoginScienceBg";
 
 const INTRO_KEY = "dipsan_intro_done";
 
-type Step = "identifier" | "need-phone" | "otp";
+type Step = "phone" | "otp";
 
 export default function Login() {
   const { sendLoginOtp, verifyLoginOtp, user } = useAuth();
   const navigate = useNavigate();
-  const [step, setStep] = useState<Step>("identifier");
-  const [identifier, setIdentifier] = useState("");
+  const [step, setStep] = useState<Step>("phone");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [challengeId, setChallengeId] = useState("");
@@ -37,27 +35,19 @@ export default function Login() {
     navigate(user.role === "teacher" ? "/teacher" : "/student", { replace: true });
   }, [user, navigate]);
 
-  async function requestOtp(extraPhone?: string) {
+  async function requestOtp() {
     setError("");
     setInfo("");
     setLoading(true);
     try {
-      const res = await sendLoginOtp(identifier.trim(), extraPhone?.trim());
+      const res = await sendLoginOtp(phone.trim());
       setChallengeId(res.challengeId);
       setDevOtp(res.devOtp || "");
       setInfo(res.message || "OTP sent by SMS.");
       setStep("otp");
       setOtp("");
     } catch (err: any) {
-      if (err instanceof ApiError && err.code === "NEEDS_PHONE") {
-        setInfo(err.message);
-        setStep("need-phone");
-      } else if (err?.code === "NEEDS_PHONE") {
-        setInfo(err.message);
-        setStep("need-phone");
-      } else {
-        setError(err.message || "Could not send OTP.");
-      }
+      setError(err.message || "Could not send OTP.");
     } finally {
       setLoading(false);
     }
@@ -66,11 +56,6 @@ export default function Login() {
   async function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
     await requestOtp();
-  }
-
-  async function handleSendWithPhone(e: React.FormEvent) {
-    e.preventDefault();
-    await requestOtp(phone);
   }
 
   async function handleVerifyOtp(e: React.FormEvent) {
@@ -111,61 +96,30 @@ export default function Login() {
             Welcome back
           </h1>
           <p className="mt-2 text-sm text-bronze">
-            {step === "otp"
-              ? "Enter the OTP sent by SMS"
-              : step === "need-phone"
-                ? "Add your mobile number to receive the SMS OTP"
-                : "Log in with email or mobile — OTP by SMS"}
+            {step === "otp" ? "Enter the OTP sent by SMS" : "Log in with your mobile number"}
           </p>
         </div>
 
-        {step === "identifier" && (
+        {step === "phone" && (
           <form onSubmit={handleSendOtp} className="space-y-4">
             <ErrorBanner message={error} />
             <label className="block">
               <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-bronze">
-                Email or mobile number
+                Mobile number
               </span>
               <input
                 required
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 className={fieldClass}
-                autoComplete="username"
-                placeholder="you@gmail.com or 98XXXXXXXX"
-                autoCapitalize="none"
-                spellCheck={false}
+                autoComplete="tel"
+                inputMode="tel"
+                placeholder="98XXXXXXXX"
               />
             </label>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Sending OTP…" : "Send SMS OTP"}
             </Button>
-          </form>
-        )}
-
-        {step === "need-phone" && (
-          <form onSubmit={handleSendWithPhone} className="space-y-4">
-            <ErrorBanner message={error} />
-            {info && <p className="text-xs text-aurora">{info}</p>}
-            <input
-              required
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className={fieldClass}
-              placeholder="Mobile number for SMS OTP"
-              inputMode="tel"
-              autoComplete="tel"
-            />
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Sending OTP…" : "Send SMS OTP"}
-            </Button>
-            <button
-              type="button"
-              className="w-full text-center text-xs text-bronze underline"
-              onClick={() => setStep("identifier")}
-            >
-              Back
-            </button>
           </form>
         )}
 
@@ -202,18 +156,18 @@ export default function Login() {
                 type="button"
                 className="underline underline-offset-2"
                 onClick={() => {
-                  setStep("identifier");
+                  setStep("phone");
                   setError("");
                   setInfo("");
                 }}
               >
-                Change email / phone
+                Change number
               </button>
               <button
                 type="button"
                 className="underline underline-offset-2"
                 disabled={loading}
-                onClick={() => requestOtp(phone || undefined)}
+                onClick={() => requestOtp()}
               >
                 Resend OTP
               </button>

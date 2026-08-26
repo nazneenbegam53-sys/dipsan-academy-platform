@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const OtpChallenge = require("../models/OtpChallenge");
 const { asyncHandler } = require("../middleware/errorHandler");
-const { normalizePhone, isValidEmail } = require("../utils/phone");
+const { normalizePhone } = require("../utils/phone");
 const { sendOtpSms, messagingStatus } = require("../utils/messaging");
 
 const OTP_TTL_MS = 10 * 60 * 1000;
@@ -76,38 +76,29 @@ async function loadValidChallenge(challengeId, purpose) {
  * Step 1 — Sign up: collect profile + send OTP SMS to mobile.
  */
 const sendRegisterOtp = asyncHandler(async (req, res) => {
-  const { name, email, phone, role, className, rollNumber } = req.body;
+  const { name, phone, role, className, rollNumber } = req.body;
 
-  if (!name || !email || !phone || !role) {
-    return res.status(400).json({ message: "Name, email, mobile number, and role are required." });
+  if (!name || !phone || !role) {
+    return res.status(400).json({ message: "Name, mobile number, and role are required." });
   }
   if (!["student", "teacher"].includes(role)) {
     return res.status(400).json({ message: "Role must be 'student' or 'teacher'." });
-  }
-  if (!isValidEmail(email)) {
-    return res.status(400).json({ message: "Enter a valid email address." });
   }
   const phoneE164 = normalizePhone(phone);
   if (!phoneE164) {
     return res.status(400).json({ message: "Enter a valid mobile number (10-digit India or +country code)." });
   }
 
-  const emailLc = email.toLowerCase().trim();
-  const existingEmail = await User.findOne({ email: emailLc });
-  if (existingEmail) {
-    return res.status(409).json({ message: "An account with this email already exists. Please log in." });
-  }
   const existingPhone = await User.findOne({ phone: phoneE164 });
   if (existingPhone) {
     return res.status(409).json({ message: "An account with this mobile number already exists. Please log in." });
   }
 
-  await OtpChallenge.deleteMany({ purpose: "register", email: emailLc });
+  await OtpChallenge.deleteMany({ purpose: "register", phone: phoneE164 });
 
   try {
     const payload = await createAndSendOtp({
       purpose: "register",
-      email: emailLc,
       phone: phoneE164,
       name: name.trim(),
       role,
@@ -148,12 +139,11 @@ const verifyRegisterOtp = asyncHandler(async (req, res) => {
 
   const user = await User.create({
     name: challenge.name,
-    email: challenge.email,
     phone: challenge.phone,
     role: challenge.role,
     className: challenge.className,
     rollNumber: challenge.rollNumber,
-    emailVerified: true,
+    emailVerified: false,
     phoneVerified: true,
   });
 
@@ -167,66 +157,30 @@ const verifyRegisterOtp = asyncHandler(async (req, res) => {
  * SMS the OTP and link that number on successful verify (all users).
  */
 const sendLoginOtp = asyncHandler(async (req, res) => {
-  const { email, phone, identifier } = req.body;
-  const raw = (identifier || email || phone || "").toString().trim();
-  if (!raw) {
-    return res.status(400).json({ message: "Enter your email or mobile number." });
+  const { phone, identifier } = req.body;
+  const raw = (identifier || phone || "").toString().trim();
+  const phoneE164 = normalizePhone(raw);
+  if (!phoneE164) {
+    return res.status(400).json({ message: "Enter your mobile number." });
   }
 
-  let user = null;
-  if (raw.includes("@")) {
-    if (!isValidEmail(raw)) {
-      return res.status(400).json({ message: "Enter a valid email address." });
-    }
-    user = await User.findOne({ email: raw.toLowerCase() });
-  } else {
-    const phoneE164 = normalizePhone(raw);
-    if (!phoneE164) {
-      return res.status(400).json({ message: "Enter a valid email or mobile number." });
-    }
-    user = await User.findOne({ phone: phoneE164 });
-  }
-
+  const user = await User.findOne({ phone: phoneE164 });
   if (!user) {
     return res.status(404).json({ message: "No account found. Please sign up first." });
   }
 
-  let smsPhone = user.phone || null;
-  let linkingPhone = false;
-
-  if (!smsPhone) {
-    const phoneE164 = normalizePhone(req.body.phone || "");
-    if (!phoneE164) {
-      return res.status(400).json({
-        message: "Add your mobile number to receive the SMS OTP.",
-        needsPhone: true,
-        code: "NEEDS_PHONE",
-      });
-    }
-    const taken = await User.findOne({ phone: phoneE164, _id: { $ne: user._id } });
-    if (taken) {
-      return res.status(409).json({ message: "This mobile number is already linked to another account." });
-    }
-    smsPhone = phoneE164;
-    linkingPhone = true;
-  }
-
-  await OtpChallenge.deleteMany({ purpose: "login", email: user.email });
+  await OtpChallenge.deleteMany({ purpose: "login", phone: phoneE164 });
 
   try {
     const payload = await createAndSendOtp({
       purpose: "login",
-      email: user.email,
-      phone: smsPhone,
-      // Stash pending phone on challenge when linking for the first time.
-      ...(linkingPhone ? { name: `link:${smsPhone}` } : {}),
+      email: user.email || undefined,
+      phone: phoneE164,
+      userId: user._id,
     });
 
     res.json({
-      message: linkingPhone
-        ? "OTP sent by SMS. After verify, this mobile will be saved to your account."
-        : "OTP sent by SMS to your registered mobile number.",
-      needsPhone: linkingPhone,
+      message: "OTP sent by SMS to your mobile number.",
       ...payload,
     });
   } catch (err) {
@@ -256,22 +210,14 @@ const verifyLoginOtp = asyncHandler(async (req, res) => {
   challenge.consumed = true;
   await challenge.save();
 
-  const user = await User.findOne({ email: challenge.email });
+  const user = challenge.userId
+    ? await User.findById(challenge.userId)
+    : await User.findOne({ phone: challenge.phone });
   if (!user) {
     return res.status(404).json({ message: "Account not found." });
   }
 
-  // First-time mobile link from login challenge (name = "link:+91…").
-  if (!user.phone && challenge.phone) {
-    const taken = await User.findOne({ phone: challenge.phone, _id: { $ne: user._id } });
-    if (taken) {
-      return res.status(409).json({ message: "This mobile number is already linked to another account." });
-    }
-    user.phone = challenge.phone;
-  }
-
-  user.emailVerified = true;
-  if (user.phone) user.phoneVerified = true;
+  user.phoneVerified = true;
   await user.save();
 
   const token = signToken(user);
@@ -355,14 +301,14 @@ const verifyLinkPhoneOtp = asyncHandler(async (req, res) => {
 /** Password login disabled — every user uses OTP. */
 const login = asyncHandler(async (_req, res) => {
   return res.status(400).json({
-    message: "Password login is disabled. Use OTP with your email or mobile number.",
+    message: "Password login is disabled. Use OTP with your mobile number.",
   });
 });
 
 /** Legacy register blocked — force OTP signup. */
 const register = asyncHandler(async (_req, res) => {
   return res.status(400).json({
-    message: "Password signup is disabled. Use OTP signup with email and mobile number.",
+    message: "Password signup is disabled. Use OTP signup with your mobile number.",
   });
 });
 
@@ -372,6 +318,33 @@ const me = asyncHandler(async (req, res) => {
 
 const messagingHealth = asyncHandler(async (_req, res) => {
   res.json({ ok: true, messaging: messagingStatus() });
+});
+
+/** Teacher: list every student and teacher account (website + app). */
+const listAccounts = asyncHandler(async (_req, res) => {
+  const users = await User.find({})
+    .select("name email phone role className rollNumber phoneVerified createdAt")
+    .sort({ createdAt: -1 })
+    .lean();
+
+  res.json({
+    counts: {
+      total: users.length,
+      students: users.filter((u) => u.role === "student").length,
+      teachers: users.filter((u) => u.role === "teacher").length,
+    },
+    users: users.map((u) => ({
+      id: u._id,
+      name: u.name,
+      phone: u.phone || "",
+      email: u.email || "",
+      role: u.role,
+      className: u.className || "",
+      rollNumber: u.rollNumber || "",
+      phoneVerified: Boolean(u.phoneVerified),
+      createdAt: u.createdAt,
+    })),
+  });
 });
 
 module.exports = {
@@ -385,4 +358,5 @@ module.exports = {
   sendLinkPhoneOtp,
   verifyLinkPhoneOtp,
   messagingHealth,
+  listAccounts,
 };

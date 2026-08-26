@@ -10,8 +10,9 @@ const {
   sendLinkPhoneOtp,
   verifyLinkPhoneOtp,
   messagingHealth,
+  listAccounts,
 } = require("../controllers/authController");
-const { protect } = require("../middleware/auth");
+const { protect, requireRole } = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -25,5 +26,6 @@ router.post("/otp/phone/send", protect, sendLinkPhoneOtp);
 router.post("/otp/phone/verify", protect, verifyLinkPhoneOtp);
 router.get("/messaging-status", messagingHealth);
 router.get("/me", protect, me);
+router.get("/accounts", protect, requireRole("teacher"), listAccounts);
 
 module.exports = router;

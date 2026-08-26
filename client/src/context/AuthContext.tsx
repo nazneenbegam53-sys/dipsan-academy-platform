@@ -8,7 +8,7 @@ export type OtpSendResponse = {
   message?: string;
   devOtp?: string;
   needsPhone?: boolean;
-  sentTo?: { email: boolean; whatsapp: boolean };
+  sentTo?: { sms?: boolean; email?: boolean };
 };
 
 interface AuthContextValue {
@@ -16,14 +16,13 @@ interface AuthContextValue {
   loading: boolean;
   sendRegisterOtp: (data: {
     name: string;
-    email: string;
     phone: string;
     role: Role;
     className?: string;
     rollNumber?: string;
   }) => Promise<OtpSendResponse>;
   verifyRegisterOtp: (challengeId: string, otp: string) => Promise<void>;
-  sendLoginOtp: (identifier: string, phone?: string) => Promise<OtpSendResponse>;
+  sendLoginOtp: (phone: string) => Promise<OtpSendResponse>;
   verifyLoginOtp: (challengeId: string, otp: string) => Promise<void>;
   sendLinkPhoneOtp: (phone: string) => Promise<OtpSendResponse>;
   verifyLinkPhoneOtp: (challengeId: string, otp: string) => Promise<void>;
@@ -53,7 +52,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function sendRegisterOtp(data: {
     name: string;
-    email: string;
     phone: string;
     role: Role;
     className?: string;
@@ -71,11 +69,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(res.user);
   }
 
-  async function sendLoginOtp(identifier: string, phone?: string) {
-    return api.post<OtpSendResponse>("/auth/otp/login/send", {
-      identifier,
-      ...(phone ? { phone } : {}),
-    });
+  async function sendLoginOtp(phone: string) {
+    return api.post<OtpSendResponse>("/auth/otp/login/send", { phone, identifier: phone });
   }
 
   async function verifyLoginOtp(challengeId: string, otp: string) {
