@@ -12,9 +12,15 @@ function emailConfigured() {
   );
 }
 
+function fast2smsKey() {
+  return String(process.env.FAST2SMS_API_KEY || "")
+    .trim()
+    .replace(/^["']|["']$/g, "");
+}
+
 /** Free / low-cost India SMS via Fast2SMS (https://www.fast2sms.com). */
 function smsConfigured() {
-  return Boolean(process.env.FAST2SMS_API_KEY);
+  return Boolean(fast2smsKey());
 }
 
 function indianMobile10(phone) {
@@ -23,9 +29,45 @@ function indianMobile10(phone) {
   const digits = e164.replace(/\D/g, "");
   if (digits.length === 12 && digits.startsWith("91")) return digits.slice(2);
   if (digits.length === 10) return digits;
-  // International: Fast2SMS free route is India-only; still try last 10 digits.
+  // International: Fast2SMS free/OTP routes are India-only; still try last 10 digits.
   if (digits.length > 10) return digits.slice(-10);
   return null;
+}
+
+function providerMessage(data) {
+  const raw = data && data.message;
+  if (Array.isArray(raw)) return raw.filter(Boolean).join(" ");
+  if (raw == null) return "";
+  return String(raw);
+}
+
+function userFacingSmsError(status, data) {
+  const text = providerMessage(data).toLowerCase();
+  if (
+    status === 401 ||
+    status === 403 ||
+    text.includes("invalid authorization") ||
+    text.includes("invalid api") ||
+    text.includes("authorization")
+  ) {
+    return "Fast2SMS API key was rejected. Open Render → Environment and paste the key from Fast2SMS → Dev API (no quotes or spaces).";
+  }
+  if (
+    text.includes("wallet") ||
+    text.includes("balance") ||
+    text.includes("insufficient") ||
+    text.includes("low credit") ||
+    text.includes("recharge")
+  ) {
+    return "Fast2SMS wallet has no SMS credits. Add balance in Fast2SMS, then try again.";
+  }
+  if (text.includes("dlt")) {
+    return "Fast2SMS needs a DLT template for this route. Use OTP SMS (route otp) or add a DLT template.";
+  }
+  if (text.includes("invalid number") || text.includes("invalid mobile")) {
+    return "That mobile number was rejected. Use a 10-digit Indian number.";
+  }
+  return "Could not send SMS OTP. Check Fast2SMS wallet credits and that IP whitelist is off in Fast2SMS Security.";
 }
 
 function getTransporter() {
@@ -60,9 +102,48 @@ async function sendEmail({ to, subject, text, html }) {
   return { ok: true };
 }
 
+function throwSmsFailure(status, data) {
+  const detail = providerMessage(data) || JSON.stringify(data || {}).slice(0, 200);
+  const err = new Error(`Fast2SMS failed (${status}): ${detail}`);
+  err.userMessage = userFacingSmsError(status, data);
+  throw err;
+}
+
+async function fast2smsRequest(payload) {
+  const key = fast2smsKey();
+  const res = await fetch("https://www.fast2sms.com/dev/bulkV2", {
+    method: "POST",
+    headers: {
+      authorization: key,
+      Accept: "*/*",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.return === false) {
+    // GET is the other documented method; some accounts only succeed this way.
+    const params = new URLSearchParams({
+      authorization: key,
+      ...Object.fromEntries(
+        Object.entries(payload).map(([k, v]) => [k, v == null ? "" : String(v)])
+      ),
+    });
+    const getRes = await fetch(`https://www.fast2sms.com/dev/bulkV2?${params.toString()}`, {
+      method: "GET",
+      headers: { authorization: key, Accept: "*/*" },
+    });
+    const getData = await getRes.json().catch(() => ({}));
+    if (!getRes.ok || getData.return === false) {
+      throwSmsFailure(getRes.status || res.status, getData.return === false ? getData : data);
+    }
+    return { ok: true, provider: "fast2sms" };
+  }
+  return { ok: true, provider: "fast2sms" };
+}
+
 /**
- * Send an SMS text (OTP / notifications) via Fast2SMS.
- * Uses the quick route (`q`) which works with free trial credits.
+ * Send an SMS text (notifications) via Fast2SMS Quick SMS.
  */
 async function sendSms({ to, body }) {
   const number = indianMobile10(to);
@@ -73,34 +154,35 @@ async function sendSms({ to, body }) {
     return { ok: true, dev: true };
   }
 
-  const res = await fetch("https://www.fast2sms.com/dev/bulkV2", {
-    method: "POST",
-    headers: {
-      authorization: process.env.FAST2SMS_API_KEY,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      route: process.env.FAST2SMS_ROUTE || "q",
-      message: String(body).slice(0, 200),
-      language: "english",
-      flash: 0,
-      numbers: number,
-    }),
+  return fast2smsRequest({
+    route: process.env.FAST2SMS_ROUTE || "q",
+    message: String(body).slice(0, 200),
+    numbers: number,
   });
-
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || data.return === false) {
-    throw new Error(
-      `Fast2SMS failed (${res.status}): ${data.message || JSON.stringify(data).slice(0, 200)}`
-    );
-  }
-  return { ok: true, provider: "fast2sms" };
 }
 
-/** OTP goes to SMS only. */
+/** OTP uses Fast2SMS OTP route (not Quick SMS custom text). */
 async function sendOtpSms({ phone, code }) {
-  const body = `Dipsan Academy OTP: ${code}. Valid 10 min. Do not share.`;
-  return sendSms({ to: phone, body });
+  const number = indianMobile10(phone);
+  if (!number) return { ok: false, skipped: true, reason: "invalid-phone" };
+
+  const otp = String(code).replace(/\D/g, "");
+  if (!otp) {
+    const err = new Error("OTP code is empty");
+    err.userMessage = "Could not send SMS OTP. Please try again shortly.";
+    throw err;
+  }
+
+  if (!smsConfigured()) {
+    console.log(`[sms:dev] To: ${number}\nYour OTP: ${otp}`);
+    return { ok: true, dev: true };
+  }
+
+  return fast2smsRequest({
+    route: process.env.FAST2SMS_OTP_ROUTE || "otp",
+    variables_values: otp,
+    numbers: number,
+  });
 }
 
 /** In-app notification mirror → SMS text only. */
