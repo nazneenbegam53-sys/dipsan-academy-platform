@@ -34,7 +34,7 @@ export default function CompleteProfile() {
       const res = await sendLinkPhoneOtp(phone.trim());
       setChallengeId(res.challengeId);
       setDevOtp(res.otp || res.devOtp || "");
-      setInfo(res.message || "OTP sent by SMS to your mobile number.");
+      setInfo(res.message || "Enter the OTP shown on this screen.");
       setStep("otp");
       setOtp("");
     } catch (err: any) {
@@ -90,7 +90,7 @@ export default function CompleteProfile() {
               autoComplete="tel"
             />
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Sending OTP…" : "Send SMS OTP"}
+              {loading ? "Getting OTP…" : "Get OTP"}
             </Button>
           </form>
         ) : (

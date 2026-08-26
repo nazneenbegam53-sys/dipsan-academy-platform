@@ -43,7 +43,7 @@ export default function Login() {
       const res = await sendLoginOtp(phone.trim());
       setChallengeId(res.challengeId);
       setDevOtp(res.otp || res.devOtp || "");
-      setInfo(res.message || "OTP sent by SMS to your mobile number.");
+      setInfo(res.message || "Enter the OTP shown on this screen.");
       setStep("otp");
       setOtp("");
     } catch (err: any) {
@@ -96,7 +96,7 @@ export default function Login() {
             Welcome back
           </h1>
           <p className="mt-2 text-sm text-bronze">
-            {step === "otp" ? "Enter the code we texted to your mobile" : "Log in with your mobile number"}
+            {step === "otp" ? "Enter the 6-digit Dipsan code shown below" : "Log in with your mobile number"}
           </p>
         </div>
 
@@ -118,7 +118,7 @@ export default function Login() {
               />
             </label>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Sending OTP…" : "Send SMS OTP"}
+              {loading ? "Getting OTP…" : "Get OTP"}
             </Button>
           </form>
         )}

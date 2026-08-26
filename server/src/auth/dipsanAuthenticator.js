@@ -1,13 +1,12 @@
 /**
- * Dipsan login authenticator — owned entirely by this codebase.
- *
- * We create a 6-digit OTP, store only a hash in MongoDB, and check the code here.
- * 2Factor / Fast2SMS are used only as a pipe to deliver an SMS text. They do not
- * verify the user (no voice call verification, no 2Factor VERIFY API).
+ * Dipsan authenticator — OTP login owned by this codebase.
+ * No Fast2SMS, 2Factor, or other SMS/voice gateway.
+ * The 6-digit code is created here, hashed in MongoDB, shown on the login
+ * screen, and checked here when the user types it.
  */
 
 const OtpChallenge = require("../models/OtpChallenge");
-const { sendOtpSms, messagingStatus, otpInApp } = require("../utils/messaging");
+const { messagingStatus } = require("../utils/messaging");
 
 const OTP_TTL_MS = 10 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
@@ -24,31 +23,14 @@ async function issueAndTextOtp(challengeFields) {
     expiresAt: new Date(Date.now() + OTP_TTL_MS),
   });
 
-  const inApp = otpInApp();
-  if (!inApp) {
-    try {
-      await sendOtpSms({ phone: challenge.phone, code });
-    } catch (err) {
-      console.error("[dipsan-otp] SMS text failed:", err.message);
-      await OtpChallenge.deleteOne({ _id: challenge._id });
-      throw Object.assign(
-        new Error(err.userMessage || "Could not send SMS OTP. Please try again shortly."),
-        { statusCode: 503 }
-      );
-    }
-  }
-
-  const payload = {
+  return {
     challengeId: challenge._id.toString(),
     expiresInSeconds: Math.floor(OTP_TTL_MS / 1000),
-    sentTo: { sms: !inApp, inApp, email: false },
+    sentTo: { sms: false, inApp: true, email: false },
     messaging: messagingStatus(),
+    otp: code,
+    devOtp: code,
   };
-  if (inApp || String(process.env.OTP_DEV_MODE || "").toLowerCase() === "true") {
-    payload.otp = code;
-    payload.devOtp = code;
-  }
-  return payload;
 }
 
 async function consumeOtp({ challengeId, purpose, otp }) {
