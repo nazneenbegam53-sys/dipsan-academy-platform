@@ -24,9 +24,9 @@ function fast2smsKey() {
     .replace(/^["']|["']$/g, "");
 }
 
-/** 2Factor.in free OTP trial (https://2factor.in). */
+/** 2Factor.in free OTP trial (https://2factor.in) or Fast2SMS OTP SMS. */
 function smsConfigured() {
-  return Boolean(twoFactorKey());
+  return Boolean(twoFactorKey() || fast2smsKey());
 }
 
 function otpInApp() {
@@ -244,7 +244,7 @@ async function sendSms({ to, body }) {
   return { ok: true, skipped: true };
 }
 
-/** OTP SMS via 2Factor.in (free trial). */
+/** Deliver our OTP as an SMS text. Fast2SMS first (SMS, not a call), then 2Factor SMS-only. */
 async function sendOtpSms({ phone, code }) {
   const number = indianMobile10(phone);
   if (!number) return { ok: false, skipped: true, reason: "invalid-phone" };
@@ -260,14 +260,30 @@ async function sendOtpSms({ phone, code }) {
     return { ok: true, inApp: true };
   }
 
-  if (!twoFactorKey()) {
-    const err = new Error("TWOFACTOR_API_KEY is not set");
-    err.userMessage =
-      "Add TWOFACTOR_API_KEY on Render. Create a free account at https://2factor.in → copy API key from the dashboard.";
-    throw err;
+  const errors = [];
+  if (fast2smsKey()) {
+    try {
+      return await fast2smsSendOtp({ number, otp });
+    } catch (err) {
+      console.error("[otp-sms] Fast2SMS text failed:", err.message);
+      errors.push(err);
+    }
+  }
+  if (twoFactorKey()) {
+    try {
+      return await twoFactorSendOtp({ number, otp });
+    } catch (err) {
+      console.error("[otp-sms] 2Factor SMS failed:", err.message);
+      errors.push(err);
+    }
   }
 
-  return twoFactorSendOtp({ number, otp });
+  const last = errors[errors.length - 1];
+  const err = last || new Error("No SMS gateway configured");
+  err.userMessage =
+    last?.userMessage ||
+    "Add FAST2SMS_API_KEY (SMS text) or TWOFACTOR_API_KEY on Render. Dipsan creates the OTP; the gateway only sends the text.";
+  throw err;
 }
 
 /** In-app notification mirror → SMS text only. */
@@ -288,7 +304,7 @@ function messagingStatus() {
   return {
     email,
     sms,
-    smsProvider: sms ? "twofactor" : null,
+    smsProvider: sms ? (fast2smsKey() ? "fast2sms" : "twofactor") : null,
     otpDelivery: inApp ? "in_app" : "sms",
     otpInApp: inApp,
     otpDevMode: inApp || String(process.env.OTP_DEV_MODE || "").toLowerCase() === "true",

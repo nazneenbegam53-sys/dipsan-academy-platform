@@ -38,7 +38,7 @@ export default function Register() {
       const res = await sendRegisterOtp({ ...form, role });
       setChallengeId(res.challengeId);
       setDevOtp(res.otp || res.devOtp || "");
-      setInfo(res.message || "Enter the OTP shown on this screen.");
+      setInfo(res.message || "OTP sent by SMS to your mobile number.");
       setStep("otp");
       setOtp("");
     } catch (err: any) {
@@ -86,7 +86,7 @@ export default function Register() {
           </h1>
           <p className="mt-2 text-sm text-bronze">
             {step === "otp"
-              ? "Enter the OTP sent by SMS"
+              ? "Enter the code we texted to your mobile"
               : "Sign up with your mobile number"}
           </p>
         </div>

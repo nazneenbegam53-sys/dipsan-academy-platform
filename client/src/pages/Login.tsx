@@ -43,7 +43,7 @@ export default function Login() {
       const res = await sendLoginOtp(phone.trim());
       setChallengeId(res.challengeId);
       setDevOtp(res.otp || res.devOtp || "");
-      setInfo(res.message || "Enter the OTP shown on this screen.");
+      setInfo(res.message || "OTP sent by SMS to your mobile number.");
       setStep("otp");
       setOtp("");
     } catch (err: any) {
@@ -96,7 +96,7 @@ export default function Login() {
             Welcome back
           </h1>
           <p className="mt-2 text-sm text-bronze">
-            {step === "otp" ? "Enter the OTP sent by SMS" : "Log in with your mobile number"}
+            {step === "otp" ? "Enter the code we texted to your mobile" : "Log in with your mobile number"}
           </p>
         </div>
 
