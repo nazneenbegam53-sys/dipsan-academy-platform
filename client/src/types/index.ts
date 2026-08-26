@@ -8,6 +8,8 @@ export interface User {
   className?: string;
   rollNumber?: string;
   phone?: string;
+  emailVerified?: boolean;
+  phoneVerified?: boolean;
 }
 
 export interface Question {

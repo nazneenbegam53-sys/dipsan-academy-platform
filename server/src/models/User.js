@@ -5,24 +5,35 @@ const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    password: { type: String, required: true, minlength: 6 },
+    // Optional when the account is OTP-only; kept for legacy password users.
+    password: { type: String, minlength: 6, required: false, select: false },
     role: { type: String, enum: ["student", "teacher"], required: true },
 
-    // Student-only fields (spec section 3 "Student Details")
-    className: { type: String, trim: true }, // e.g. "12th", "Dropper Batch"
+    className: { type: String, trim: true },
     rollNumber: { type: String, trim: true },
-    phone: { type: String, trim: true },
+    // Required for new OTP signups; sparse unique so legacy users without phone still work.
+    phone: { type: String, trim: true, sparse: true, unique: true },
+
+    emailVerified: { type: Boolean, default: false },
+    phoneVerified: { type: Boolean, default: false },
+
+    subscriptionActive: { type: Boolean, default: false },
+    subscriptionPaidAt: { type: Date },
+    subscriptionAmountInr: { type: Number },
+    subscriptionPaymentId: { type: String },
+    subscriptionOrderId: { type: String },
   },
   { timestamps: true }
 );
 
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+  if (!this.isModified("password") || !this.password) return next();
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
 userSchema.methods.comparePassword = function (candidate) {
+  if (!this.password) return Promise.resolve(false);
   return bcrypt.compare(candidate, this.password);
 };
 
@@ -35,6 +46,11 @@ userSchema.methods.toSafeObject = function () {
     className: this.className,
     rollNumber: this.rollNumber,
     phone: this.phone,
+    emailVerified: Boolean(this.emailVerified),
+    phoneVerified: Boolean(this.phoneVerified),
+    subscriptionActive: Boolean(this.subscriptionActive),
+    subscriptionPaidAt: this.subscriptionPaidAt || null,
+    subscriptionAmountInr: this.subscriptionAmountInr || null,
   };
 };
 

@@ -3,7 +3,7 @@ const Question = require("../models/Question");
 const Attempt = require("../models/Attempt");
 const { gradeAttempt } = require("../utils/scoring");
 const { asyncHandler } = require("../middleware/errorHandler");
-const { notifyUser } = require("../utils/notify");
+const { notifyUser, sendResultChannels } = require("../utils/notify");
 
 // Starts (or resumes) a student's attempt at a published exam.
 const startAttempt = asyncHandler(async (req, res) => {
@@ -107,6 +107,23 @@ const submitAttempt = asyncHandler(async (req, res) => {
     link: `/student/result/${attempt._id}`,
     meta: { examId: exam._id, attemptId: attempt._id, subject: exam.subject, title: exam.title },
   });
+
+  // Also email + WhatsApp the score summary to the student.
+  try {
+    const total = graded.totalMarks ?? 0;
+    const score = graded.score ?? 0;
+    const percentage = total ? Math.round((score / total) * 100) : 0;
+    await sendResultChannels(req.user, {
+      examTitle: exam.title,
+      subject: exam.subject,
+      score,
+      total,
+      percentage,
+      link: `/student/result/${attempt._id}`,
+    });
+  } catch (err) {
+    console.error("[result-channels] failed:", err.message);
+  }
 
   if (exam.createdBy) {
     await notifyUser(exam.createdBy, {
