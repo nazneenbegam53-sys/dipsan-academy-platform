@@ -4,20 +4,12 @@ import { useAuth } from "../context/AuthContext";
 import { Button, ErrorBanner, PageShell } from "../components/ui";
 import { BrandLogo } from "../components/BrandLogo";
 
-/**
- * Forces every existing (password-era) account to link a WhatsApp mobile number
- * so login and result delivery work for all users.
- */
+/** Older accounts without a mobile number save one here. */
 export default function CompleteProfile() {
-  const { user, sendLinkPhoneOtp, verifyLinkPhoneOtp, logout } = useAuth();
+  const { user, linkPhone, logout } = useAuth();
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
-  const [challengeId, setChallengeId] = useState("");
-  const [devOtp, setDevOtp] = useState("");
-  const [step, setStep] = useState<"phone" | "otp">("phone");
   const [error, setError] = useState("");
-  const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -26,33 +18,15 @@ export default function CompleteProfile() {
     }
   }, [user, navigate]);
 
-  async function handleSend(e: React.FormEvent) {
+  async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      const res = await sendLinkPhoneOtp(phone.trim());
-      setChallengeId(res.challengeId);
-      setDevOtp(res.otp || res.devOtp || "");
-      setInfo(res.message || "Enter the OTP shown on this screen.");
-      setStep("otp");
-      setOtp("");
-    } catch (err: any) {
-      setError(err.message || "Could not send OTP.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleVerify(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      await verifyLinkPhoneOtp(challengeId, otp.trim());
+      await linkPhone(phone.trim());
       navigate(user?.role === "teacher" ? "/teacher" : "/student", { replace: true });
     } catch (err: any) {
-      setError(err.message || "Verification failed.");
+      setError(err.message || "Could not save mobile number.");
       setLoading(false);
     }
   }
@@ -65,9 +39,9 @@ export default function CompleteProfile() {
       <div className="w-full max-w-md animate-fade-up luxury-panel rounded-3xl p-8 md:p-10">
         <div className="mb-6 flex flex-col items-center text-center">
           <BrandLogo size="lg" />
-          <h1 className="mt-4 font-display text-3xl font-semibold text-mist">Link your mobile</h1>
+          <h1 className="mt-4 font-display text-3xl font-semibold text-mist">Add your mobile</h1>
           <p className="mt-2 text-sm text-bronze">
-            All users must verify a mobile number. Log in later with this number and your password.
+            Save a mobile number so you can log in with it and your password.
             {user?.phone ? (
               <>
                 {" "}
@@ -77,53 +51,21 @@ export default function CompleteProfile() {
           </p>
         </div>
 
-        {step === "phone" ? (
-          <form onSubmit={handleSend} className="space-y-4">
-            <ErrorBanner message={error} />
-            <input
-              required
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className={fieldClass}
-              placeholder="Mobile number"
-              inputMode="tel"
-              autoComplete="tel"
-            />
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Getting OTP…" : "Get OTP"}
-            </Button>
-          </form>
-        ) : (
-          <form onSubmit={handleVerify} className="space-y-4">
-            <ErrorBanner message={error} />
-            {info && <p className="text-xs text-aurora">{info}</p>}
-            {devOtp && (
-              <p className="rounded-lg border border-gold/20 bg-gold/10 px-3 py-2 text-xs text-champagne">
-                Your OTP: <strong className="tracking-widest text-gold">{devOtp}</strong>
-              </p>
-            )}
-            <input
-              required
-              inputMode="numeric"
-              maxLength={6}
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              className={`${fieldClass} tracking-[0.35em]`}
-              placeholder="6-digit OTP"
-              autoComplete="one-time-code"
-            />
-            <Button type="submit" className="w-full" disabled={loading || otp.length !== 6}>
-              {loading ? "Linking…" : "Verify & continue"}
-            </Button>
-            <button
-              type="button"
-              className="w-full text-center text-xs text-bronze underline"
-              onClick={() => setStep("phone")}
-            >
-              Change number
-            </button>
-          </form>
-        )}
+        <form onSubmit={handleSave} className="space-y-4">
+          <ErrorBanner message={error} />
+          <input
+            required
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className={fieldClass}
+            placeholder="Mobile number"
+            inputMode="tel"
+            autoComplete="tel"
+          />
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Saving…" : "Save number"}
+          </Button>
+        </form>
 
         <button
           type="button"

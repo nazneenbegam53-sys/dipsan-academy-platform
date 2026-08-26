@@ -20,9 +20,8 @@ export default function PrivacyPolicy() {
             <h2 className="font-display text-xl font-semibold text-champagne">Account data</h2>
             <p className="mt-2 text-bronze">
               When you register we store your name, mobile number, password hash, role (student or
-              teacher), and optional class and roll number. Sign up verifies the mobile number with
-              a one-time code shown on screen. After that, login uses only your mobile number and
-              password. We do not send SMS through Fast2SMS or other gateways.
+              teacher), and optional class and roll number. Sign up and login use your mobile
+              number and password only. We do not send SMS through Fast2SMS or other gateways.
             </p>
           </section>
 

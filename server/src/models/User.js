@@ -4,8 +4,7 @@ const bcrypt = require("bcryptjs");
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
-    // Unique only when a real email string is present. A unique+sparse index still
-    // indexes { email: null }, so the second OTP teacher/student hit E11000.
+    // Unique only when a real email is present (partial unique index).
     email: { type: String, lowercase: true, trim: true },
     password: { type: String, minlength: 6, required: false, select: false },
     role: { type: String, enum: ["student", "teacher"], required: true },

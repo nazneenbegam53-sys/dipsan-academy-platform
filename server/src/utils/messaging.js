@@ -15,11 +15,6 @@ function smsConfigured() {
   return false;
 }
 
-/** Dipsan authenticator only — no Fast2SMS / 2Factor / carrier SMS. */
-function otpInApp() {
-  return true;
-}
-
 function getTransporter() {
   if (!emailConfigured()) return null;
   if (transporter) return transporter;
@@ -56,10 +51,6 @@ async function sendSms() {
   return { ok: true, skipped: true };
 }
 
-async function sendOtpSms() {
-  return { ok: true, inApp: true, provider: "dipsan" };
-}
-
 async function sendNotificationSms() {
   return { ok: true, skipped: true };
 }
@@ -73,21 +64,15 @@ function messagingStatus() {
     email: emailConfigured(),
     sms: false,
     smsProvider: null,
-    otpDelivery: "in_app",
-    otpInApp: true,
-    otpDevMode: true,
-    authenticator: "dipsan",
   };
 }
 
 module.exports = {
   sendEmail,
   sendSms,
-  sendOtpSms,
   sendNotificationSms,
   sendResultEmail,
   emailConfigured,
   smsConfigured,
-  otpInApp,
   messagingStatus,
 };

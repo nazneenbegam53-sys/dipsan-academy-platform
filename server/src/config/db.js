@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 /**
- * OTP accounts have no email. Mongo unique indexes still treat { email: null } as
+ * Phone-only accounts have no email. Mongo unique indexes still treat { email: null } as
  * a real key, so a second teacher signup failed with E11000 on email_1.
  * Unset blank emails/phones and replace unique+sparse indexes with partial ones.
  */

@@ -1,6 +1,6 @@
 const Notification = require("../models/Notification");
 const User = require("../models/User");
-const { sendNotificationSms, sendResultEmail, otpInApp } = require("./messaging");
+const { sendNotificationSms, sendResultEmail, smsConfigured } = require("./messaging");
 
 const CLIENT_ORIGIN = () =>
   (process.env.CLIENT_ORIGIN || "https://dipsan-academy-platform.vercel.app")
@@ -28,7 +28,7 @@ async function createNotification({ userId, type, title, message, link = "", met
 /** Notifications → SMS text (not email / WhatsApp). */
 async function deliverSmsNotification(user, { title, message }) {
   if (!user?.phone) return;
-  if (otpInApp()) return;
+  if (!smsConfigured()) return;
   try {
     await sendNotificationSms({ phone: user.phone, title, message });
   } catch (err) {
