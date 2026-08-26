@@ -7,18 +7,16 @@ import { LoginScienceBg } from "../components/LoginScienceBg";
 
 const INTRO_KEY = "dipsan_intro_done";
 
-type Step = "identifier" | "otp" | "password";
+type Step = "identifier" | "otp";
 
 export default function Login() {
-  const { login, sendLoginOtp, verifyLoginOtp, user } = useAuth();
+  const { sendLoginOtp, verifyLoginOtp, user } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("identifier");
   const [identifier, setIdentifier] = useState("");
   const [otp, setOtp] = useState("");
   const [challengeId, setChallengeId] = useState("");
   const [devOtp, setDevOtp] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,6 +27,10 @@ export default function Login() {
       sessionStorage.setItem(INTRO_KEY, "1");
     } catch {
       /* ignore */
+    }
+    if (user.needsPhone || !user.phone) {
+      navigate("/complete-profile", { replace: true });
+      return;
     }
     navigate(user.role === "teacher" ? "/teacher" : "/student", { replace: true });
   }, [user, navigate]);
@@ -69,23 +71,6 @@ export default function Login() {
     }
   }
 
-  async function handlePasswordLogin(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      await login(email, password);
-      try {
-        sessionStorage.setItem(INTRO_KEY, "1");
-      } catch {
-        /* ignore */
-      }
-    } catch (err: any) {
-      setError(err.message || "Login failed.");
-      setLoading(false);
-    }
-  }
-
   const fieldClass =
     "w-full rounded-xl border border-gold/25 bg-charcoal px-3.5 py-3 text-sm text-mist outline-none transition placeholder:text-bronze/60 focus:border-gold focus:ring-2 focus:ring-gold/25";
 
@@ -107,11 +92,9 @@ export default function Login() {
             Welcome back
           </h1>
           <p className="mt-2 text-sm text-bronze">
-            {step === "password"
-              ? "Legacy password login"
-              : step === "otp"
-                ? "Enter the OTP sent to your email & WhatsApp"
-                : "Log in with email or mobile via OTP"}
+            {step === "otp"
+              ? "Enter the OTP sent to your email & WhatsApp"
+              : "Every user logs in with email or mobile OTP"}
           </p>
         </div>
 
@@ -136,16 +119,6 @@ export default function Login() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Sending OTP…" : "Send OTP"}
             </Button>
-            <button
-              type="button"
-              className="w-full text-center text-xs text-bronze underline underline-offset-2"
-              onClick={() => {
-                setStep("password");
-                setError("");
-              }}
-            >
-              Use password instead (old accounts)
-            </button>
           </form>
         )}
 
@@ -198,51 +171,6 @@ export default function Login() {
                 Resend OTP
               </button>
             </div>
-          </form>
-        )}
-
-        {step === "password" && (
-          <form onSubmit={handlePasswordLogin} className="space-y-4">
-            <ErrorBanner message={error} />
-            <label className="block">
-              <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-bronze">
-                Email
-              </span>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={fieldClass}
-                autoComplete="email"
-              />
-            </label>
-            <label className="block">
-              <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-bronze">
-                Password
-              </span>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={fieldClass}
-                autoComplete="current-password"
-              />
-            </label>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Logging in…" : "Log in"}
-            </Button>
-            <button
-              type="button"
-              className="w-full text-center text-xs text-bronze underline underline-offset-2"
-              onClick={() => {
-                setStep("identifier");
-                setError("");
-              }}
-            >
-              Back to OTP login
-            </button>
           </form>
         )}
 

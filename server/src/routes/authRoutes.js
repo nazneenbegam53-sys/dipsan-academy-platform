@@ -7,6 +7,8 @@ const {
   verifyRegisterOtp,
   sendLoginOtp,
   verifyLoginOtp,
+  sendLinkPhoneOtp,
+  verifyLinkPhoneOtp,
   messagingHealth,
 } = require("../controllers/authController");
 const { protect } = require("../middleware/auth");
@@ -19,6 +21,8 @@ router.post("/otp/register/send", sendRegisterOtp);
 router.post("/otp/register/verify", verifyRegisterOtp);
 router.post("/otp/login/send", sendLoginOtp);
 router.post("/otp/login/verify", verifyLoginOtp);
+router.post("/otp/phone/send", protect, sendLinkPhoneOtp);
+router.post("/otp/phone/verify", protect, verifyLinkPhoneOtp);
 router.get("/messaging-status", messagingHealth);
 router.get("/me", protect, me);
 

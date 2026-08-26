@@ -3,9 +3,14 @@ const crypto = require("crypto");
 
 const otpChallengeSchema = new mongoose.Schema(
   {
-    purpose: { type: String, enum: ["register", "login"], required: true },
+    purpose: {
+      type: String,
+      enum: ["register", "login", "link-phone"],
+      required: true,
+    },
     email: { type: String, lowercase: true, trim: true },
     phone: { type: String, trim: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     // Pending registration payload
     name: { type: String, trim: true },
     role: { type: String, enum: ["student", "teacher"] },

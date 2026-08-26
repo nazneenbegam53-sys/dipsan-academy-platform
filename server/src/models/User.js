@@ -48,6 +48,8 @@ userSchema.methods.toSafeObject = function () {
     phone: this.phone,
     emailVerified: Boolean(this.emailVerified),
     phoneVerified: Boolean(this.phoneVerified),
+    // Every account must have a verified mobile for WhatsApp OTP / results.
+    needsPhone: !this.phone,
     subscriptionActive: Boolean(this.subscriptionActive),
     subscriptionPaidAt: this.subscriptionPaidAt || null,
     subscriptionAmountInr: this.subscriptionAmountInr || null,

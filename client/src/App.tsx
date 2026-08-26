@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import CompleteProfile from "./pages/CompleteProfile";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import InstallApp from "./pages/InstallApp";
 import StudentDashboard from "./pages/StudentDashboard";
@@ -21,6 +22,14 @@ export default function App() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route
+        path="/complete-profile"
+        element={
+          <ProtectedRoute>
+            <CompleteProfile />
+          </ProtectedRoute>
+        }
+      />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/install" element={<InstallApp />} />
 

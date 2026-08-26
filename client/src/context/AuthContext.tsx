@@ -7,22 +7,13 @@ export type OtpSendResponse = {
   expiresInSeconds: number;
   message?: string;
   devOtp?: string;
+  needsPhone?: boolean;
   sentTo?: { email: boolean; whatsapp: boolean };
 };
 
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (data: {
-    name: string;
-    email: string;
-    password: string;
-    role: Role;
-    className?: string;
-    rollNumber?: string;
-    phone?: string;
-  }) => Promise<void>;
   sendRegisterOtp: (data: {
     name: string;
     email: string;
@@ -34,6 +25,8 @@ interface AuthContextValue {
   verifyRegisterOtp: (challengeId: string, otp: string) => Promise<void>;
   sendLoginOtp: (identifier: string) => Promise<OtpSendResponse>;
   verifyLoginOtp: (challengeId: string, otp: string) => Promise<void>;
+  sendLinkPhoneOtp: (phone: string) => Promise<OtpSendResponse>;
+  verifyLinkPhoneOtp: (challengeId: string, otp: string) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
   setUserFromServer: (user: User) => void;
@@ -57,26 +50,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .catch(() => localStorage.removeItem("dipsan_token"))
       .finally(() => setLoading(false));
   }, []);
-
-  async function login(email: string, password: string) {
-    const res = await api.post<{ token: string; user: User }>("/auth/login", { email, password });
-    localStorage.setItem("dipsan_token", res.token);
-    setUser(res.user);
-  }
-
-  async function register(data: {
-    name: string;
-    email: string;
-    password: string;
-    role: Role;
-    className?: string;
-    rollNumber?: string;
-    phone?: string;
-  }) {
-    const res = await api.post<{ token: string; user: User }>("/auth/register", data);
-    localStorage.setItem("dipsan_token", res.token);
-    setUser(res.user);
-  }
 
   async function sendRegisterOtp(data: {
     name: string;
@@ -111,6 +84,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(res.user);
   }
 
+  async function sendLinkPhoneOtp(phone: string) {
+    return api.post<OtpSendResponse>("/auth/otp/phone/send", { phone });
+  }
+
+  async function verifyLinkPhoneOtp(challengeId: string, otp: string) {
+    const res = await api.post<{ user: User; message?: string }>("/auth/otp/phone/verify", {
+      challengeId,
+      otp,
+    });
+    setUser(res.user);
+  }
+
   function logout() {
     localStorage.removeItem("dipsan_token");
     setUser(null);
@@ -130,12 +115,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         loading,
-        login,
-        register,
         sendRegisterOtp,
         verifyRegisterOtp,
         sendLoginOtp,
         verifyLoginOtp,
+        sendLinkPhoneOtp,
+        verifyLinkPhoneOtp,
         logout,
         refreshUser,
         setUserFromServer,

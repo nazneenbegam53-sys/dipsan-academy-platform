@@ -153,7 +153,9 @@ const verifyRegisterOtp = asyncHandler(async (req, res) => {
 });
 
 /**
- * Step 1 — Login: identify by email or phone, send OTP to both channels on file.
+ * Step 1 — Login: identify by email or phone.
+ * Sends OTP to email and WhatsApp when both exist; email-only if phone missing
+ * (those users must link WhatsApp after login).
  */
 const sendLoginOtp = asyncHandler(async (req, res) => {
   const { email, phone, identifier } = req.body;
@@ -179,23 +181,21 @@ const sendLoginOtp = asyncHandler(async (req, res) => {
   if (!user) {
     return res.status(404).json({ message: "No account found. Please sign up first." });
   }
-  if (!user.phone) {
-    return res.status(400).json({
-      message:
-        "This account has no mobile number on file. Add a phone via support, or use password login if you still have one.",
-    });
-  }
 
   await OtpChallenge.deleteMany({ purpose: "login", email: user.email });
 
   const payload = await createAndSendOtp({
     purpose: "login",
     email: user.email,
-    phone: user.phone,
+    phone: user.phone || undefined,
   });
 
+  const needsPhone = !user.phone;
   res.json({
-    message: "OTP sent to your registered email and WhatsApp.",
+    message: needsPhone
+      ? "OTP sent to your email. After login you must add your WhatsApp number."
+      : "OTP sent to your registered email and WhatsApp.",
+    needsPhone,
     ...payload,
   });
 });
@@ -228,30 +228,88 @@ const verifyLoginOtp = asyncHandler(async (req, res) => {
   }
 
   user.emailVerified = true;
-  user.phoneVerified = true;
+  if (user.phone) user.phoneVerified = true;
   await user.save();
 
   const token = signToken(user);
   res.json({ token, user: user.toSafeObject() });
 });
 
-/** Legacy password login (existing accounts). Prefer OTP. */
-const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ message: "Email and password are required." });
+/**
+ * Authenticated: send OTP to a new WhatsApp number to link it to the account.
+ * Required for every user who signed up before mobile was mandatory.
+ */
+const sendLinkPhoneOtp = asyncHandler(async (req, res) => {
+  const phoneE164 = normalizePhone(req.body.phone);
+  if (!phoneE164) {
+    return res.status(400).json({ message: "Enter a valid mobile number." });
   }
 
-  const user = await User.findOne({ email: email.toLowerCase() }).select("+password");
-  if (!user || !user.password) {
-    return res.status(401).json({ message: "Use OTP login with your email or mobile number." });
+  const taken = await User.findOne({ phone: phoneE164, _id: { $ne: req.user._id } });
+  if (taken) {
+    return res.status(409).json({ message: "This mobile number is already linked to another account." });
   }
 
-  const match = await user.comparePassword(password);
-  if (!match) return res.status(401).json({ message: "Incorrect email or password." });
+  await OtpChallenge.deleteMany({ purpose: "link-phone", userId: req.user._id });
 
-  const token = signToken(user);
-  res.json({ token, user: user.toSafeObject() });
+  const payload = await createAndSendOtp({
+    purpose: "link-phone",
+    email: req.user.email,
+    phone: phoneE164,
+    userId: req.user._id,
+  });
+
+  res.json({
+    message: "OTP sent to your WhatsApp and email. Enter it to link this number.",
+    ...payload,
+  });
+});
+
+const verifyLinkPhoneOtp = asyncHandler(async (req, res) => {
+  const { challengeId, otp } = req.body;
+  if (!challengeId || !otp) {
+    return res.status(400).json({ message: "OTP and session id are required." });
+  }
+
+  const { challenge, error } = await loadValidChallenge(challengeId, "link-phone");
+  if (error) return res.status(error.status).json({ message: error.message });
+
+  if (String(challenge.userId) !== String(req.user._id)) {
+    return res.status(403).json({ message: "This OTP belongs to a different session." });
+  }
+
+  challenge.attempts += 1;
+  const match = challenge.codeHash === OtpChallenge.hashCode(String(otp).trim());
+  if (!match) {
+    await challenge.save();
+    return res.status(401).json({ message: "Incorrect OTP. Please try again." });
+  }
+
+  challenge.consumed = true;
+  await challenge.save();
+
+  const taken = await User.findOne({ phone: challenge.phone, _id: { $ne: req.user._id } });
+  if (taken) {
+    return res.status(409).json({ message: "This mobile number is already linked to another account." });
+  }
+
+  const user = await User.findById(req.user._id);
+  user.phone = challenge.phone;
+  user.phoneVerified = true;
+  user.emailVerified = true;
+  await user.save();
+
+  res.json({
+    message: "Mobile number linked. You will now receive OTP and results on WhatsApp.",
+    user: user.toSafeObject(),
+  });
+});
+
+/** Password login disabled — every user uses OTP. */
+const login = asyncHandler(async (_req, res) => {
+  return res.status(400).json({
+    message: "Password login is disabled. Use OTP with your email or mobile number.",
+  });
 });
 
 /** Legacy register blocked — force OTP signup. */
@@ -277,5 +335,7 @@ module.exports = {
   verifyRegisterOtp,
   sendLoginOtp,
   verifyLoginOtp,
+  sendLinkPhoneOtp,
+  verifyLinkPhoneOtp,
   messagingHealth,
 };

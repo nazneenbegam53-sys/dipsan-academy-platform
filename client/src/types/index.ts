@@ -10,6 +10,7 @@ export interface User {
   phone?: string;
   emailVerified?: boolean;
   phoneVerified?: boolean;
+  needsPhone?: boolean;
 }
 
 export interface Question {
