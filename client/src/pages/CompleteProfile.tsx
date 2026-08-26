@@ -90,7 +90,7 @@ export default function CompleteProfile() {
               autoComplete="tel"
             />
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Getting OTP…" : "Get OTP"}
+              {loading ? "Sending OTP…" : "Send SMS OTP"}
             </Button>
           </form>
         ) : (

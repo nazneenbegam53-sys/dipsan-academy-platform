@@ -12,15 +12,25 @@ function emailConfigured() {
   );
 }
 
+function twoFactorKey() {
+  return String(process.env.TWOFACTOR_API_KEY || process.env.TWO_FACTOR_API_KEY || "")
+    .trim()
+    .replace(/^["']|["']$/g, "");
+}
+
 function fast2smsKey() {
   return String(process.env.FAST2SMS_API_KEY || "")
     .trim()
     .replace(/^["']|["']$/g, "");
 }
 
-/** Free / low-cost India SMS via Fast2SMS (https://www.fast2sms.com). */
+/** 2Factor.in free OTP trial (https://2factor.in). */
 function smsConfigured() {
-  return Boolean(fast2smsKey());
+  return Boolean(twoFactorKey());
+}
+
+function otpInApp() {
+  return String(process.env.OTP_DELIVERY || "sms").trim().toLowerCase() === "in_app";
 }
 
 function indianMobile10(phone) {
@@ -41,13 +51,6 @@ function providerMessage(data) {
   return String(raw);
 }
 
-function otpInApp() {
-  // Default: OTP is created and checked in our database and shown on screen.
-  // Real carrier SMS always needs a gateway (Fast2SMS etc). Opt in with OTP_DELIVERY=sms.
-  const v = String(process.env.OTP_DELIVERY || "in_app").trim().toLowerCase();
-  return v !== "sms";
-}
-
 function otpRoute() {
   const r = String(process.env.FAST2SMS_OTP_ROUTE || "otp").trim().toLowerCase();
   // Quick SMS (q) and DLT (dlt) cannot send login OTP without TRAI DLT templates.
@@ -55,33 +58,21 @@ function otpRoute() {
   return r;
 }
 
-function userFacingSmsError(status, data) {
-  const text = providerMessage(data).toLowerCase();
-  if (
-    status === 401 ||
-    status === 403 ||
-    text.includes("invalid authorization") ||
-    text.includes("invalid api") ||
-    (text.includes("authorization") && text.includes("invalid"))
-  ) {
-    return "Fast2SMS API key was rejected. Open Render → Environment and paste the key from Fast2SMS → Dev API (no quotes or spaces).";
+function mapTwoFactorError(data) {
+  const text = String(data?.Details || data?.message || "").toLowerCase();
+  if (text.includes("api key") || (text.includes("invalid") && text.includes("key"))) {
+    return "2Factor API key was rejected. On Render add TWOFACTOR_API_KEY from https://2factor.in (dashboard → API key).";
   }
-  if (
-    text.includes("wallet") ||
-    text.includes("balance") ||
-    text.includes("insufficient") ||
-    text.includes("low credit") ||
-    text.includes("recharge")
-  ) {
-    return "Fast2SMS wallet has no SMS credits. Add balance in Fast2SMS, then try again.";
+  if (text.includes("balance") || text.includes("credit") || text.includes("insufficient")) {
+    return "2Factor free SMS credits are used up. Add more credits in 2factor.in or wait for the daily trial reset.";
   }
   if (text.includes("dlt")) {
-    return "Quick SMS / DLT cannot send this OTP. In Render, you can leave FAST2SMS_ROUTE unused. Login uses Fast2SMS OTP SMS only. In Fast2SMS open OTP SMS, add OTP wallet credits, and turn IP whitelist off.";
+    return "2Factor needs a DLT template for this account. In 2factor.in use the OTP SMS product (not promotional SMS).";
   }
-  if (text.includes("invalid number") || text.includes("invalid mobile")) {
+  if (text.includes("number") || text.includes("mobile")) {
     return "That mobile number was rejected. Use a 10-digit Indian number.";
   }
-  return "Could not send SMS OTP. Check Fast2SMS wallet credits and that IP whitelist is off in Fast2SMS Security.";
+  return "Could not send SMS OTP via 2Factor. Check TWOFACTOR_API_KEY on Render and free credits at 2factor.in.";
 }
 
 function getTransporter() {
@@ -118,8 +109,8 @@ async function sendEmail({ to, subject, text, html }) {
 
 function throwSmsFailure(status, data) {
   const detail = providerMessage(data) || JSON.stringify(data || {}).slice(0, 200);
-  const err = new Error(`Fast2SMS failed (${status}): ${detail}`);
-  err.userMessage = userFacingSmsError(status, data);
+  const err = new Error(`SMS gateway failed (${status}): ${detail}`);
+  err.userMessage = "Could not send SMS OTP. Please try again shortly.";
   throw err;
 }
 
@@ -185,26 +176,42 @@ async function fast2smsSendOtp({ number, otp }) {
   return { ok: true, provider: "fast2sms" };
 }
 
+async function twoFactorSendOtp({ number, otp }) {
+  const key = twoFactorKey();
+  const template = String(process.env.TWOFACTOR_TEMPLATE || "").trim();
+  const phones = [number, `91${number}`];
+  let lastData = {};
+  let lastStatus = 0;
+
+  for (const phone of phones) {
+    const parts = [encodeURIComponent(key), "SMS", encodeURIComponent(phone), encodeURIComponent(otp)];
+    if (template) parts.push(encodeURIComponent(template));
+    const url = `https://2factor.in/API/V1/${parts.join("/")}`;
+    const res = await fetch(url, { method: "GET", headers: { Accept: "application/json" } });
+    const data = await res.json().catch(() => ({}));
+    lastData = data;
+    lastStatus = res.status;
+    if (String(data.Status || "").toLowerCase() === "success") {
+      return { ok: true, provider: "twofactor" };
+    }
+  }
+
+  const err = new Error(`2Factor failed (${lastStatus}): ${lastData.Details || JSON.stringify(lastData).slice(0, 160)}`);
+  err.userMessage = mapTwoFactorError(lastData);
+  throw err;
+}
+
 /**
- * Send an SMS text (notifications) via Fast2SMS Quick SMS.
+ * Notifications: in-app only. Do not spend OTP SMS credits.
  */
 async function sendSms({ to, body }) {
   const number = indianMobile10(to);
   if (!number) return { ok: false, skipped: true, reason: "invalid-phone" };
-
-  if (otpInApp() || !smsConfigured()) {
-    console.log(`[sms:skip] To: ${number}\n${body}`);
-    return { ok: true, skipped: true, inApp: otpInApp() };
-  }
-
-  return fast2smsRequest({
-    route: process.env.FAST2SMS_ROUTE || "q",
-    message: String(body).slice(0, 200),
-    numbers: number,
-  });
+  console.log(`[sms:skip] To: ${number}\n${body}`);
+  return { ok: true, skipped: true };
 }
 
-/** OTP uses Fast2SMS only when OTP_DELIVERY=sms. */
+/** OTP SMS via 2Factor.in (free trial). */
 async function sendOtpSms({ phone, code }) {
   const number = indianMobile10(phone);
   if (!number) return { ok: false, skipped: true, reason: "invalid-phone" };
@@ -216,11 +223,18 @@ async function sendOtpSms({ phone, code }) {
     throw err;
   }
 
-  if (otpInApp() || !smsConfigured()) {
+  if (otpInApp()) {
     return { ok: true, inApp: true };
   }
 
-  return fast2smsSendOtp({ number, otp });
+  if (!twoFactorKey()) {
+    const err = new Error("TWOFACTOR_API_KEY is not set");
+    err.userMessage =
+      "Add TWOFACTOR_API_KEY on Render. Create a free account at https://2factor.in → copy API key from the dashboard.";
+    throw err;
+  }
+
+  return twoFactorSendOtp({ number, otp });
 }
 
 /** In-app notification mirror → SMS text only. */
@@ -241,10 +255,10 @@ function messagingStatus() {
   return {
     email,
     sms,
-    smsProvider: sms ? "fast2sms" : null,
+    smsProvider: sms ? "twofactor" : null,
     otpDelivery: inApp ? "in_app" : "sms",
     otpInApp: inApp,
-    otpDevMode: inApp || String(process.env.OTP_DEV_MODE || "").toLowerCase() === "true" || !sms,
+    otpDevMode: inApp || String(process.env.OTP_DEV_MODE || "").toLowerCase() === "true",
   };
 }
 
