@@ -40,9 +40,10 @@ async function createAndSendOtp(challengeFields) {
     // Still allow verify in OTP_DEV_MODE / when SMS is unset (dev logs the code).
     if (!otpDevEnabled()) {
       await OtpChallenge.deleteOne({ _id: challenge._id });
-      throw Object.assign(new Error("Could not send SMS OTP. Please try again shortly."), {
-        statusCode: 503,
-      });
+      throw Object.assign(
+        new Error(err.userMessage || "Could not send SMS OTP. Please try again shortly."),
+        { statusCode: 503 }
+      );
     }
   }
 
