@@ -6,7 +6,7 @@ import { BrandLogo } from "../components/BrandLogo";
 
 /**
  * Forces every existing (password-era) account to link a WhatsApp mobile number
- * so OTP login and result delivery work for all users.
+ * so login and result delivery work for all users.
  */
 export default function CompleteProfile() {
   const { user, sendLinkPhoneOtp, verifyLinkPhoneOtp, logout } = useAuth();
@@ -67,7 +67,7 @@ export default function CompleteProfile() {
           <BrandLogo size="lg" />
           <h1 className="mt-4 font-display text-3xl font-semibold text-mist">Link your mobile</h1>
           <p className="mt-2 text-sm text-bronze">
-            All users must verify a mobile number to log in with OTP.
+            All users must verify a mobile number. Log in later with this number and your password.
             {user?.phone ? (
               <>
                 {" "}

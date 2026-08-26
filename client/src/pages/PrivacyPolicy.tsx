@@ -19,10 +19,10 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="font-display text-xl font-semibold text-champagne">Account data</h2>
             <p className="mt-2 text-bronze">
-              When you register we store your name, mobile number, role (student or
-              teacher), and optional class and roll number. Login uses Dipsan’s own
-              authenticator: we create a one-time code, show it on the login screen, and
-              check it on our servers. We do not send SMS through Fast2SMS or other gateways.
+              When you register we store your name, mobile number, password hash, role (student or
+              teacher), and optional class and roll number. Sign up verifies the mobile number with
+              a one-time code shown on screen. After that, login uses only your mobile number and
+              password. We do not send SMS through Fast2SMS or other gateways.
             </p>
           </section>
 
