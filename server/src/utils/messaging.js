@@ -41,6 +41,13 @@ function providerMessage(data) {
   return String(raw);
 }
 
+function otpRoute() {
+  const r = String(process.env.FAST2SMS_OTP_ROUTE || "otp").trim().toLowerCase();
+  // Quick SMS (q) and DLT (dlt) cannot send login OTP without TRAI DLT templates.
+  if (!r || r === "q" || r === "dlt" || r === "quick") return "otp";
+  return r;
+}
+
 function userFacingSmsError(status, data) {
   const text = providerMessage(data).toLowerCase();
   if (
@@ -48,7 +55,7 @@ function userFacingSmsError(status, data) {
     status === 403 ||
     text.includes("invalid authorization") ||
     text.includes("invalid api") ||
-    text.includes("authorization")
+    (text.includes("authorization") && text.includes("invalid"))
   ) {
     return "Fast2SMS API key was rejected. Open Render → Environment and paste the key from Fast2SMS → Dev API (no quotes or spaces).";
   }
@@ -62,7 +69,7 @@ function userFacingSmsError(status, data) {
     return "Fast2SMS wallet has no SMS credits. Add balance in Fast2SMS, then try again.";
   }
   if (text.includes("dlt")) {
-    return "Fast2SMS needs a DLT template for this route. Use OTP SMS (route otp) or add a DLT template.";
+    return "Quick SMS / DLT cannot send this OTP. In Render, you can leave FAST2SMS_ROUTE unused. Login uses Fast2SMS OTP SMS only. In Fast2SMS open OTP SMS, add OTP wallet credits, and turn IP whitelist off.";
   }
   if (text.includes("invalid number") || text.includes("invalid mobile")) {
     return "That mobile number was rejected. Use a 10-digit Indian number.";
@@ -109,6 +116,11 @@ function throwSmsFailure(status, data) {
   throw err;
 }
 
+async function parseFast2smsResponse(res) {
+  const data = await res.json().catch(() => ({}));
+  return { ok: res.ok && data.return !== false, status: res.status, data };
+}
+
 async function fast2smsRequest(payload) {
   const key = fast2smsKey();
   const res = await fetch("https://www.fast2sms.com/dev/bulkV2", {
@@ -120,25 +132,49 @@ async function fast2smsRequest(payload) {
     },
     body: JSON.stringify(payload),
   });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || data.return === false) {
-    // GET is the other documented method; some accounts only succeed this way.
-    const params = new URLSearchParams({
-      authorization: key,
-      ...Object.fromEntries(
-        Object.entries(payload).map(([k, v]) => [k, v == null ? "" : String(v)])
-      ),
+  const parsed = await parseFast2smsResponse(res);
+  if (!parsed.ok) throwSmsFailure(parsed.status, parsed.data);
+  return { ok: true, provider: "fast2sms" };
+}
+
+/** Fast2SMS OTP SMS: GET bulkV2 with route=otp only (Quick SMS `q` needs DLT). */
+async function fast2smsSendOtp({ number, otp }) {
+  const key = fast2smsKey();
+  const otpId = String(process.env.FAST2SMS_OTP_ID || "").trim();
+
+  if (otpId) {
+    const res = await fetch("https://www.fast2sms.com/dev/otp/send", {
+      method: "POST",
+      headers: {
+        authorization: key,
+        Accept: "*/*",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        mobile: number,
+        otp_id: otpId,
+        otp,
+        otp_length: String(otp).length,
+        otp_expiry: 10,
+      }),
     });
-    const getRes = await fetch(`https://www.fast2sms.com/dev/bulkV2?${params.toString()}`, {
-      method: "GET",
-      headers: { authorization: key, Accept: "*/*" },
-    });
-    const getData = await getRes.json().catch(() => ({}));
-    if (!getRes.ok || getData.return === false) {
-      throwSmsFailure(getRes.status || res.status, getData.return === false ? getData : data);
-    }
+    const parsed = await parseFast2smsResponse(res);
+    if (!parsed.ok) throwSmsFailure(parsed.status, parsed.data);
     return { ok: true, provider: "fast2sms" };
   }
+
+  const params = new URLSearchParams({
+    authorization: key,
+    route: otpRoute(),
+    variables_values: otp,
+    numbers: number,
+  });
+  const res = await fetch(`https://www.fast2sms.com/dev/bulkV2?${params.toString()}`, {
+    method: "GET",
+    headers: { authorization: key, Accept: "*/*" },
+  });
+  const parsed = await parseFast2smsResponse(res);
+  if (!parsed.ok) throwSmsFailure(parsed.status, parsed.data);
   return { ok: true, provider: "fast2sms" };
 }
 
@@ -178,11 +214,7 @@ async function sendOtpSms({ phone, code }) {
     return { ok: true, dev: true };
   }
 
-  return fast2smsRequest({
-    route: process.env.FAST2SMS_OTP_ROUTE || "otp",
-    variables_values: otp,
-    numbers: number,
-  });
+  return fast2smsSendOtp({ number, otp });
 }
 
 /** In-app notification mirror → SMS text only. */
