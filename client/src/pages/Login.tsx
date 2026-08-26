@@ -96,7 +96,7 @@ export default function Login() {
             Welcome back
           </h1>
           <p className="mt-2 text-sm text-bronze">
-            {step === "otp" ? "Enter the 6-digit code shown below" : "Log in with your mobile number"}
+            {step === "otp" ? "Enter the OTP sent by SMS" : "Log in with your mobile number"}
           </p>
         </div>
 
@@ -118,7 +118,7 @@ export default function Login() {
               />
             </label>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Getting OTP…" : "Get OTP"}
+              {loading ? "Sending OTP…" : "Send SMS OTP"}
             </Button>
           </form>
         )}
