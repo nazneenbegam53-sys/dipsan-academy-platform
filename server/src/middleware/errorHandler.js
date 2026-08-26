@@ -15,6 +15,16 @@ function errorHandler(err, req, res, next) {
           : err.message,
     });
   }
+  if (err.code === 11000) {
+    const field = Object.keys(err.keyPattern || err.keyValue || {})[0] || "value";
+    const friendly =
+      field === "email"
+        ? "An account with this email already exists."
+        : field === "phone"
+          ? "An account with this mobile number already exists. Please log in."
+          : "This account already exists.";
+    return res.status(409).json({ message: friendly });
+  }
   const status = err.statusCode || 500;
   res.status(status).json({
     message: err.message || "Something went wrong on the server.",
