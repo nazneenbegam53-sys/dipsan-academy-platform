@@ -47,7 +47,7 @@ const sendRegisterOtp = asyncHandler(async (req, res) => {
     });
 
     res.json({
-      message: "OTP sent by SMS to your mobile number.",
+      message: "Enter the OTP shown on this screen.",
       ...payload,
     });
   } catch (err) {
@@ -107,7 +107,7 @@ const sendLoginOtp = asyncHandler(async (req, res) => {
     });
 
     res.json({
-      message: "OTP sent by SMS to your mobile number.",
+      message: "Enter the OTP shown on this screen.",
       ...payload,
     });
   } catch (err) {
@@ -166,7 +166,7 @@ const sendLinkPhoneOtp = asyncHandler(async (req, res) => {
     });
 
     res.json({
-      message: "OTP sent by SMS to your mobile number.",
+      message: "Enter the OTP shown on this screen.",
       ...payload,
     });
   } catch (err) {
