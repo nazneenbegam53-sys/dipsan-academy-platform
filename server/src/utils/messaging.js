@@ -12,15 +12,19 @@ function emailConfigured() {
   );
 }
 
-function whatsappConfigured() {
-  // Twilio WhatsApp
-  if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_WHATSAPP_FROM) {
-    return "twilio";
-  }
-  // Meta WhatsApp Cloud API
-  if (process.env.WHATSAPP_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID) {
-    return "meta";
-  }
+/** Free / low-cost India SMS via Fast2SMS (https://www.fast2sms.com). */
+function smsConfigured() {
+  return Boolean(process.env.FAST2SMS_API_KEY);
+}
+
+function indianMobile10(phone) {
+  const e164 = normalizePhone(phone);
+  if (!e164) return null;
+  const digits = e164.replace(/\D/g, "");
+  if (digits.length === 12 && digits.startsWith("91")) return digits.slice(2);
+  if (digits.length === 10) return digits;
+  // International: Fast2SMS free route is India-only; still try last 10 digits.
+  if (digits.length > 10) return digits.slice(-10);
   return null;
 }
 
@@ -56,111 +60,79 @@ async function sendEmail({ to, subject, text, html }) {
   return { ok: true };
 }
 
-async function sendWhatsAppTwilio(toE164, body) {
-  const sid = process.env.TWILIO_ACCOUNT_SID;
-  const token = process.env.TWILIO_AUTH_TOKEN;
-  const from = process.env.TWILIO_WHATSAPP_FROM; // e.g. whatsapp:+14155238886
-  const to = toE164.startsWith("whatsapp:") ? toE164 : `whatsapp:${toE164}`;
-  const fromAddr = from.startsWith("whatsapp:") ? from : `whatsapp:${from}`;
+/**
+ * Send an SMS text (OTP / notifications) via Fast2SMS.
+ * Uses the quick route (`q`) which works with free trial credits.
+ */
+async function sendSms({ to, body }) {
+  const number = indianMobile10(to);
+  if (!number) return { ok: false, skipped: true, reason: "invalid-phone" };
 
-  const auth = Buffer.from(`${sid}:${token}`).toString("base64");
-  const params = new URLSearchParams({ From: fromAddr, To: to, Body: body });
-  const res = await fetch(
-    `https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Basic ${auth}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: params.toString(),
-    }
-  );
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Twilio WhatsApp failed (${res.status}): ${errText.slice(0, 300)}`);
-  }
-  return { ok: true, provider: "twilio" };
-}
-
-async function sendWhatsAppMeta(toE164, body) {
-  const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-  const token = process.env.WHATSAPP_TOKEN;
-  const digits = toE164.replace(/\D/g, "");
-  const res = await fetch(`https://graph.facebook.com/v19.0/${phoneId}/messages`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      messaging_product: "whatsapp",
-      to: digits,
-      type: "text",
-      text: { body },
-    }),
-  });
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Meta WhatsApp failed (${res.status}): ${errText.slice(0, 300)}`);
-  }
-  return { ok: true, provider: "meta" };
-}
-
-async function sendWhatsApp({ to, body }) {
-  const e164 = normalizePhone(to);
-  if (!e164) return { ok: false, skipped: true, reason: "invalid-phone" };
-
-  const provider = whatsappConfigured();
-  if (!provider) {
-    console.log(`[whatsapp:dev] To: ${e164}\n${body}`);
+  if (!smsConfigured()) {
+    console.log(`[sms:dev] To: ${number}\n${body}`);
     return { ok: true, dev: true };
   }
 
-  if (provider === "twilio") return sendWhatsAppTwilio(e164, body);
-  return sendWhatsAppMeta(e164, body);
+  const res = await fetch("https://www.fast2sms.com/dev/bulkV2", {
+    method: "POST",
+    headers: {
+      authorization: process.env.FAST2SMS_API_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      route: process.env.FAST2SMS_ROUTE || "q",
+      message: String(body).slice(0, 200),
+      language: "english",
+      flash: 0,
+      numbers: number,
+    }),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.return === false) {
+    throw new Error(
+      `Fast2SMS failed (${res.status}): ${data.message || JSON.stringify(data).slice(0, 200)}`
+    );
+  }
+  return { ok: true, provider: "fast2sms" };
 }
 
-/**
- * Send the same message on email + WhatsApp (best-effort; never throws to callers).
- */
-async function sendChannels({ email, phone, subject, text, html }) {
-  const results = { email: null, whatsapp: null };
-  if (email) {
-    try {
-      results.email = await sendEmail({ to: email, subject, text, html });
-    } catch (err) {
-      console.error("[email] send failed:", err.message);
-      results.email = { ok: false, error: err.message };
-    }
-  }
-  if (phone) {
-    try {
-      results.whatsapp = await sendWhatsApp({ to: phone, body: text });
-    } catch (err) {
-      console.error("[whatsapp] send failed:", err.message);
-      results.whatsapp = { ok: false, error: err.message };
-    }
-  }
-  return results;
+/** OTP goes to SMS only. */
+async function sendOtpSms({ phone, code }) {
+  const body = `Dipsan Academy OTP: ${code}. Valid 10 min. Do not share.`;
+  return sendSms({ to: phone, body });
+}
+
+/** In-app notification mirror → SMS text only. */
+async function sendNotificationSms({ phone, title, message }) {
+  const body = `Dipsan: ${title} — ${message}`.slice(0, 200);
+  return sendSms({ to: phone, body });
+}
+
+/** Exam result → email only. */
+async function sendResultEmail({ email, subject, text, html }) {
+  return sendEmail({ to: email, subject, text, html });
 }
 
 function messagingStatus() {
+  const sms = smsConfigured();
+  const email = emailConfigured();
   return {
-    email: emailConfigured(),
-    whatsapp: Boolean(whatsappConfigured()),
-    whatsappProvider: whatsappConfigured(),
+    email,
+    sms,
+    smsProvider: sms ? "fast2sms" : null,
     otpDevMode:
-      String(process.env.OTP_DEV_MODE || "").toLowerCase() === "true" ||
-      (!emailConfigured() && !whatsappConfigured()),
+      String(process.env.OTP_DEV_MODE || "").toLowerCase() === "true" || !sms,
   };
 }
 
 module.exports = {
   sendEmail,
-  sendWhatsApp,
-  sendChannels,
+  sendSms,
+  sendOtpSms,
+  sendNotificationSms,
+  sendResultEmail,
   emailConfigured,
-  whatsappConfigured,
+  smsConfigured,
   messagingStatus,
 };

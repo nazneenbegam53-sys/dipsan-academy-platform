@@ -67,7 +67,8 @@ export default function CompleteProfile() {
           <BrandLogo size="lg" />
           <h1 className="mt-4 font-display text-3xl font-semibold text-mist">Link your mobile</h1>
           <p className="mt-2 text-sm text-bronze">
-            All Dipsan Academy users must verify a WhatsApp number for OTP login and exam results.
+            All users must verify a mobile number for SMS OTP login and SMS notifications. Exam
+            results are sent to your email.
             {user?.email ? (
               <>
                 {" "}
@@ -85,12 +86,12 @@ export default function CompleteProfile() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               className={fieldClass}
-              placeholder="WhatsApp mobile (10-digit or +91…)"
+              placeholder="Mobile number (SMS OTP)"
               inputMode="tel"
               autoComplete="tel"
             />
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Sending OTP…" : "Send OTP to WhatsApp & email"}
+              {loading ? "Sending OTP…" : "Send SMS OTP"}
             </Button>
           </form>
         ) : (

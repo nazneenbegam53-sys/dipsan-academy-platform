@@ -3,7 +3,7 @@ const User = require("../models/User");
 const OtpChallenge = require("../models/OtpChallenge");
 const { asyncHandler } = require("../middleware/errorHandler");
 const { normalizePhone, isValidEmail } = require("../utils/phone");
-const { sendChannels, messagingStatus } = require("../utils/messaging");
+const { sendOtpSms, messagingStatus } = require("../utils/messaging");
 
 const OTP_TTL_MS = 10 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
@@ -18,7 +18,14 @@ function otpDevEnabled() {
   return messagingStatus().otpDevMode;
 }
 
+/** OTP is delivered by SMS text only (not email / WhatsApp). */
 async function createAndSendOtp(challengeFields) {
+  if (!challengeFields.phone) {
+    throw Object.assign(new Error("A mobile number is required to send OTP by SMS."), {
+      statusCode: 400,
+    });
+  }
+
   const code = OtpChallenge.generateCode();
   const challenge = await OtpChallenge.create({
     ...challengeFields,
@@ -26,25 +33,23 @@ async function createAndSendOtp(challengeFields) {
     expiresAt: new Date(Date.now() + OTP_TTL_MS),
   });
 
-  const subject = "Dipsan Academy verification code";
-  const text = `Your Dipsan Academy OTP is ${code}. It expires in 10 minutes. Do not share this code.`;
-  const html = `<p>Your Dipsan Academy OTP is <strong style="font-size:18px;letter-spacing:2px">${code}</strong>.</p><p>It expires in 10 minutes. Do not share this code.</p>`;
-
-  await sendChannels({
-    email: challenge.email,
-    phone: challenge.phone,
-    subject,
-    text,
-    html,
-  });
+  try {
+    await sendOtpSms({ phone: challenge.phone, code });
+  } catch (err) {
+    console.error("[otp-sms] failed:", err.message);
+    // Still allow verify in OTP_DEV_MODE / when SMS is unset (dev logs the code).
+    if (!otpDevEnabled()) {
+      await OtpChallenge.deleteOne({ _id: challenge._id });
+      throw Object.assign(new Error("Could not send SMS OTP. Please try again shortly."), {
+        statusCode: 503,
+      });
+    }
+  }
 
   const payload = {
     challengeId: challenge._id.toString(),
     expiresInSeconds: Math.floor(OTP_TTL_MS / 1000),
-    sentTo: {
-      email: Boolean(challenge.email),
-      whatsapp: Boolean(challenge.phone),
-    },
+    sentTo: { sms: true, email: false },
     messaging: messagingStatus(),
   };
   if (otpDevEnabled()) {
@@ -68,7 +73,7 @@ async function loadValidChallenge(challengeId, purpose) {
 }
 
 /**
- * Step 1 — Sign up: collect profile + send OTP to email and WhatsApp.
+ * Step 1 — Sign up: collect profile + send OTP SMS to mobile.
  */
 const sendRegisterOtp = asyncHandler(async (req, res) => {
   const { name, email, phone, role, className, rollNumber } = req.body;
@@ -99,20 +104,24 @@ const sendRegisterOtp = asyncHandler(async (req, res) => {
 
   await OtpChallenge.deleteMany({ purpose: "register", email: emailLc });
 
-  const payload = await createAndSendOtp({
-    purpose: "register",
-    email: emailLc,
-    phone: phoneE164,
-    name: name.trim(),
-    role,
-    className: className || undefined,
-    rollNumber: rollNumber || undefined,
-  });
+  try {
+    const payload = await createAndSendOtp({
+      purpose: "register",
+      email: emailLc,
+      phone: phoneE164,
+      name: name.trim(),
+      role,
+      className: className || undefined,
+      rollNumber: rollNumber || undefined,
+    });
 
-  res.json({
-    message: "OTP sent to your email and WhatsApp.",
-    ...payload,
-  });
+    res.json({
+      message: "OTP sent by SMS to your mobile number.",
+      ...payload,
+    });
+  } catch (err) {
+    return res.status(err.statusCode || 500).json({ message: err.message || "Could not send OTP." });
+  }
 });
 
 /**
@@ -153,9 +162,9 @@ const verifyRegisterOtp = asyncHandler(async (req, res) => {
 });
 
 /**
- * Step 1 — Login: identify by email or phone.
- * Sends OTP to email and WhatsApp when both exist; email-only if phone missing
- * (those users must link WhatsApp after login).
+ * Step 1 — Login: identify by email or phone, send OTP SMS.
+ * If the account has no mobile yet, client must also send `phone` so we can
+ * SMS the OTP and link that number on successful verify (all users).
  */
 const sendLoginOtp = asyncHandler(async (req, res) => {
   const { email, phone, identifier } = req.body;
@@ -182,22 +191,47 @@ const sendLoginOtp = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: "No account found. Please sign up first." });
   }
 
+  let smsPhone = user.phone || null;
+  let linkingPhone = false;
+
+  if (!smsPhone) {
+    const phoneE164 = normalizePhone(req.body.phone || "");
+    if (!phoneE164) {
+      return res.status(400).json({
+        message: "Add your mobile number to receive the SMS OTP.",
+        needsPhone: true,
+        code: "NEEDS_PHONE",
+      });
+    }
+    const taken = await User.findOne({ phone: phoneE164, _id: { $ne: user._id } });
+    if (taken) {
+      return res.status(409).json({ message: "This mobile number is already linked to another account." });
+    }
+    smsPhone = phoneE164;
+    linkingPhone = true;
+  }
+
   await OtpChallenge.deleteMany({ purpose: "login", email: user.email });
 
-  const payload = await createAndSendOtp({
-    purpose: "login",
-    email: user.email,
-    phone: user.phone || undefined,
-  });
+  try {
+    const payload = await createAndSendOtp({
+      purpose: "login",
+      email: user.email,
+      phone: smsPhone,
+      // Stash pending phone on challenge when linking for the first time.
+      ...(linkingPhone ? { name: `link:${smsPhone}` } : {}),
+    });
 
-  const needsPhone = !user.phone;
-  res.json({
-    message: needsPhone
-      ? "OTP sent to your email. After login you must add your WhatsApp number."
-      : "OTP sent to your registered email and WhatsApp.",
-    needsPhone,
-    ...payload,
-  });
+    res.json({
+      message: linkingPhone
+        ? "OTP sent by SMS. After verify, this mobile will be saved to your account."
+        : "OTP sent by SMS to your registered mobile number.",
+      needsPhone: linkingPhone,
+      ...payload,
+    });
+  } catch (err) {
+    return res.status(err.statusCode || 500).json({ message: err.message || "Could not send OTP." });
+  }
 });
 
 /**
@@ -227,6 +261,15 @@ const verifyLoginOtp = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: "Account not found." });
   }
 
+  // First-time mobile link from login challenge (name = "link:+91…").
+  if (!user.phone && challenge.phone) {
+    const taken = await User.findOne({ phone: challenge.phone, _id: { $ne: user._id } });
+    if (taken) {
+      return res.status(409).json({ message: "This mobile number is already linked to another account." });
+    }
+    user.phone = challenge.phone;
+  }
+
   user.emailVerified = true;
   if (user.phone) user.phoneVerified = true;
   await user.save();
@@ -236,7 +279,7 @@ const verifyLoginOtp = asyncHandler(async (req, res) => {
 });
 
 /**
- * Authenticated: send OTP to a new WhatsApp number to link it to the account.
+ * Authenticated: send OTP SMS to a new mobile number to link it.
  * Required for every user who signed up before mobile was mandatory.
  */
 const sendLinkPhoneOtp = asyncHandler(async (req, res) => {
@@ -252,17 +295,21 @@ const sendLinkPhoneOtp = asyncHandler(async (req, res) => {
 
   await OtpChallenge.deleteMany({ purpose: "link-phone", userId: req.user._id });
 
-  const payload = await createAndSendOtp({
-    purpose: "link-phone",
-    email: req.user.email,
-    phone: phoneE164,
-    userId: req.user._id,
-  });
+  try {
+    const payload = await createAndSendOtp({
+      purpose: "link-phone",
+      email: req.user.email,
+      phone: phoneE164,
+      userId: req.user._id,
+    });
 
-  res.json({
-    message: "OTP sent to your WhatsApp and email. Enter it to link this number.",
-    ...payload,
-  });
+    res.json({
+      message: "OTP sent by SMS to this mobile number.",
+      ...payload,
+    });
+  } catch (err) {
+    return res.status(err.statusCode || 500).json({ message: err.message || "Could not send OTP." });
+  }
 });
 
 const verifyLinkPhoneOtp = asyncHandler(async (req, res) => {
@@ -300,7 +347,7 @@ const verifyLinkPhoneOtp = asyncHandler(async (req, res) => {
   await user.save();
 
   res.json({
-    message: "Mobile number linked. You will now receive OTP and results on WhatsApp.",
+    message: "Mobile number linked. OTP and SMS notifications will use this number.",
     user: user.toSafeObject(),
   });
 });

@@ -39,7 +39,7 @@ export default function Register() {
       const res = await sendRegisterOtp({ ...form, role });
       setChallengeId(res.challengeId);
       setDevOtp(res.devOtp || "");
-      setInfo(res.message || "OTP sent to your email and WhatsApp.");
+      setInfo(res.message || "OTP sent by SMS.");
       setStep("otp");
       setOtp("");
     } catch (err: any) {
@@ -87,8 +87,8 @@ export default function Register() {
           </h1>
           <p className="mt-2 text-sm text-bronze">
             {step === "otp"
-              ? "Verify the OTP sent to email & WhatsApp"
-              : "Email + mobile OTP verification required"}
+              ? "Enter the OTP sent by SMS"
+              : "Email + mobile required — OTP by SMS only"}
           </p>
         </div>
 
@@ -129,7 +129,7 @@ export default function Register() {
               />
               <input
                 required
-                placeholder="Mobile number (WhatsApp)"
+                placeholder="Mobile number (for SMS OTP)"
                 value={form.phone}
                 onChange={(e) => update("phone", e.target.value)}
                 className={fieldClass}
@@ -155,7 +155,7 @@ export default function Register() {
               )}
 
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Sending OTP…" : "Send OTP to email & WhatsApp"}
+                {loading ? "Sending SMS OTP…" : "Send SMS OTP"}
               </Button>
             </form>
           </>
@@ -171,8 +171,7 @@ export default function Register() {
               </p>
             )}
             <p className="text-xs text-bronze">
-              Sent to <span className="text-mist">{form.email}</span> and WhatsApp{" "}
-              <span className="text-mist">{form.phone}</span>
+              SMS OTP sent to <span className="text-mist">{form.phone}</span>
             </p>
             <input
               required

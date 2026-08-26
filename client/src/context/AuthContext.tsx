@@ -23,7 +23,7 @@ interface AuthContextValue {
     rollNumber?: string;
   }) => Promise<OtpSendResponse>;
   verifyRegisterOtp: (challengeId: string, otp: string) => Promise<void>;
-  sendLoginOtp: (identifier: string) => Promise<OtpSendResponse>;
+  sendLoginOtp: (identifier: string, phone?: string) => Promise<OtpSendResponse>;
   verifyLoginOtp: (challengeId: string, otp: string) => Promise<void>;
   sendLinkPhoneOtp: (phone: string) => Promise<OtpSendResponse>;
   verifyLinkPhoneOtp: (challengeId: string, otp: string) => Promise<void>;
@@ -71,8 +71,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(res.user);
   }
 
-  async function sendLoginOtp(identifier: string) {
-    return api.post<OtpSendResponse>("/auth/otp/login/send", { identifier });
+  async function sendLoginOtp(identifier: string, phone?: string) {
+    return api.post<OtpSendResponse>("/auth/otp/login/send", {
+      identifier,
+      ...(phone ? { phone } : {}),
+    });
   }
 
   async function verifyLoginOtp(challengeId: string, otp: string) {

@@ -1,6 +1,6 @@
 const Notification = require("../models/Notification");
 const User = require("../models/User");
-const { sendChannels } = require("./messaging");
+const { sendNotificationSms, sendResultEmail } = require("./messaging");
 
 const CLIENT_ORIGIN = () =>
   (process.env.CLIENT_ORIGIN || "https://dipsan-academy-platform.vercel.app")
@@ -25,20 +25,14 @@ async function createNotification({ userId, type, title, message, link = "", met
   }
 }
 
-async function deliverExternal(user, { title, message, link = "" }) {
-  if (!user) return;
-  const origin = CLIENT_ORIGIN();
-  const absolute = link ? (link.startsWith("http") ? link : `${origin}${link}`) : origin;
-  const text = `${title}\n\n${message}${link ? `\n\nOpen: ${absolute}` : ""}\n\n— Dipsan Academy`;
-  await sendChannels({
-    email: user.email,
-    phone: user.phone,
-    subject: `Dipsan Academy — ${title}`,
-    text,
-    html: `<p><strong>${title}</strong></p><p>${message}</p>${
-      link ? `<p><a href="${absolute}">Open in Dipsan Academy</a></p>` : ""
-    }<p>— Dipsan Academy</p>`,
-  });
+/** Notifications → SMS text (not email / WhatsApp). */
+async function deliverSmsNotification(user, { title, message }) {
+  if (!user?.phone) return;
+  try {
+    await sendNotificationSms({ phone: user.phone, title, message });
+  } catch (err) {
+    console.error("[notify-sms] failed:", err.message);
+  }
 }
 
 async function notifyStudents(payload) {
@@ -49,7 +43,7 @@ async function notifyStudents(payload) {
         userId: s._id,
         ...payload,
       });
-      await deliverExternal(s, payload);
+      await deliverSmsNotification(s, payload);
     })
   );
 }
@@ -58,18 +52,16 @@ async function notifyUser(userId, payload) {
   const note = await createNotification({ userId, ...payload });
   try {
     const user = await User.findById(userId).select("email phone name");
-    await deliverExternal(user, payload);
+    await deliverSmsNotification(user, payload);
   } catch (err) {
     console.error("[notify] external delivery failed:", err.message);
   }
   return note;
 }
 
-/**
- * Email + WhatsApp a concise exam result to the student.
- */
+/** Exam results → email only. */
 async function sendResultChannels(user, { examTitle, subject, score, total, percentage, link }) {
-  if (!user) return;
+  if (!user?.email) return;
   const origin = CLIENT_ORIGIN();
   const absolute = link ? (link.startsWith("http") ? link : `${origin}${link}`) : origin;
   const title = "Your exam result";
@@ -82,17 +74,20 @@ async function sendResultChannels(user, { examTitle, subject, score, total, perc
     `View full solutions: ${absolute}`,
   ].join("\n");
 
-  await sendChannels({
-    email: user.email,
-    phone: user.phone,
-    subject: `Dipsan Academy result — ${examTitle || subject || "Exam"}`,
-    text: `${message}\n\n— Dipsan Academy`,
-    html: `<p>Hi ${user.name || "student"},</p>
-      <p>Result for <strong>${subject || "Exam"} — ${examTitle || "Mock test"}</strong>:</p>
-      <p style="font-size:18px"><strong>${score}/${total}</strong> (${percentage}%)</p>
-      <p><a href="${absolute}">View full result &amp; video solutions</a></p>
-      <p>— Dipsan Academy</p>`,
-  });
+  try {
+    await sendResultEmail({
+      email: user.email,
+      subject: `Dipsan Academy result — ${examTitle || subject || "Exam"}`,
+      text: `${message}\n\n— Dipsan Academy`,
+      html: `<p>Hi ${user.name || "student"},</p>
+        <p>Result for <strong>${subject || "Exam"} — ${examTitle || "Mock test"}</strong>:</p>
+        <p style="font-size:18px"><strong>${score}/${total}</strong> (${percentage}%)</p>
+        <p><a href="${absolute}">View full result &amp; video solutions</a></p>
+        <p>— Dipsan Academy</p>`,
+    });
+  } catch (err) {
+    console.error("[result-email] failed:", err.message);
+  }
 }
 
 module.exports = {
@@ -100,5 +95,4 @@ module.exports = {
   notifyStudents,
   notifyUser,
   sendResultChannels,
-  deliverExternal,
 };
