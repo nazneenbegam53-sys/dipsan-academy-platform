@@ -42,8 +42,8 @@ export default function Login() {
     try {
       const res = await sendLoginOtp(phone.trim());
       setChallengeId(res.challengeId);
-      setDevOtp(res.devOtp || "");
-      setInfo(res.message || "OTP sent by SMS.");
+      setDevOtp(res.otp || res.devOtp || "");
+      setInfo(res.message || "Enter the OTP shown on this screen.");
       setStep("otp");
       setOtp("");
     } catch (err: any) {
@@ -96,7 +96,7 @@ export default function Login() {
             Welcome back
           </h1>
           <p className="mt-2 text-sm text-bronze">
-            {step === "otp" ? "Enter the OTP sent by SMS" : "Log in with your mobile number"}
+            {step === "otp" ? "Enter the 6-digit code shown below" : "Log in with your mobile number"}
           </p>
         </div>
 
@@ -118,7 +118,7 @@ export default function Login() {
               />
             </label>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Sending OTP…" : "Send SMS OTP"}
+              {loading ? "Getting OTP…" : "Get OTP"}
             </Button>
           </form>
         )}
@@ -129,7 +129,7 @@ export default function Login() {
             {info && <p className="text-xs text-aurora">{info}</p>}
             {devOtp && (
               <p className="rounded-lg border border-gold/20 bg-gold/10 px-3 py-2 text-xs text-champagne">
-                Dev OTP: <strong className="tracking-widest text-gold">{devOtp}</strong>
+                Your OTP: <strong className="tracking-widest text-gold">{devOtp}</strong>
               </p>
             )}
             <label className="block">
@@ -178,7 +178,7 @@ export default function Login() {
         <p className="mt-6 text-center text-sm text-bronze">
           No account?{" "}
           <Link to="/register" className="font-semibold text-gold underline underline-offset-4">
-            Sign up with SMS OTP
+            Sign up with OTP
           </Link>
         </p>
       </div>

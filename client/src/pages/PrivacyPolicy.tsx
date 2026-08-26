@@ -20,8 +20,9 @@ export default function PrivacyPolicy() {
             <h2 className="font-display text-xl font-semibold text-champagne">Account data</h2>
             <p className="mt-2 text-bronze">
               When you register we store your name, mobile number, role (student or
-              teacher), and optional class and roll number. We use this to send SMS OTP,
-              authenticate you, and personalise your dashboard.
+              teacher), and optional class and roll number. We use the mobile number as
+              your login ID. A one-time code is generated on our servers and shown on
+              the login screen for you to type back in.
             </p>
           </section>
 

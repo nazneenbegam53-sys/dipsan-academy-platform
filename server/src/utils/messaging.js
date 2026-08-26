@@ -41,6 +41,13 @@ function providerMessage(data) {
   return String(raw);
 }
 
+function otpInApp() {
+  // Default: OTP is created and checked in our database and shown on screen.
+  // Real carrier SMS always needs a gateway (Fast2SMS etc). Opt in with OTP_DELIVERY=sms.
+  const v = String(process.env.OTP_DELIVERY || "in_app").trim().toLowerCase();
+  return v !== "sms";
+}
+
 function otpRoute() {
   const r = String(process.env.FAST2SMS_OTP_ROUTE || "otp").trim().toLowerCase();
   // Quick SMS (q) and DLT (dlt) cannot send login OTP without TRAI DLT templates.
@@ -185,9 +192,9 @@ async function sendSms({ to, body }) {
   const number = indianMobile10(to);
   if (!number) return { ok: false, skipped: true, reason: "invalid-phone" };
 
-  if (!smsConfigured()) {
-    console.log(`[sms:dev] To: ${number}\n${body}`);
-    return { ok: true, dev: true };
+  if (otpInApp() || !smsConfigured()) {
+    console.log(`[sms:skip] To: ${number}\n${body}`);
+    return { ok: true, skipped: true, inApp: otpInApp() };
   }
 
   return fast2smsRequest({
@@ -197,7 +204,7 @@ async function sendSms({ to, body }) {
   });
 }
 
-/** OTP uses Fast2SMS OTP route (not Quick SMS custom text). */
+/** OTP uses Fast2SMS only when OTP_DELIVERY=sms. */
 async function sendOtpSms({ phone, code }) {
   const number = indianMobile10(phone);
   if (!number) return { ok: false, skipped: true, reason: "invalid-phone" };
@@ -205,13 +212,12 @@ async function sendOtpSms({ phone, code }) {
   const otp = String(code).replace(/\D/g, "");
   if (!otp) {
     const err = new Error("OTP code is empty");
-    err.userMessage = "Could not send SMS OTP. Please try again shortly.";
+    err.userMessage = "Could not create OTP. Please try again shortly.";
     throw err;
   }
 
-  if (!smsConfigured()) {
-    console.log(`[sms:dev] To: ${number}\nYour OTP: ${otp}`);
-    return { ok: true, dev: true };
+  if (otpInApp() || !smsConfigured()) {
+    return { ok: true, inApp: true };
   }
 
   return fast2smsSendOtp({ number, otp });
@@ -229,14 +235,16 @@ async function sendResultEmail({ email, subject, text, html }) {
 }
 
 function messagingStatus() {
-  const sms = smsConfigured();
+  const inApp = otpInApp();
+  const sms = !inApp && smsConfigured();
   const email = emailConfigured();
   return {
     email,
     sms,
     smsProvider: sms ? "fast2sms" : null,
-    otpDevMode:
-      String(process.env.OTP_DEV_MODE || "").toLowerCase() === "true" || !sms,
+    otpDelivery: inApp ? "in_app" : "sms",
+    otpInApp: inApp,
+    otpDevMode: inApp || String(process.env.OTP_DEV_MODE || "").toLowerCase() === "true" || !sms,
   };
 }
 
@@ -248,5 +256,6 @@ module.exports = {
   sendResultEmail,
   emailConfigured,
   smsConfigured,
+  otpInApp,
   messagingStatus,
 };

@@ -33,8 +33,8 @@ export default function CompleteProfile() {
     try {
       const res = await sendLinkPhoneOtp(phone.trim());
       setChallengeId(res.challengeId);
-      setDevOtp(res.devOtp || "");
-      setInfo(res.message || "OTP sent.");
+      setDevOtp(res.otp || res.devOtp || "");
+      setInfo(res.message || "Enter the OTP shown on this screen.");
       setStep("otp");
       setOtp("");
     } catch (err: any) {
@@ -67,7 +67,7 @@ export default function CompleteProfile() {
           <BrandLogo size="lg" />
           <h1 className="mt-4 font-display text-3xl font-semibold text-mist">Link your mobile</h1>
           <p className="mt-2 text-sm text-bronze">
-            All users must verify a mobile number for SMS OTP login and SMS notifications.
+            All users must verify a mobile number to log in with OTP.
             {user?.phone ? (
               <>
                 {" "}
@@ -85,12 +85,12 @@ export default function CompleteProfile() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               className={fieldClass}
-              placeholder="Mobile number (SMS OTP)"
+              placeholder="Mobile number"
               inputMode="tel"
               autoComplete="tel"
             />
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Sending OTP…" : "Send SMS OTP"}
+              {loading ? "Getting OTP…" : "Get OTP"}
             </Button>
           </form>
         ) : (
@@ -99,7 +99,7 @@ export default function CompleteProfile() {
             {info && <p className="text-xs text-aurora">{info}</p>}
             {devOtp && (
               <p className="rounded-lg border border-gold/20 bg-gold/10 px-3 py-2 text-xs text-champagne">
-                Dev OTP: <strong className="tracking-widest text-gold">{devOtp}</strong>
+                Your OTP: <strong className="tracking-widest text-gold">{devOtp}</strong>
               </p>
             )}
             <input
