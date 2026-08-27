@@ -5,13 +5,14 @@ function errorHandler(err, req, res, next) {
   // Multer file-size / type errors
   if (err instanceof require("multer").MulterError) {
     const status = err.code === "LIMIT_FILE_SIZE" ? 400 : 400;
-    const isVideoRoute = (req.originalUrl || "").includes("/upload/video");
     return res.status(status).json({
       message:
         err.code === "LIMIT_FILE_SIZE"
-          ? isVideoRoute
+          ? (req.originalUrl || "").includes("/upload/video")
             ? "Video is too large (max 200 MB)."
-            : "Image is too large (max 5 MB)."
+            : (req.originalUrl || "").includes("/upload/pdf")
+              ? "PDF is too large (max 25 MB)."
+              : "Image is too large (max 5 MB)."
           : err.message,
     });
   }

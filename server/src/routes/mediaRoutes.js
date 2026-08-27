@@ -7,6 +7,7 @@ const {
   ensureMp4Id,
   VIDEO_BUCKET,
   IMAGE_BUCKET,
+  NOTES_BUCKET,
 } = require("../utils/mediaStorage");
 
 const router = express.Router();
@@ -18,7 +19,7 @@ function getBucket(bucketName) {
 async function findMediaFile(id) {
   if (!mongoose.Types.ObjectId.isValid(id)) return null;
   const _id = new mongoose.Types.ObjectId(id);
-  for (const bucketName of [VIDEO_BUCKET, IMAGE_BUCKET]) {
+  for (const bucketName of [NOTES_BUCKET, VIDEO_BUCKET, IMAGE_BUCKET]) {
     const files = await getBucket(bucketName).find({ _id }).toArray();
     if (files.length) return { file: files[0], bucketName };
   }
@@ -49,6 +50,7 @@ async function respondHead(res, id) {
     ".jpg": "image/jpeg",
     ".jpeg": "image/jpeg",
     ".webp": "image/webp",
+    ".pdf": "application/pdf",
   };
   const contentType =
     mime && mime !== "application/octet-stream"

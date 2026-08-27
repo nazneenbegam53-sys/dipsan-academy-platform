@@ -79,3 +79,15 @@ export interface Attempt {
   unattemptedCount: number | null;
   violations: { type: string; at: string }[];
 }
+
+export interface Note {
+  _id: string;
+  title: string;
+  subject?: string;
+  fileUrl: string;
+  provider?: string;
+  originalName?: string;
+  size?: number;
+  teacherName?: string;
+  createdAt: string;
+}

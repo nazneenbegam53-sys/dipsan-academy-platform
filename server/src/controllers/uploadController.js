@@ -1,5 +1,5 @@
 const { asyncHandler } = require("../middleware/errorHandler");
-const { storeImage, storeVideo, cloudinaryConfigured } = require("../utils/mediaStorage");
+const { storeImage, storeVideo, storePdf, cloudinaryConfigured } = require("../utils/mediaStorage");
 
 function requestBaseUrl(req) {
   const proto = req.get("x-forwarded-proto") || req.protocol;
@@ -53,7 +53,32 @@ const uploadVideo = asyncHandler(async (req, res) => {
   });
 });
 
+const uploadPdf = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: "No PDF uploaded." });
+  }
+
+  const name = (req.file.originalname || "").toLowerCase();
+  const mime = (req.file.mimetype || "").toLowerCase().split(";")[0].trim();
+  if (mime !== "application/pdf" && !name.endsWith(".pdf")) {
+    return res.status(400).json({ message: "Upload a PDF file." });
+  }
+  req.file.mimetype = "application/pdf";
+
+  const stored = await storePdf(req.file, { baseUrl: requestBaseUrl(req) });
+
+  res.json({
+    url: stored.url,
+    provider: stored.provider,
+    originalName: req.file.originalname,
+    size: req.file.size,
+    durable: true,
+    cloudinary: cloudinaryConfigured,
+  });
+});
+
 module.exports = {
   uploadImage,
   uploadVideo,
+  uploadPdf,
 };
