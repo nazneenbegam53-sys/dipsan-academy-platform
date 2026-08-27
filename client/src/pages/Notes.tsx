@@ -196,15 +196,17 @@ export default function Notes() {
                     <a href={pdfHref(n)} target="_blank" rel="noreferrer">
                       <Button type="button">Open PDF</Button>
                     </a>
-                    <a href={pdfHref(n, true)} target="_blank" rel="noreferrer">
-                      <Button type="button" variant="ghost">
-                        Download
-                      </Button>
-                    </a>
                     {isTeacher && (
-                      <Button variant="danger" onClick={() => handleDelete(n._id)}>
-                        Delete
-                      </Button>
+                      <>
+                        <a href={pdfHref(n, true)} target="_blank" rel="noreferrer">
+                          <Button type="button" variant="ghost">
+                            Download
+                          </Button>
+                        </a>
+                        <Button variant="danger" onClick={() => handleDelete(n._id)}>
+                          Delete
+                        </Button>
+                      </>
                     )}
                   </div>
                 </li>
