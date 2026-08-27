@@ -64,6 +64,21 @@ function ResultsIcon({ active }: { active: boolean }) {
   );
 }
 
+function NotesIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M7 4.5h7.5L19 9v10.5a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1Z"
+        stroke={active ? "#F0E0B8" : "#9DB0C0"}
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+        fill={active ? "rgba(212,176,106,0.18)" : "none"}
+      />
+      <path d="M14.5 4.5V9H19" stroke={active ? "#5EC8C0" : "#9DB0C0"} strokeWidth="1.5" />
+    </svg>
+  );
+}
+
 function AccountIcon({ active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -146,6 +161,13 @@ export function MobileTabBar() {
       icon: (a) => <ExamsIcon active={a} />,
     },
     {
+      key: "notes",
+      to: "/student/notes",
+      label: "Notes",
+      active: pathname === "/student/notes",
+      icon: (a) => <NotesIcon active={a} />,
+    },
+    {
       key: "results",
       to: "/student#history",
       label: "Results",
@@ -170,6 +192,13 @@ export function MobileTabBar() {
         pathname === "/teacher" ||
         (pathname.startsWith("/teacher/exam") && !pathname.includes("/results")),
       icon: (a) => <ExamsIcon active={a} />,
+    },
+    {
+      key: "notes",
+      to: "/teacher/notes",
+      label: "Notes",
+      active: pathname === "/teacher/notes",
+      icon: (a) => <NotesIcon active={a} />,
     },
     {
       key: "results",

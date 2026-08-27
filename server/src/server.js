@@ -14,6 +14,7 @@ const resultRoutes = require("./routes/resultRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
 const mediaRoutes = require("./routes/mediaRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes");
+const noteRoutes = require("./routes/noteRoutes");
 
 const app = express();
 
@@ -71,6 +72,7 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/media", mediaRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/notifications", require("./routes/notificationRoutes"));
+app.use("/api/notes", noteRoutes);
 
 app.use((req, res) => res.status(404).json({ message: "Route not found." }));
 app.use(errorHandler);

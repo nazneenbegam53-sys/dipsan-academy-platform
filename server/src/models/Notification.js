@@ -10,6 +10,7 @@ const notificationSchema = new mongoose.Schema(
         "exam-created",
         "submission-received",
         "submission-success",
+        "note-published",
       ],
       required: true,
     },

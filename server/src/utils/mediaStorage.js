@@ -15,6 +15,7 @@ const fs = require("fs");
 
 const IMAGE_BUCKET = "questionImages";
 const VIDEO_BUCKET = "questionVideos";
+const NOTES_BUCKET = "notesPdfs";
 
 function getBucket(bucketName = IMAGE_BUCKET) {
   if (!mongoose.connection?.db) {
@@ -49,9 +50,12 @@ function guessContentType(filename, mimetype, bucketName) {
     ".webp": "image/webp",
     ".gif": "image/gif",
     ".svg": "image/svg+xml",
+    ".pdf": "application/pdf",
   };
   if (byExt[ext]) return byExt[ext];
-  return bucketName === VIDEO_BUCKET ? "video/webm" : "application/octet-stream";
+  if (bucketName === VIDEO_BUCKET) return "video/webm";
+  if (bucketName === NOTES_BUCKET) return "application/pdf";
+  return "application/octet-stream";
 }
 
 async function uploadToCloudinary(file, { resourceType = "image", folder = "dipsan/questions" } = {}) {
@@ -86,7 +90,9 @@ async function uploadToGridFS(file, bucketName = IMAGE_BUCKET, extraMeta = {}) {
       ? file.mimetype?.includes("mp4")
         ? ".mp4"
         : ".webm"
-      : ".bin");
+      : bucketName === NOTES_BUCKET
+        ? ".pdf"
+        : ".bin");
   const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
   const contentType = guessContentType(filename, file.mimetype, bucketName);
 
@@ -202,6 +208,42 @@ async function storeVideo(file, { baseUrl } = {}) {
     provider: "gridfs",
     id: stored.id,
   };
+}
+
+async function storePdf(file, { baseUrl } = {}) {
+  if (!file?.buffer) {
+    throw new Error("No PDF file provided.");
+  }
+
+  if (cloudinaryConfigured) {
+    return uploadToCloudinary(file, {
+      resourceType: "raw",
+      folder: "dipsan/notes",
+    });
+  }
+
+  const stored = await uploadToGridFS(file, NOTES_BUCKET);
+  const origin = (baseUrl || "").replace(/\/$/, "");
+  return {
+    url: `${origin}/api/media/${stored.id}`,
+    provider: "gridfs",
+    id: stored.id,
+  };
+}
+
+async function deleteStoredFile(url) {
+  const match = String(url || "").match(/\/api\/media\/([a-f0-9]+)/i);
+  if (!match) return false;
+  const _id = new mongoose.Types.ObjectId(match[1]);
+  for (const bucketName of [NOTES_BUCKET, IMAGE_BUCKET, VIDEO_BUCKET]) {
+    try {
+      await getBucket(bucketName).delete(_id);
+      return true;
+    } catch {
+      /* not in this bucket */
+    }
+  }
+  return false;
 }
 
 function parseRange(rangeHeader, size) {
@@ -356,8 +398,10 @@ async function streamFromBucket(bucketName, _id, req, res) {
   const isVideo = contentType.startsWith("video/");
 
   res.setHeader("Content-Type", contentType);
+  const originalName = file.metadata?.originalName || file.filename || "media";
+  const disposition = req.query?.download ? "attachment" : "inline";
+  res.setHeader("Content-Disposition", `${disposition}; filename="${String(originalName).replace(/"/g, "")}"`);
   res.setHeader("Cache-Control", isVideo ? "public, max-age=3600" : "public, max-age=31536000, immutable");
-  res.setHeader("Content-Disposition", `inline; filename="${file.filename || "media"}"`);
   // Needed when Vercel client plays media hosted on Render
   res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -431,18 +475,23 @@ async function streamGridFSFile(id, req, res, { preferMp4 = false } = {}) {
   }
 
   const _id = new mongoose.Types.ObjectId(playId);
-  const fromVideos = await streamFromBucket(VIDEO_BUCKET, _id, req, res);
-  if (fromVideos) return true;
-  return streamFromBucket(IMAGE_BUCKET, _id, req, res);
+  for (const bucketName of [NOTES_BUCKET, VIDEO_BUCKET, IMAGE_BUCKET]) {
+    const found = await streamFromBucket(bucketName, _id, req, res);
+    if (found) return true;
+  }
+  return false;
 }
 
 module.exports = {
   storeImage,
   storeVideo,
+  storePdf,
+  deleteStoredFile,
   streamGridFSFile,
   ensureMp4Id,
   cloudinaryConfigured,
   BUCKET_NAME: IMAGE_BUCKET,
   IMAGE_BUCKET,
   VIDEO_BUCKET,
+  NOTES_BUCKET,
 };

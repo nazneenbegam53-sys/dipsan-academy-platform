@@ -1,6 +1,6 @@
 const express = require("express");
 const multer = require("multer");
-const { uploadImage, uploadVideo } = require("../controllers/uploadController");
+const { uploadImage, uploadVideo, uploadPdf } = require("../controllers/uploadController");
 const { protect, requireRole } = require("../middleware/auth");
 
 // Memory storage — bytes go to Cloudinary or MongoDB GridFS, never ephemeral disk.
@@ -41,6 +41,19 @@ const videoUpload = multer({
   },
 });
 
+const pdfUpload = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: (req, file, cb) => {
+    const mime = (file.mimetype || "").toLowerCase().split(";")[0].trim();
+    const name = (file.originalname || "").toLowerCase();
+    const ok = mime === "application/pdf" || name.endsWith(".pdf") || mime === "application/octet-stream";
+    cb(ok ? null : new Error("Upload a PDF file."), ok);
+  },
+  limits: {
+    fileSize: 25 * 1024 * 1024, // 25 MB
+  },
+});
+
 const router = express.Router();
 
 router.post(
@@ -57,6 +70,14 @@ router.post(
   requireRole("teacher"),
   videoUpload.single("video"),
   uploadVideo
+);
+
+router.post(
+  "/pdf",
+  protect,
+  requireRole("teacher"),
+  pdfUpload.single("pdf"),
+  uploadPdf
 );
 
 module.exports = router;
