@@ -3,12 +3,21 @@ const { asyncHandler } = require("../middleware/errorHandler");
 const { deleteStoredFile } = require("../utils/mediaStorage");
 const { notifyStudents } = require("../utils/notify");
 
+function normalizeNoteSubject(raw) {
+  const s = String(raw || "").trim().toLowerCase();
+  if (s === "physics") return "Physics";
+  if (s === "chemistry") return "Chemistry";
+  if (s === "math" || s === "maths" || s === "mathematics") return "Math";
+  if (s === "biology") return "Biology";
+  return "";
+}
+
 function toNote(doc) {
   const n = typeof doc.toObject === "function" ? doc.toObject() : doc;
   return {
     _id: n._id,
     title: n.title,
-    subject: n.subject || "",
+    subject: normalizeNoteSubject(n.subject),
     fileUrl: n.fileUrl,
     provider: n.provider,
     originalName: n.originalName || "",
@@ -35,12 +44,16 @@ const listNotes = asyncHandler(async (_req, res) => {
 const createNote = asyncHandler(async (req, res) => {
   const title = (req.body.title || "").trim();
   const fileUrl = (req.body.fileUrl || req.body.url || "").trim();
+  const subject = normalizeNoteSubject(req.body.subject);
   if (!title) return res.status(400).json({ message: "Give the notes a title." });
+  if (!subject) {
+    return res.status(400).json({ message: "Choose a subject: Physics, Chemistry, Math, or Biology." });
+  }
   if (!fileUrl) return res.status(400).json({ message: "Upload a PDF first." });
 
   const note = await Note.create({
     title,
-    subject: (req.body.subject || "").trim(),
+    subject,
     fileUrl,
     provider: req.body.provider === "cloudinary" ? "cloudinary" : "gridfs",
     originalName: req.body.originalName || "",
@@ -52,9 +65,9 @@ const createNote = asyncHandler(async (req, res) => {
   notifyStudents({
     type: "note-published",
     title: "New notes uploaded",
-    message: `${req.user.name || "A teacher"} shared “${note.title}”.`,
+    message: `${req.user.name || "A teacher"} shared “${note.title}” (${note.subject}).`,
     link: "/student/notes",
-    meta: { noteId: note._id },
+    meta: { noteId: note._id, subject: note.subject },
   }).catch((err) => console.error("[notes] notify failed:", err.message));
 
   res.status(201).json({ note: toNote(note) });

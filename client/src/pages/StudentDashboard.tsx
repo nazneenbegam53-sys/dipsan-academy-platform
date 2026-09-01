@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { api } from "../services/api";
 import { useAuth } from "../context/AuthContext";
-import { Exam, Attempt, Note } from "../types";
+import { Exam, Attempt } from "../types";
 import { Button, Badge, Spinner, PageShell, AppHeader, Card } from "../components/ui";
 import { BrandLogo } from "../components/BrandLogo";
 import { NotificationBell } from "../components/NotificationBell";
@@ -42,19 +42,16 @@ export default function StudentDashboard() {
   const navigate = useNavigate();
   const [exams, setExams] = useState<Exam[]>([]);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
-  const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
       api.get<{ exams: Exam[] }>("/exams/published"),
       api.get<{ attempts: Attempt[] }>("/attempts/mine"),
-      api.get<{ notes: Note[] }>("/notes").catch(() => ({ notes: [] as Note[] })),
     ])
-      .then(([e, a, n]) => {
+      .then(([e, a]) => {
         setExams(e.exams);
         setAttempts(a.attempts);
-        setNotes(n.notes || []);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -94,39 +91,6 @@ export default function StudentDashboard() {
             </>
           }
         />
-
-        <section className="mb-14">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <h2 className="font-display text-2xl font-semibold text-champagne">Notes</h2>
-              <p className="mt-1 text-sm text-bronze">PDFs uploaded by your teachers.</p>
-            </div>
-            <Button variant="ghost" onClick={() => navigate("/student/notes")}>
-              All notes
-            </Button>
-          </div>
-          {loading ? (
-            <div className="mt-8">
-              <Spinner />
-            </div>
-          ) : notes.length === 0 ? (
-            <p className="mt-8 border-t border-gold/15 pt-8 text-sm text-bronze">
-              No notes yet — they will appear here when a teacher uploads a PDF.
-            </p>
-          ) : (
-            <ul className="mt-8 divide-y divide-gold/10 border-y border-gold/15">
-              {notes.slice(0, 5).map((n) => (
-                <li key={n._id} className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    {n.subject ? <Badge tone="marigold">{n.subject}</Badge> : null}
-                    <div className="mt-1 font-display text-lg font-semibold text-mist">{n.title}</div>
-                  </div>
-                  <Button onClick={() => navigate("/student/notes")}>Open</Button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
 
         <section className="mb-14">
           <h2 className="font-display text-2xl font-semibold text-champagne">Available exams</h2>

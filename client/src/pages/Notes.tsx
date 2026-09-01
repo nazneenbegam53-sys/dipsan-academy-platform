@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../services/api";
 import { useAuth } from "../context/AuthContext";
@@ -8,6 +8,9 @@ import { BrandLogo } from "../components/BrandLogo";
 import { NotificationBell } from "../components/NotificationBell";
 import { SupportButton } from "../components/SupportButton";
 import { resolveMediaUrl } from "../lib/mediaUrl";
+
+const NOTE_SUBJECTS = ["Physics", "Chemistry", "Math", "Biology"] as const;
+type NoteSubject = (typeof NOTE_SUBJECTS)[number];
 
 function formatSize(bytes?: number) {
   if (!bytes) return "";
@@ -28,6 +31,11 @@ function pdfHref(note: Note, download = false) {
   }
 }
 
+function noteSubject(note: Note): NoteSubject | "" {
+  const s = (note.subject || "").trim();
+  return (NOTE_SUBJECTS as readonly string[]).includes(s) ? (s as NoteSubject) : "";
+}
+
 export default function Notes() {
   const { user } = useAuth();
   const isTeacher = user?.role === "teacher";
@@ -36,7 +44,8 @@ export default function Notes() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [title, setTitle] = useState("");
-  const [subject, setSubject] = useState("");
+  const [subject, setSubject] = useState<NoteSubject>("Physics");
+  const [filter, setFilter] = useState<NoteSubject>("Physics");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -52,6 +61,17 @@ export default function Notes() {
   useEffect(() => {
     load();
   }, []);
+
+  const counts = useMemo(() => {
+    const next: Record<NoteSubject, number> = { Physics: 0, Chemistry: 0, Math: 0, Biology: 0 };
+    for (const n of notes) {
+      const s = noteSubject(n);
+      if (s) next[s] += 1;
+    }
+    return next;
+  }, [notes]);
+
+  const visible = notes.filter((n) => noteSubject(n) === filter);
 
   async function handleUpload(e: React.FormEvent) {
     e.preventDefault();
@@ -76,15 +96,15 @@ export default function Notes() {
       }>("/upload/pdf", fd);
       await api.post("/notes", {
         title: title.trim(),
-        subject: subject.trim(),
+        subject,
         fileUrl: uploaded.url,
         provider: uploaded.provider,
         originalName: uploaded.originalName || file.name,
         size: uploaded.size || file.size,
       });
       setTitle("");
-      setSubject("");
       setFile(null);
+      setFilter(subject);
       load();
     } catch (err: any) {
       setError(err.message || "Could not upload notes.");
@@ -119,8 +139,8 @@ export default function Notes() {
           title="Notes"
           subtitle={
             isTeacher
-              ? "Upload PDF notes. Students can open them from their account."
-              : "Open PDFs your teachers have shared."
+              ? "Upload PDFs by subject. Students open them from Notes."
+              : "Choose a subject to open PDFs your teachers have shared."
           }
           actions={
             <Link to={home}>
@@ -141,12 +161,23 @@ export default function Notes() {
               className={fieldClass}
               placeholder="Title (e.g. Electrostatics revision)"
             />
-            <input
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              className={fieldClass}
-              placeholder="Subject (optional)"
-            />
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-bronze">
+                Subject
+              </span>
+              <select
+                required
+                value={subject}
+                onChange={(e) => setSubject(e.target.value as NoteSubject)}
+                className={fieldClass}
+              >
+                {NOTE_SUBJECTS.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </label>
             <label className="block">
               <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-bronze">
                 PDF file (max 25 MB)
@@ -166,25 +197,43 @@ export default function Notes() {
         )}
 
         <section>
-          <h2 className="font-display text-2xl font-semibold text-champagne">Shared notes</h2>
+          <div className="mb-6 grid grid-cols-2 gap-2 rounded-2xl border border-gold/20 bg-ink/60 p-1 sm:grid-cols-4">
+            {NOTE_SUBJECTS.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setFilter(s)}
+                className={`rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
+                  filter === s ? "bg-gold text-ink" : "text-bronze hover:text-champagne"
+                }`}
+              >
+                {s}
+                <span className={`ml-1 text-xs ${filter === s ? "text-ink/70" : "text-bronze/80"}`}>
+                  ({counts[s]})
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <h2 className="font-display text-2xl font-semibold text-champagne">{filter} notes</h2>
           {loading ? (
             <div className="mt-8">
               <Spinner />
             </div>
-          ) : notes.length === 0 ? (
+          ) : visible.length === 0 ? (
             <p className="mt-8 border-t border-gold/15 pt-8 text-sm text-bronze">
-              {isTeacher ? "No notes uploaded yet." : "No notes shared yet — check back soon."}
+              No {filter.toLowerCase()} notes yet.
             </p>
           ) : (
             <ul className="mt-8 divide-y divide-gold/10 border-y border-gold/15">
-              {notes.map((n, i) => (
+              {visible.map((n, i) => (
                 <li
                   key={n._id}
                   className="flex animate-fade-up flex-col gap-3 py-6 sm:flex-row sm:items-center sm:justify-between"
                   style={{ animationDelay: `${i * 0.04}s` }}
                 >
                   <div>
-                    {n.subject ? <Badge tone="marigold">{n.subject}</Badge> : null}
+                    <Badge tone="marigold">{noteSubject(n) || filter}</Badge>
                     <div className="mt-2 font-display text-xl font-semibold text-mist">{n.title}</div>
                     <div className="mt-1 text-xs text-bronze">
                       {n.teacherName ? `${n.teacherName} · ` : ""}
