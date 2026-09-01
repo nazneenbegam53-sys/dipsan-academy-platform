@@ -3,7 +3,11 @@ const mongoose = require("mongoose");
 const noteSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
-    subject: { type: String, trim: true, default: "" },
+    subject: {
+      type: String,
+      enum: ["Physics", "Chemistry", "Math", "Biology"],
+      trim: true,
+    },
     fileUrl: { type: String, required: true },
     provider: { type: String, enum: ["gridfs", "cloudinary"], default: "gridfs" },
     originalName: { type: String, trim: true, default: "" },
