@@ -20,16 +20,50 @@ function setupBoardSockets(httpServer, corsOriginFn) {
   });
 
   const presenceByBoard = new Map();
+  /** @type {Map<string, Map<string, { userId: string, audio: boolean, video: boolean, socketId: string }>>} */
+  const callByBoard = new Map();
 
   function getPresence(boardId) {
     if (!presenceByBoard.has(boardId)) presenceByBoard.set(boardId, new Map());
     return presenceByBoard.get(boardId);
   }
 
+  function getCall(boardId) {
+    if (!callByBoard.has(boardId)) callByBoard.set(boardId, new Map());
+    return callByBoard.get(boardId);
+  }
+
   function emitPresence(boardId) {
     const map = getPresence(boardId);
     const users = Array.from(map.values());
     io.to(roomName(boardId)).emit("board:presence", { boardId, users });
+  }
+
+  function relayToUser(boardId, targetUserId, event, payload) {
+    const presence = getPresence(boardId);
+    const entry = presence.get(String(targetUserId));
+    if (entry?.socketId) {
+      io.to(entry.socketId).emit(event, payload);
+      return;
+    }
+    // Fallback: anyone still in the room matching target (rare race)
+    for (const [uid, p] of presence.entries()) {
+      if (uid === String(targetUserId) && p.socketId) {
+        io.to(p.socketId).emit(event, payload);
+      }
+    }
+  }
+
+  function leaveCall(boardId, userId) {
+    if (!boardId) return;
+    const call = getCall(boardId);
+    if (!call.has(String(userId))) return;
+    call.delete(String(userId));
+    io.to(roomName(boardId)).emit("webrtc:peer-left", {
+      boardId: String(boardId),
+      userId: String(userId),
+    });
+    if (call.size === 0) callByBoard.delete(boardId);
   }
 
   io.use(async (socket, next) => {
@@ -65,6 +99,7 @@ function setupBoardSockets(httpServer, corsOriginFn) {
         }
 
         if (joinedBoardId) {
+          leaveCall(joinedBoardId, socket.user._id);
           socket.leave(roomName(joinedBoardId));
           const prev = getPresence(joinedBoardId);
           prev.delete(String(socket.user._id));
@@ -95,6 +130,7 @@ function setupBoardSockets(httpServer, corsOriginFn) {
 
     socket.on("board:leave", () => {
       if (!joinedBoardId) return;
+      leaveCall(joinedBoardId, socket.user._id);
       socket.leave(roomName(joinedBoardId));
       const presence = getPresence(joinedBoardId);
       presence.delete(String(socket.user._id));
@@ -163,8 +199,108 @@ function setupBoardSockets(httpServer, corsOriginFn) {
       });
     });
 
+    socket.on("webrtc:ready", (payload) => {
+      const boardId = String(payload?.boardId || joinedBoardId || "");
+      if (!boardId || boardId !== joinedBoardId) return;
+      const userId = String(socket.user._id);
+      const audio = payload?.audio !== false;
+      const video = payload?.video !== false;
+      const call = getCall(boardId);
+      const peersInCall = Array.from(call.values()).filter((p) => p.userId !== userId);
+      call.set(userId, {
+        userId,
+        audio,
+        video,
+        socketId: socket.id,
+      });
+      socket.to(roomName(boardId)).emit("webrtc:ready", {
+        boardId,
+        userId,
+        name: socket.user.name,
+        audio,
+        video,
+        peersInCall,
+      });
+      // Ack-style self notice with who is already in the call
+      socket.emit("webrtc:ready", {
+        boardId,
+        userId,
+        name: socket.user.name,
+        audio,
+        video,
+        peersInCall,
+        self: true,
+      });
+    });
+
+    socket.on("webrtc:leave", (payload) => {
+      const boardId = String(payload?.boardId || joinedBoardId || "");
+      if (!boardId) return;
+      leaveCall(boardId, socket.user._id);
+    });
+
+    socket.on("webrtc:offer", (payload) => {
+      const boardId = String(payload?.boardId || joinedBoardId || "");
+      const targetUserId = payload?.targetUserId;
+      if (!boardId || !targetUserId || !payload?.sdp) return;
+      relayToUser(boardId, targetUserId, "webrtc:offer", {
+        boardId,
+        fromUserId: String(socket.user._id),
+        fromName: socket.user.name,
+        targetUserId: String(targetUserId),
+        sdp: payload.sdp,
+      });
+    });
+
+    socket.on("webrtc:answer", (payload) => {
+      const boardId = String(payload?.boardId || joinedBoardId || "");
+      const targetUserId = payload?.targetUserId;
+      if (!boardId || !targetUserId || !payload?.sdp) return;
+      relayToUser(boardId, targetUserId, "webrtc:answer", {
+        boardId,
+        fromUserId: String(socket.user._id),
+        fromName: socket.user.name,
+        targetUserId: String(targetUserId),
+        sdp: payload.sdp,
+      });
+    });
+
+    socket.on("webrtc:ice", (payload) => {
+      const boardId = String(payload?.boardId || joinedBoardId || "");
+      const targetUserId = payload?.targetUserId;
+      if (!boardId || !targetUserId || !payload?.candidate) return;
+      relayToUser(boardId, targetUserId, "webrtc:ice", {
+        boardId,
+        fromUserId: String(socket.user._id),
+        targetUserId: String(targetUserId),
+        candidate: payload.candidate,
+      });
+    });
+
+    socket.on("webrtc:state", (payload) => {
+      const boardId = String(payload?.boardId || joinedBoardId || "");
+      if (!boardId || boardId !== joinedBoardId) return;
+      const userId = String(socket.user._id);
+      const audio = Boolean(payload?.audio);
+      const video = Boolean(payload?.video);
+      const call = getCall(boardId);
+      const entry = call.get(userId);
+      if (entry) {
+        entry.audio = audio;
+        entry.video = video;
+        call.set(userId, entry);
+      }
+      io.to(roomName(boardId)).emit("webrtc:state", {
+        boardId,
+        userId,
+        audio,
+        video,
+      });
+    });
+
     socket.on("disconnect", () => {
       if (!joinedBoardId) return;
+      leaveCall(joinedBoardId, socket.user._id);
       const presence = getPresence(joinedBoardId);
       presence.delete(String(socket.user._id));
       emitPresence(joinedBoardId);

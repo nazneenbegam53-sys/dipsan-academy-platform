@@ -12,6 +12,7 @@ import type {
   WhiteboardTool,
 } from "../types";
 import { Button, ErrorBanner, Spinner, PageShell } from "../components/ui";
+import CallDock from "../components/classroom/CallDock";
 import { getToken } from "../services/api";
 
 const TOOLS: { id: WhiteboardTool; label: string }[] = [
@@ -60,6 +61,7 @@ export default function WhiteboardSession() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [saving, setSaving] = useState(false);
   const [handRaised, setHandRaised] = useState(false);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   const historyRef = useRef<WhiteboardObject[][]>([]);
   const futureRef = useRef<WhiteboardObject[][]>([]);
@@ -117,14 +119,15 @@ export default function WhiteboardSession() {
 
   useEffect(() => {
     if (!boardId || !user) return;
-    const socket = connectBoardSocket(boardId, getToken());
-    socketRef.current = socket;
+    const s = connectBoardSocket(boardId, getToken());
+    socketRef.current = s;
+    setSocket(s);
 
-    socket.on("board:presence", (payload: { users: PresenceUser[] }) => {
+    s.on("board:presence", (payload: { users: PresenceUser[] }) => {
       setPresence(payload.users || []);
     });
 
-    socket.on("board:cursor", (payload: { userId: string; name: string; cursor: { x: number; y: number } }) => {
+    s.on("board:cursor", (payload: { userId: string; name: string; cursor: { x: number; y: number } }) => {
       if (!payload?.userId || payload.userId === user.id) return;
       setRemoteCursors((prev) => ({
         ...prev,
@@ -136,7 +139,7 @@ export default function WhiteboardSession() {
       }));
     });
 
-    socket.on(
+    s.on(
       "board:operation",
       (payload: {
         operation: Record<string, unknown>;
@@ -157,9 +160,10 @@ export default function WhiteboardSession() {
     );
 
     return () => {
-      socket.emit("board:leave");
-      socket.disconnect();
+      s.emit("board:leave");
+      s.disconnect();
       socketRef.current = null;
+      setSocket(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boardId, user?.id]);
@@ -619,6 +623,16 @@ export default function WhiteboardSession() {
         </div>
 
         <ErrorBanner message={error} />
+
+        {user && (
+          <CallDock
+            socket={socket}
+            boardId={boardId}
+            selfUserId={user.id}
+            selfName={user.name}
+            peers={presence}
+          />
+        )}
 
         <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {TOOLS.map((t) => (
