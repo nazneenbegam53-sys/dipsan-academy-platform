@@ -4,7 +4,7 @@ const { asyncHandler } = require("../middleware/errorHandler");
 const { isMember } = require("./classroomController");
 
 const DRAW_TYPES = new Set(["CREATE", "DRAW", "UPDATE", "DELETE", "CLEAR"]);
-const TEACHER_ONLY = new Set(["LOCK_STUDENTS", "CHANGE_PAGE", "ADD_PAGE"]);
+const TEACHER_ONLY = new Set(["LOCK_STUDENTS", "CHANGE_PAGE", "ADD_PAGE", "END_CLASS", "REOPEN_CLASS"]);
 
 async function loadClassroomForUser(classroomId, user) {
   const classroom = await Classroom.findById(classroomId);
@@ -55,6 +55,8 @@ function boardSummary(board) {
     title: b.title,
     createdBy: b.createdBy,
     studentEditingLocked: b.studentEditingLocked,
+    liveEnded: Boolean(b.liveEnded),
+    endedAt: b.endedAt || null,
     currentPage: b.currentPage,
     version: b.version,
     pages: b.pages || [],
@@ -99,6 +101,10 @@ async function applyOperationToBoard(boardId, user, operation) {
   }
 
   if (type === "RAISE_HAND") {
+    if (board.liveEnded) {
+      const err = Object.assign(new Error("This live class has ended."), { statusCode: 403 });
+      throw err;
+    }
     board.version += 1;
     await board.save();
     return {
@@ -115,6 +121,11 @@ async function applyOperationToBoard(boardId, user, operation) {
   const teacher = isClassroomTeacher(classroom, user);
   if (!teacher && TEACHER_ONLY.has(type)) {
     const err = Object.assign(new Error("Only teachers can do that."), { statusCode: 403 });
+    throw err;
+  }
+
+  if (board.liveEnded && type !== "REOPEN_CLASS") {
+    const err = Object.assign(new Error("This live class has ended."), { statusCode: 403 });
     throw err;
   }
 
@@ -176,6 +187,16 @@ async function applyOperationToBoard(boardId, user, operation) {
       backgroundColor: operation.backgroundColor || "#0B1824",
     });
     board.currentPage = nextNum;
+  } else if (type === "END_CLASS") {
+    board.liveEnded = true;
+    board.endedAt = new Date();
+    board.endedBy = user._id;
+    board.studentEditingLocked = true;
+  } else if (type === "REOPEN_CLASS") {
+    board.liveEnded = false;
+    board.endedAt = undefined;
+    board.endedBy = undefined;
+    board.studentEditingLocked = true;
   } else {
     const err = Object.assign(new Error(`Unknown operation: ${type}`), { statusCode: 400 });
     throw err;
@@ -212,6 +233,7 @@ const createBoard = asyncHandler(async (req, res) => {
     title,
     createdBy: req.user._id,
     studentEditingLocked: true,
+    liveEnded: false,
     currentPage: 1,
     version: 0,
     pages: [{ pageNumber: 1, title: "Page 1", backgroundColor: "#0B1824" }],
@@ -279,6 +301,16 @@ const applyOperation = asyncHandler(async (req, res) => {
   res.json(result);
 });
 
+const endLiveClass = asyncHandler(async (req, res) => {
+  const result = await applyOperationToBoard(req.params.id, req.user, { type: "END_CLASS" });
+  res.json(result);
+});
+
+const reopenLiveClass = asyncHandler(async (req, res) => {
+  const result = await applyOperationToBoard(req.params.id, req.user, { type: "REOPEN_CLASS" });
+  res.json(result);
+});
+
 module.exports = {
   createBoard,
   listBoards,
@@ -286,6 +318,8 @@ module.exports = {
   getBoardState,
   saveSnapshot,
   applyOperation,
+  endLiveClass,
+  reopenLiveClass,
   applyOperationToBoard,
   boardState,
   boardSummary,

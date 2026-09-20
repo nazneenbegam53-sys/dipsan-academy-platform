@@ -242,12 +242,36 @@ export default function ClassroomHub() {
                             <div className="font-semibold text-mist">{b.title}</div>
                             <div className="mt-1 text-xs text-bronze">
                               {b.pages?.length || 1} page{(b.pages?.length || 1) === 1 ? "" : "s"}
-                              {b.studentEditingLocked ? " · students locked" : " · students can draw"}
+                              {b.liveEnded
+                                ? " · class ended"
+                                : b.studentEditingLocked
+                                  ? " · students locked"
+                                  : " · students can draw"}
                             </div>
                           </div>
-                          <Button onClick={() => navigate(`${boardBase}/${b._id}`)}>
-                            Enter board
-                          </Button>
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              variant={b.liveEnded ? "ghost" : "primary"}
+                              onClick={() => navigate(`${boardBase}/${b._id}`)}
+                            >
+                              {b.liveEnded ? "View board" : "Enter board"}
+                            </Button>
+                            {isOwner && b.liveEnded && (
+                              <Button
+                                onClick={async () => {
+                                  try {
+                                    await boardApi.reopenClass(b._id);
+                                    const list = await boardApi.list(selectedId!);
+                                    setBoards(list.boards || []);
+                                  } catch {
+                                    /* ignore */
+                                  }
+                                }}
+                              >
+                                Reopen class
+                              </Button>
+                            )}
+                          </div>
                         </li>
                       ))}
                     </ul>

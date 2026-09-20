@@ -155,16 +155,41 @@ function setupBoardSockets(httpServer, corsOriginFn) {
           }
         }
 
+        const boardPayload = {
+          version: result.board.version,
+          studentEditingLocked: result.board.studentEditingLocked,
+          currentPage: result.board.currentPage,
+          pages: result.board.pages,
+          liveEnded: Boolean(result.board.liveEnded),
+          endedAt: result.board.endedAt || null,
+        };
+
         socket.to(roomName(String(boardId))).emit("board:operation", {
           boardId: String(boardId),
           operation: result.operation,
-          board: {
-            version: result.board.version,
-            studentEditingLocked: result.board.studentEditingLocked,
-            currentPage: result.board.currentPage,
-            pages: result.board.pages,
-          },
+          board: boardPayload,
         });
+
+        if (result.operation?.type === "END_CLASS") {
+          io.to(roomName(String(boardId))).emit("board:ended", {
+            boardId: String(boardId),
+            endedBy: String(socket.user._id),
+            endedByName: socket.user.name,
+            endedAt: result.board.endedAt,
+            board: boardPayload,
+          });
+          // Drop everyone from A/V + room presence after a short broadcast window
+          const presence = getPresence(String(boardId));
+          presence.clear();
+          emitPresence(String(boardId));
+        }
+
+        if (result.operation?.type === "REOPEN_CLASS") {
+          io.to(roomName(String(boardId))).emit("board:reopened", {
+            boardId: String(boardId),
+            board: boardPayload,
+          });
+        }
 
         if (typeof ack === "function") ack({ ok: true, ...result });
       } catch (err) {

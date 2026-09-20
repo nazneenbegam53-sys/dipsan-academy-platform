@@ -51,6 +51,10 @@ export const boardApi = {
       `/boards/${id}/operations`,
       operation
     ),
+  endClass: (id: string) =>
+    api.post<{ board: Board; operation: Record<string, unknown> }>(`/boards/${id}/end`, {}),
+  reopenClass: (id: string) =>
+    api.post<{ board: Board; operation: Record<string, unknown> }>(`/boards/${id}/reopen`, {}),
 };
 
 export type { PresenceUser };

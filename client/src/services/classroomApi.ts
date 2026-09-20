@@ -46,6 +46,10 @@ export const boardApi = {
     api.put<{ board: Board }>(`/boards/${id}/snapshot`, { objects }),
   operate: (id: string, operation: Record<string, unknown>) =>
     api.post<{ board: Board; operation: Record<string, unknown> }>(`/boards/${id}/operations`, operation),
+  endClass: (id: string) =>
+    api.post<{ board: Board; operation: Record<string, unknown> }>(`/boards/${id}/end`, {}),
+  reopenClass: (id: string) =>
+    api.post<{ board: Board; operation: Record<string, unknown> }>(`/boards/${id}/reopen`, {}),
 };
 
 export type { PresenceUser };
