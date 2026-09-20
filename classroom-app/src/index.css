@@ -54,6 +54,7 @@ body {
   }
 
   .gold-text {
+    color: #d4b06a;
     background-image: linear-gradient(
       120deg,
       #9a7a3a 0%,
@@ -66,8 +67,17 @@ body {
     background-size: 220% auto;
     -webkit-background-clip: text;
     background-clip: text;
-    color: transparent;
+    -webkit-text-fill-color: transparent;
     animation: shimmer 5.5s linear infinite;
+  }
+
+  @supports not (-webkit-background-clip: text) {
+    .gold-text {
+      color: #f0e0b8;
+      -webkit-text-fill-color: unset;
+      background-image: none;
+      animation: none;
+    }
   }
 
   .luxury-panel {
