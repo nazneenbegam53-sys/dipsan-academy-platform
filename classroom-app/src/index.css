@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #07121c;
+  --coal: #0f1f2e;
+  --gold: #d4b06a;
+  --champagne: #f0e0b8;
+  --aurora: #5ec8c0;
+  --bronze: #9db0c0;
+  --mist: #e8f0f5;
+  --paper: #07121c;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Outfit", system-ui, sans-serif;
+  background: var(--paper);
+  color: var(--mist);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+  min-height: 100dvh;
+}
+
+::selection {
+  background: rgba(94, 200, 192, 0.35);
+  color: #07121c;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .luxury-atmosphere {
+    background:
+      radial-gradient(ellipse 65% 45% at 12% 0%, rgba(94, 200, 192, 0.16), transparent 55%),
+      radial-gradient(ellipse 50% 40% at 92% 8%, rgba(212, 176, 106, 0.12), transparent 50%),
+      radial-gradient(ellipse 40% 35% at 70% 90%, rgba(94, 200, 192, 0.08), transparent 55%),
+      linear-gradient(180deg, #07121c 0%, #0c1a28 45%, #07121c 100%);
+  }
+
+  .science-atmosphere {
+    background:
+      radial-gradient(ellipse 80% 55% at 50% 0%, rgba(94, 200, 192, 0.18), transparent 60%),
+      radial-gradient(ellipse 45% 40% at 15% 80%, rgba(212, 176, 106, 0.1), transparent 50%),
+      radial-gradient(ellipse 40% 35% at 90% 70%, rgba(94, 200, 192, 0.08), transparent 50%),
+      #07121c;
+  }
+
+  .gold-text {
+    background-image: linear-gradient(
+      120deg,
+      #9a7a3a 0%,
+      #d4b06a 28%,
+      #f0e0b8 48%,
+      #5ec8c0 62%,
+      #d4b06a 78%,
+      #9a7a3a 100%
+    );
+    background-size: 220% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer 5.5s linear infinite;
+  }
+
+  .luxury-panel {
+    background: rgba(15, 31, 46, 0.88);
+    border: 1px solid rgba(94, 200, 192, 0.12);
+    backdrop-filter: blur(16px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 220% center;
+  }
+}

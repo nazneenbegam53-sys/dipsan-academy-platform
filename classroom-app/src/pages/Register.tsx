@@ -1,0 +1,156 @@
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { Button, ErrorBanner, PageShell } from "../components/ui";
+import type { Role } from "../types";
+
+export default function Register() {
+  const { register } = useAuth();
+  const navigate = useNavigate();
+  const [role, setRole] = useState<Role>("student");
+  const [form, setForm] = useState({
+    name: "",
+    phone: "",
+    password: "",
+    confirm: "",
+    className: "",
+    rollNumber: "",
+  });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  function update(field: string, value: string) {
+    setForm((f) => ({ ...f, [field]: value }));
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    if (form.password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    if (form.password !== form.confirm) {
+      setError("Passwords do not match.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await register({
+        name: form.name,
+        phone: form.phone,
+        role,
+        password: form.password,
+        className: form.className,
+        rollNumber: form.rollNumber,
+      });
+      navigate("/classroom", { replace: true });
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Could not create account.");
+      setLoading(false);
+    }
+  }
+
+  const fieldClass =
+    "w-full rounded-xl border border-gold/25 bg-charcoal px-3.5 py-3 text-sm text-mist outline-none transition placeholder:text-bronze/60 focus:border-gold focus:ring-2 focus:ring-gold/25";
+
+  return (
+    <PageShell quiet className="flex min-h-screen items-center justify-center px-6 py-12">
+      <div className="w-full max-w-md animate-fade-up luxury-panel rounded-3xl p-8 md:p-10">
+        <div className="mb-6 flex flex-col items-center text-center">
+          <p className="font-display text-sm font-semibold tracking-[0.22em] gold-text">
+            DIPSAN ACADEMY CLASSROOM
+          </p>
+          <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight text-mist">
+            Sign up
+          </h1>
+          <p className="mt-2 text-sm text-bronze">Sign up with your mobile number and a password</p>
+        </div>
+
+        <div className="mb-6 grid grid-cols-2 gap-2 rounded-full border border-gold/20 bg-ink/60 p-1">
+          {(["student", "teacher"] as Role[]).map((r) => (
+            <button
+              key={r}
+              onClick={() => setRole(r)}
+              type="button"
+              className={`rounded-full py-2 text-sm font-semibold transition ${
+                role === r ? "bg-gold text-ink" : "text-bronze hover:text-champagne"
+              }`}
+            >
+              {r === "student" ? "Student" : "Teacher"}
+            </button>
+          ))}
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3.5">
+          <ErrorBanner message={error} />
+          <input
+            required
+            placeholder="Full name"
+            value={form.name}
+            onChange={(e) => update("name", e.target.value)}
+            className={fieldClass}
+            autoComplete="name"
+          />
+          <input
+            required
+            placeholder="Mobile number"
+            value={form.phone}
+            onChange={(e) => update("phone", e.target.value)}
+            className={fieldClass}
+            inputMode="tel"
+            autoComplete="tel"
+          />
+          <input
+            required
+            type="password"
+            minLength={6}
+            placeholder="Password (min 6 characters)"
+            value={form.password}
+            onChange={(e) => update("password", e.target.value)}
+            className={fieldClass}
+            autoComplete="new-password"
+          />
+          <input
+            required
+            type="password"
+            minLength={6}
+            placeholder="Confirm password"
+            value={form.confirm}
+            onChange={(e) => update("confirm", e.target.value)}
+            className={fieldClass}
+            autoComplete="new-password"
+          />
+
+          {role === "student" && (
+            <>
+              <input
+                placeholder="Class (e.g. 12th, Dropper)"
+                value={form.className}
+                onChange={(e) => update("className", e.target.value)}
+                className={fieldClass}
+              />
+              <input
+                placeholder="Roll number (optional)"
+                value={form.rollNumber}
+                onChange={(e) => update("rollNumber", e.target.value)}
+                className={fieldClass}
+              />
+            </>
+          )}
+
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Creating account…" : "Create account"}
+          </Button>
+        </form>
+
+        <p className="mt-6 text-center text-sm text-bronze">
+          Already have an account?{" "}
+          <Link to="/login" className="font-semibold text-gold underline underline-offset-4">
+            Log in
+          </Link>
+        </p>
+      </div>
+    </PageShell>
+  );
+}
