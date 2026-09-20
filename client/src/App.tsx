@@ -15,6 +15,8 @@ import TeacherResults from "./pages/TeacherResults";
 import Analytics from "./pages/Analytics";
 import VideoSolutions from "./pages/VideoSolutions";
 import Notes from "./pages/Notes";
+import ClassroomHub from "./pages/ClassroomHub";
+import WhiteboardSession from "./pages/WhiteboardSession";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export default function App() {
@@ -37,6 +39,8 @@ export default function App() {
       {/* Student */}
       <Route path="/student" element={<ProtectedRoute role="student"><StudentDashboard /></ProtectedRoute>} />
       <Route path="/student/notes" element={<ProtectedRoute role="student"><Notes /></ProtectedRoute>} />
+      <Route path="/student/classroom" element={<ProtectedRoute role="student"><ClassroomHub /></ProtectedRoute>} />
+      <Route path="/student/classroom/board/:boardId" element={<ProtectedRoute role="student"><WhiteboardSession /></ProtectedRoute>} />
       <Route path="/student/exam/:examId/instructions" element={<ProtectedRoute role="student"><ExamInstructions /></ProtectedRoute>} />
       <Route path="/student/exam/:examId/attempt/:attemptId" element={<ProtectedRoute role="student"><ExamAttempt /></ProtectedRoute>} />
       <Route path="/student/result/:attemptId" element={<ProtectedRoute role="student"><ResultPage /></ProtectedRoute>} />
@@ -44,6 +48,8 @@ export default function App() {
       {/* Teacher */}
       <Route path="/teacher" element={<ProtectedRoute role="teacher"><TeacherDashboard /></ProtectedRoute>} />
       <Route path="/teacher/notes" element={<ProtectedRoute role="teacher"><Notes /></ProtectedRoute>} />
+      <Route path="/teacher/classroom" element={<ProtectedRoute role="teacher"><ClassroomHub /></ProtectedRoute>} />
+      <Route path="/teacher/classroom/board/:boardId" element={<ProtectedRoute role="teacher"><WhiteboardSession /></ProtectedRoute>} />
       <Route path="/teacher/results" element={<ProtectedRoute role="teacher"><TeacherResults /></ProtectedRoute>} />
       <Route path="/teacher/exam/new" element={<ProtectedRoute role="teacher"><ExamEditor /></ProtectedRoute>} />
       <Route path="/teacher/exam/:examId/edit" element={<ProtectedRoute role="teacher"><ExamEditor /></ProtectedRoute>} />

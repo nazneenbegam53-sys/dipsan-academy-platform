@@ -79,6 +79,35 @@ function NotesIcon({ active }: { active: boolean }) {
   );
 }
 
+function ClassroomIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect
+        x="3.5"
+        y="5"
+        width="17"
+        height="12"
+        rx="2"
+        stroke={active ? "#F0E0B8" : "#9DB0C0"}
+        strokeWidth="1.7"
+        fill={active ? "rgba(94,200,192,0.12)" : "none"}
+      />
+      <path
+        d="M8 20h8M12 17v3"
+        stroke={active ? "#5EC8C0" : "#9DB0C0"}
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M7 9.5h4M7 12.5h6"
+        stroke={active ? "#D4B06A" : "#9DB0C0"}
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 function AccountIcon({ active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -103,6 +132,7 @@ function AccountIcon({ active }: { active: boolean }) {
 function shouldHideTabBar(path: string) {
   if (path === "/login" || path === "/register" || path === "/install" || path === "/privacy") return true;
   if (path.includes("/attempt/") || path.includes("/instructions")) return true;
+  if (path.includes("/classroom/board/")) return true;
   if (path === "/teacher/exam/new") return true;
   if (/\/teacher\/exam\/[^/]+\/(edit|analytics|video-solutions)/.test(path)) return true;
   return false;
@@ -168,6 +198,13 @@ export function MobileTabBar() {
       icon: (a) => <NotesIcon active={a} />,
     },
     {
+      key: "classroom",
+      to: "/student/classroom",
+      label: "Classroom",
+      active: pathname.startsWith("/student/classroom"),
+      icon: (a) => <ClassroomIcon active={a} />,
+    },
+    {
       key: "results",
       to: "/student#history",
       label: "Results",
@@ -199,6 +236,13 @@ export function MobileTabBar() {
       label: "Notes",
       active: pathname === "/teacher/notes",
       icon: (a) => <NotesIcon active={a} />,
+    },
+    {
+      key: "classroom",
+      to: "/teacher/classroom",
+      label: "Classroom",
+      active: pathname.startsWith("/teacher/classroom"),
+      icon: (a) => <ClassroomIcon active={a} />,
     },
     {
       key: "results",
