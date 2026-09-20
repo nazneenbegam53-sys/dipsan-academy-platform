@@ -41,7 +41,7 @@ export default function WhiteboardSession() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isTeacher = user?.role === "teacher";
-  const home = isTeacher ? "/teacher" : "/student";
+  
 
   const [board, setBoard] = useState<Board | null>(null);
   const [objects, setObjects] = useState<WhiteboardObject[]>([]);
@@ -588,7 +588,7 @@ export default function WhiteboardSession() {
       <PageShell>
         <div className="mx-auto max-w-lg px-6 py-16">
           <ErrorBanner message={error || "Board not found."} />
-          <Button variant="ghost" onClick={() => navigate(`${home}/classroom`)}>
+          <Button variant="ghost" onClick={() => navigate("/classroom")}>
             Back to classroom
           </Button>
         </div>
@@ -613,7 +613,7 @@ export default function WhiteboardSession() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs text-bronze">{saving ? "Saving…" : `v${board.version}`}</span>
-            <Link to={`${home}/classroom`}>
+            <Link to={"/classroom"}>
               <Button variant="ghost">Hub</Button>
             </Link>
             <Button variant="ghost" onClick={exportPng}>
