@@ -5,7 +5,14 @@ import type { PresenceUser } from "../../types";
 const ICE_SERVERS: RTCIceServer[] = [
   { urls: "stun:stun.l.google.com:19302" },
   { urls: "stun:stun1.l.google.com:19302" },
+  { urls: "stun:stun2.l.google.com:19302" },
 ];
+
+const AUDIO_CONSTRAINTS: MediaTrackConstraints = {
+  echoCancellation: true,
+  noiseSuppression: true,
+  autoGainControl: true,
+};
 
 type PeerMedia = {
   userId: string;
@@ -25,6 +32,25 @@ type Props = {
   forceEnded?: boolean;
 };
 
+async function acquireMedia(): Promise<MediaStream> {
+  try {
+    return await navigator.mediaDevices.getUserMedia({
+      audio: AUDIO_CONSTRAINTS,
+      video: {
+        facingMode: "user",
+        width: { ideal: 640 },
+        height: { ideal: 480 },
+      },
+    });
+  } catch {
+    // Mic-only fallback if camera is denied or missing.
+    return await navigator.mediaDevices.getUserMedia({
+      audio: AUDIO_CONSTRAINTS,
+      video: false,
+    });
+  }
+}
+
 export default function CallDock({
   socket,
   boardId,
@@ -42,6 +68,8 @@ export default function CallDock({
   const [remotePeers, setRemotePeers] = useState<PeerMedia[]>([]);
 
   const pcsRef = useRef<Map<string, RTCPeerConnection>>(new Map());
+  const pendingIceRef = useRef<Map<string, RTCIceCandidateInit[]>>(new Map());
+  const makingOfferRef = useRef<Map<string, boolean>>(new Map());
   const localStreamRef = useRef<MediaStream | null>(null);
   const inCallRef = useRef(false);
   const callPeersRef = useRef<Map<string, { name: string; audio: boolean; video: boolean }>>(
@@ -49,6 +77,7 @@ export default function CallDock({
   );
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
+  const remoteAudioRefs = useRef<Map<string, HTMLAudioElement>>(new Map());
 
   inCallRef.current = inCall;
   localStreamRef.current = localStream;
@@ -74,6 +103,8 @@ export default function CallDock({
   const removeRemote = useCallback((userId: string) => {
     setRemotePeers((prev) => prev.filter((p) => p.userId !== userId));
     callPeersRef.current.delete(userId);
+    pendingIceRef.current.delete(userId);
+    makingOfferRef.current.delete(userId);
   }, []);
 
   const closePc = useCallback((userId: string) => {
@@ -86,7 +117,43 @@ export default function CallDock({
       }
       pcsRef.current.delete(userId);
     }
+    pendingIceRef.current.delete(userId);
+    makingOfferRef.current.delete(userId);
   }, []);
+
+  const flushIce = useCallback(async (userId: string, pc: RTCPeerConnection) => {
+    const queued = pendingIceRef.current.get(userId) || [];
+    if (!queued.length) return;
+    pendingIceRef.current.set(userId, []);
+    for (const candidate of queued) {
+      try {
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+      } catch (err) {
+        console.warn("Flush ICE failed", err);
+      }
+    }
+  }, []);
+
+  const attachRemoteMedia = useCallback(
+    (userId: string, stream: MediaStream | null, hearAudio = true) => {
+      if (!stream) return;
+      const video = remoteVideoRefs.current.get(userId);
+      if (video) {
+        if (video.srcObject !== stream) video.srcObject = stream;
+        // Video stays muted; dedicated <audio> plays remote sound (avoids double audio).
+        video.muted = true;
+        void video.play().catch(() => {});
+      }
+      const audio = remoteAudioRefs.current.get(userId);
+      if (audio) {
+        if (audio.srcObject !== stream) audio.srcObject = stream;
+        audio.muted = !hearAudio;
+        audio.volume = 1;
+        void audio.play().catch(() => {});
+      }
+    },
+    []
+  );
 
   const cleanupAll = useCallback(() => {
     for (const userId of Array.from(pcsRef.current.keys())) {
@@ -100,6 +167,8 @@ export default function CallDock({
     setLocalStream(null);
     setRemotePeers([]);
     callPeersRef.current.clear();
+    pendingIceRef.current.clear();
+    makingOfferRef.current.clear();
     setInCall(false);
     inCallRef.current = false;
   }, [closePc]);
@@ -117,6 +186,10 @@ export default function CallDock({
         for (const track of stream.getTracks()) {
           pc.addTrack(track, stream);
         }
+      } else {
+        // Ensure we negotiate recv slots even before local media is ready.
+        pc.addTransceiver("audio", { direction: "sendrecv" });
+        pc.addTransceiver("video", { direction: "sendrecv" });
       }
 
       pc.onicecandidate = (ev) => {
@@ -129,39 +202,81 @@ export default function CallDock({
       };
 
       pc.ontrack = (ev) => {
-        const [remoteStream] = ev.streams;
+        let remoteStream = ev.streams[0];
+        if (!remoteStream) {
+          remoteStream = new MediaStream([ev.track]);
+        } else if (!remoteStream.getTracks().includes(ev.track)) {
+          remoteStream.addTrack(ev.track);
+        }
         const existing = callPeersRef.current.get(remoteUserId);
         upsertRemote({
           userId: remoteUserId,
           name: peerName(remoteUserId, remoteName),
-          stream: remoteStream || null,
+          stream: remoteStream,
           audio: existing?.audio ?? true,
           video: existing?.video ?? true,
         });
+        // Defer attach so refs from React render are ready.
+        queueMicrotask(() =>
+          attachRemoteMedia(remoteUserId, remoteStream, existing?.audio ?? true)
+        );
       };
 
       pc.onconnectionstatechange = () => {
-        if (pc.connectionState === "failed" || pc.connectionState === "closed") {
+        if (pc.connectionState === "failed") {
+          try {
+            pc.restartIce();
+          } catch {
+            /* ignore */
+          }
+          if (socket && inCallRef.current) {
+            void (async () => {
+              try {
+                makingOfferRef.current.set(remoteUserId, true);
+                const offer = await pc.createOffer({ iceRestart: true });
+                await pc.setLocalDescription(offer);
+                socket.emit("webrtc:offer", {
+                  boardId,
+                  targetUserId: remoteUserId,
+                  sdp: pc.localDescription,
+                });
+              } catch (err) {
+                console.warn("ICE restart offer failed", err);
+              } finally {
+                makingOfferRef.current.set(remoteUserId, false);
+              }
+            })();
+          }
+        } else if (pc.connectionState === "closed") {
           closePc(remoteUserId);
         }
       };
 
       return pc;
     },
-    [boardId, closePc, peerName, socket, upsertRemote]
+    [attachRemoteMedia, boardId, closePc, peerName, socket, upsertRemote]
   );
 
   const createOfferTo = useCallback(
     async (remoteUserId: string, remoteName?: string) => {
       if (!socket || remoteUserId === selfUserId) return;
       const pc = ensurePc(remoteUserId, remoteName);
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      socket.emit("webrtc:offer", {
-        boardId,
-        targetUserId: remoteUserId,
-        sdp: pc.localDescription,
-      });
+      if (makingOfferRef.current.get(remoteUserId)) return;
+      try {
+        makingOfferRef.current.set(remoteUserId, true);
+        const offer = await pc.createOffer({
+          offerToReceiveAudio: true,
+          offerToReceiveVideo: true,
+        });
+        await pc.setLocalDescription(offer);
+        socket.emit("webrtc:offer", {
+          boardId,
+          targetUserId: remoteUserId,
+          sdp: pc.localDescription,
+        });
+      } finally {
+        makingOfferRef.current.set(remoteUserId, false);
+      }
     },
     [boardId, ensurePc, selfUserId, socket]
   );
@@ -240,7 +355,24 @@ export default function CallDock({
 
       try {
         const pc = ensurePc(payload.fromUserId, payload.fromName);
+        if (pc.signalingState !== "stable" && pc.signalingState !== "have-local-offer") {
+          // Ignore glare while already negotiating an unexpected state.
+        }
+        // Perfect negotiation: polite peer rolls back local offer on glare.
+        const offerCollision =
+          makingOfferRef.current.get(payload.fromUserId) ||
+          pc.signalingState !== "stable";
+        const polite = selfUserId < payload.fromUserId;
+        if (offerCollision) {
+          if (!polite) return;
+          try {
+            await pc.setLocalDescription({ type: "rollback" });
+          } catch {
+            /* ignore */
+          }
+        }
         await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+        await flushIce(payload.fromUserId, pc);
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         socket.emit("webrtc:answer", {
@@ -263,7 +395,10 @@ export default function CallDock({
       const pc = pcsRef.current.get(payload.fromUserId);
       if (!pc) return;
       try {
-        await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+        if (pc.signalingState === "have-local-offer") {
+          await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+          await flushIce(payload.fromUserId, pc);
+        }
       } catch (err) {
         console.warn("Handle answer failed", err);
       }
@@ -276,8 +411,20 @@ export default function CallDock({
     }) => {
       if (payload.boardId && payload.boardId !== boardId) return;
       if (!inCallRef.current) return;
+      if (!payload.candidate) return;
       const pc = pcsRef.current.get(payload.fromUserId);
-      if (!pc || !payload.candidate) return;
+      if (!pc) {
+        const queue = pendingIceRef.current.get(payload.fromUserId) || [];
+        queue.push(payload.candidate);
+        pendingIceRef.current.set(payload.fromUserId, queue);
+        return;
+      }
+      if (!pc.remoteDescription) {
+        const queue = pendingIceRef.current.get(payload.fromUserId) || [];
+        queue.push(payload.candidate);
+        pendingIceRef.current.set(payload.fromUserId, queue);
+        return;
+      }
       try {
         await pc.addIceCandidate(new RTCIceCandidate(payload.candidate));
       } catch (err) {
@@ -335,6 +482,7 @@ export default function CallDock({
     closePc,
     createOfferTo,
     ensurePc,
+    flushIce,
     peerName,
     removeRemote,
     selfUserId,
@@ -346,17 +494,15 @@ export default function CallDock({
     const el = localVideoRef.current;
     if (el && localStream) {
       el.srcObject = localStream;
+      void el.play().catch(() => {});
     }
   }, [localStream]);
 
   useEffect(() => {
     for (const peer of remotePeers) {
-      const el = remoteVideoRefs.current.get(peer.userId);
-      if (el && peer.stream && el.srcObject !== peer.stream) {
-        el.srcObject = peer.stream;
-      }
+      attachRemoteMedia(peer.userId, peer.stream, peer.audio !== false);
     }
-  }, [remotePeers]);
+  }, [attachRemoteMedia, remotePeers]);
 
   useEffect(() => {
     return () => {
@@ -373,21 +519,27 @@ export default function CallDock({
     setJoining(true);
     setError("");
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: true,
+      const stream = await acquireMedia();
+      // Keep audio tracks enabled by default.
+      stream.getAudioTracks().forEach((t) => {
+        t.enabled = true;
       });
+      const hasVideo = stream.getVideoTracks().length > 0;
       localStreamRef.current = stream;
       setLocalStream(stream);
       setAudioOn(true);
-      setVideoOn(true);
+      setVideoOn(hasVideo);
       setInCall(true);
       inCallRef.current = true;
-      socket.emit("webrtc:ready", { boardId, audio: true, video: true });
+      socket.emit("webrtc:ready", { boardId, audio: true, video: hasVideo });
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Could not access camera/microphone.";
-      setError(message);
+      setError(
+        message.includes("Permission") || message.includes("NotAllowed")
+          ? "Microphone permission denied. Allow mic access and try Join call again."
+          : message
+      );
       cleanupAll();
     } finally {
       setJoining(false);
@@ -422,8 +574,13 @@ export default function CallDock({
   function toggleCamera() {
     const stream = localStreamRef.current;
     if (!stream) return;
+    const tracks = stream.getVideoTracks();
+    if (!tracks.length) {
+      setError("No camera available on this device.");
+      return;
+    }
     const next = !videoOn;
-    stream.getVideoTracks().forEach((t) => {
+    tracks.forEach((t) => {
       t.enabled = next;
     });
     setVideoOn(next);
@@ -433,7 +590,7 @@ export default function CallDock({
   const othersOnline = peers.filter((p) => p.userId !== selfUserId);
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-charcoal/60 px-3 py-3 sm:px-4">
+    <div className="shrink-0 rounded-2xl border border-white/10 bg-charcoal/60 px-3 py-2 sm:px-4 sm:py-3">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-bronze">
@@ -501,7 +658,7 @@ export default function CallDock({
 
       {inCall && (
         <div className="flex gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="relative h-28 w-40 shrink-0 overflow-hidden rounded-xl border border-gold/25 bg-[#07121C]">
+          <div className="relative h-24 w-36 shrink-0 overflow-hidden rounded-xl border border-gold/25 bg-[#07121C] sm:h-28 sm:w-40">
             <video
               ref={localVideoRef}
               autoPlay
@@ -522,16 +679,42 @@ export default function CallDock({
           {remotePeers.map((peer) => (
             <div
               key={peer.userId}
-              className="relative h-28 w-40 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-[#07121C]"
+              className="relative h-24 w-36 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-[#07121C] sm:h-28 sm:w-40"
             >
               <video
                 ref={(el) => {
-                  if (el) remoteVideoRefs.current.set(peer.userId, el);
-                  else remoteVideoRefs.current.delete(peer.userId);
+                  if (el) {
+                    remoteVideoRefs.current.set(peer.userId, el);
+                    if (peer.stream) {
+                      if (el.srcObject !== peer.stream) el.srcObject = peer.stream;
+                      el.muted = true;
+                      void el.play().catch(() => {});
+                    }
+                  } else {
+                    remoteVideoRefs.current.delete(peer.userId);
+                  }
                 }}
                 autoPlay
                 playsInline
+                muted
                 className={`h-full w-full object-cover ${peer.video ? "" : "opacity-0"}`}
+              />
+              {/* Dedicated audio element — reliable remote mic playback on mobile */}
+              <audio
+                ref={(el) => {
+                  if (el) {
+                    remoteAudioRefs.current.set(peer.userId, el);
+                    if (peer.stream) {
+                      if (el.srcObject !== peer.stream) el.srcObject = peer.stream;
+                      el.muted = peer.audio === false;
+                      el.volume = 1;
+                      void el.play().catch(() => {});
+                    }
+                  } else {
+                    remoteAudioRefs.current.delete(peer.userId);
+                  }
+                }}
+                autoPlay
               />
               {!peer.stream && (
                 <div className="absolute inset-0 flex items-center justify-center text-xs text-bronze">

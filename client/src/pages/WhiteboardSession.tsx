@@ -28,6 +28,19 @@ const TOOLS: { id: WhiteboardTool; label: string }[] = [
   { id: "pan", label: "Pan" },
 ];
 
+const PEN_COLORS = [
+  "#F0E0B8",
+  "#FFFFFF",
+  "#111111",
+  "#E74C3C",
+  "#E67E22",
+  "#F1C40F",
+  "#2ECC71",
+  "#3498DB",
+  "#9B59B6",
+  "#5EC8C0",
+];
+
 function uid() {
   return `obj_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -198,18 +211,35 @@ export default function WhiteboardSession() {
   }, [boardId, user?.id]);
 
   useEffect(() => {
+    const prevBody = document.body.style.overflow;
+    const prevHtml = document.documentElement.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevBody;
+      document.documentElement.style.overflow = prevHtml;
+    };
+  }, []);
+
+  useEffect(() => {
     function resize() {
       const el = containerRef.current;
       if (!el) return;
       const rect = el.getBoundingClientRect();
       setStageSize({
-        width: Math.max(320, rect.width),
-        height: Math.max(360, window.innerHeight - (window.innerWidth < 768 ? 220 : 180)),
+        width: Math.max(280, Math.floor(rect.width)),
+        height: Math.max(220, Math.floor(rect.height)),
       });
     }
     resize();
+    const ro =
+      typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => resize()) : null;
+    if (containerRef.current && ro) ro.observe(containerRef.current);
     window.addEventListener("resize", resize);
-    return () => window.removeEventListener("resize", resize);
+    return () => {
+      window.removeEventListener("resize", resize);
+      ro?.disconnect();
+    };
   }, [loading]);
 
   useEffect(() => {
@@ -348,29 +378,27 @@ export default function WhiteboardSession() {
     }
 
     if (tool === "eraser") {
-      const hit = pageObjects
-        .slice()
-        .reverse()
-        .find((o) => {
-          if (o.type === "path" || o.type === "highlighter") {
-            const pts = (o.data.points as number[]) || [];
-            for (let i = 0; i < pts.length; i += 2) {
-              if (Math.hypot(pts[i] - pos.x, pts[i + 1] - pos.y) < 14) return true;
-            }
-            return false;
-          }
-          return (
-            pos.x >= o.x &&
-            pos.x <= o.x + (o.width || 0) &&
-            pos.y >= o.y &&
-            pos.y <= o.y + (o.height || 0)
-          );
-        });
-      if (hit) {
-        const next = objects.map((o) => (o.id === hit.id ? { ...o, deleted: true } : o));
-        pushHistory(next);
-        emitOperation({ type: "DELETE", objectId: hit.id });
-      }
+      const eraserWidth = Math.max(18, strokeWidth * 5);
+      const obj: WhiteboardObject = {
+        id: uid(),
+        type: "eraser",
+        x: pos.x,
+        y: pos.y,
+        width: 0,
+        height: 0,
+        rotation: 0,
+        zIndex: objects.length + 1,
+        style: {
+          stroke: "#000000",
+          strokeWidth: eraserWidth,
+          opacity: 1,
+        },
+        data: { points: [pos.x, pos.y] },
+        createdBy: user?.id,
+        pageNumber: page,
+      };
+      drawingRef.current = obj;
+      setObjects((prev) => [...prev, obj]);
       return;
     }
 
@@ -429,11 +457,13 @@ export default function WhiteboardSession() {
     const draft = drawingRef.current;
     if (!draft || !pos) return;
 
-    if (draft.type === "path" || draft.type === "highlighter") {
+    if (draft.type === "path" || draft.type === "highlighter" || draft.type === "eraser") {
       const points = [...((draft.data.points as number[]) || []), pos.x, pos.y];
       draft.data = { ...draft.data, points };
-      draft.width = Math.max(...points.filter((_, i) => i % 2 === 0)) - draft.x;
-      draft.height = Math.max(...points.filter((_, i) => i % 2 === 1)) - draft.y;
+      const xs = points.filter((_, i) => i % 2 === 0);
+      const ys = points.filter((_, i) => i % 2 === 1);
+      draft.width = (xs.length ? Math.max(...xs) : draft.x) - draft.x;
+      draft.height = (ys.length ? Math.max(...ys) : draft.y) - draft.y;
     } else {
       draft.data = { ...draft.data, x2: pos.x, y2: pos.y };
       draft.width = pos.x - draft.x;
@@ -591,6 +621,22 @@ export default function WhiteboardSession() {
         />
       );
     }
+    if (obj.type === "eraser") {
+      return (
+        <Line
+          {...common}
+          points={(obj.data.points as number[]) || []}
+          stroke="#000000"
+          strokeWidth={obj.style.strokeWidth || 20}
+          tension={0.35}
+          lineCap="round"
+          lineJoin="round"
+          globalCompositeOperation="destination-out"
+          listening={false}
+          draggable={false}
+        />
+      );
+    }
     if (obj.type === "line") {
       return (
         <Line
@@ -686,14 +732,14 @@ export default function WhiteboardSession() {
     board.pages?.find((p) => p.pageNumber === page)?.backgroundColor || "#0B1824";
 
   return (
-    <PageShell className="!overflow-hidden">
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-3 py-3 sm:px-5 sm:py-4">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
+    <PageShell className="!h-[100dvh] !min-h-0 !overflow-hidden">
+      <div className="mx-auto flex h-full max-w-7xl flex-col gap-2 overflow-hidden px-3 py-2 sm:gap-2.5 sm:px-5 sm:py-3">
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-bronze">
               DIPSAN ACADEMY CLASSROOM
             </p>
-            <h1 className="font-display text-xl font-semibold text-mist sm:text-2xl">
+            <h1 className="font-display text-lg font-semibold text-mist sm:text-2xl">
               {board.title}
             </h1>
           </div>
@@ -722,7 +768,7 @@ export default function WhiteboardSession() {
         )}
 
         {(classEnded || endedBanner) && (
-          <div className="rounded-2xl border border-gold/30 bg-gold/10 px-4 py-3 text-sm text-champagne">
+          <div className="shrink-0 rounded-2xl border border-gold/30 bg-gold/10 px-4 py-3 text-sm text-champagne">
             <p className="font-semibold">
               {classEnded ? "Live class ended" : "Class update"}
             </p>
@@ -745,7 +791,7 @@ export default function WhiteboardSession() {
           </div>
         )}
 
-        <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex shrink-0 gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {TOOLS.map((t) => (
             <button
               key={t.id}
@@ -761,13 +807,36 @@ export default function WhiteboardSession() {
               {t.label}
             </button>
           ))}
-          <input
-            type="color"
-            value={color}
-            onChange={(e) => setColor(e.target.value)}
-            className="h-8 w-10 shrink-0 cursor-pointer rounded border border-white/15 bg-transparent"
-            title="Color"
-          />
+          <div className="flex shrink-0 items-center gap-1.5 pl-1">
+            {PEN_COLORS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                title={c}
+                disabled={!canEdit}
+                onClick={() => {
+                  setColor(c);
+                  if (tool === "eraser" || tool === "select" || tool === "pan") setTool("pen");
+                }}
+                className={`h-7 w-7 shrink-0 rounded-full border-2 transition disabled:opacity-40 ${
+                  color.toLowerCase() === c.toLowerCase()
+                    ? "border-champagne scale-110"
+                    : "border-white/20 hover:border-gold/50"
+                }`}
+                style={{ backgroundColor: c }}
+              />
+            ))}
+            <input
+              type="color"
+              value={color}
+              onChange={(e) => {
+                setColor(e.target.value);
+                if (tool === "eraser" || tool === "select" || tool === "pan") setTool("pen");
+              }}
+              className="h-8 w-10 shrink-0 cursor-pointer rounded border border-white/15 bg-transparent"
+              title="Custom color"
+            />
+          </div>
           <input
             type="range"
             min={1}
@@ -775,7 +844,7 @@ export default function WhiteboardSession() {
             value={strokeWidth}
             onChange={(e) => setStrokeWidth(Number(e.target.value))}
             className="w-24 shrink-0 accent-gold"
-            title="Stroke"
+            title={tool === "eraser" ? "Eraser size" : "Stroke"}
           />
           <Button variant="ghost" className="!px-3 !py-1.5 text-xs" onClick={undo}>
             Undo
@@ -784,7 +853,7 @@ export default function WhiteboardSession() {
             Redo
           </Button>
           <Button variant="ghost" className="!px-3 !py-1.5 text-xs" onClick={clearPage} disabled={!canEdit}>
-            Clear
+            Clear page
           </Button>
           {isTeacher && (
             <>
@@ -835,7 +904,7 @@ export default function WhiteboardSession() {
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 text-xs text-bronze">
+        <div className="flex shrink-0 flex-wrap items-center gap-2 text-xs text-bronze">
           <span>Pages:</span>
           {(board.pages || [{ pageNumber: 1, title: "Page 1", backgroundColor: bg }]).map((p) => (
             <button
@@ -862,14 +931,16 @@ export default function WhiteboardSession() {
         </div>
 
         {lockedForStudent && (
-          <p className="rounded-xl border border-gold/20 bg-gold/10 px-3 py-2 text-xs text-champagne">
+          <p className="shrink-0 rounded-xl border border-gold/20 bg-gold/10 px-3 py-2 text-xs text-champagne">
             Students are locked — you can watch and raise your hand.
           </p>
         )}
 
         <div
           ref={containerRef}
-          className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#07121C]"
+          className="relative min-h-0 flex-1 touch-none overflow-hidden rounded-2xl border border-white/10 bg-[#07121C]"
+          style={{ touchAction: "none", overscrollBehavior: "none" }}
+          onContextMenu={(e) => e.preventDefault()}
         >
           <Stage
             ref={stageRef}
@@ -880,6 +951,7 @@ export default function WhiteboardSession() {
             x={position.x}
             y={position.y}
             draggable={tool === "pan"}
+            style={{ touchAction: "none" }}
             onDragEnd={(e) => {
               if (tool === "pan") setPosition({ x: e.target.x(), y: e.target.y() });
             }}
@@ -893,12 +965,24 @@ export default function WhiteboardSession() {
             onMouseDown={onPointerDown}
             onMousemove={onPointerMove}
             onMouseup={onPointerUp}
-            onTouchStart={onPointerDown}
-            onTouchMove={onPointerMove}
-            onTouchEnd={onPointerUp}
+            onMouseLeave={onPointerUp}
+            onTouchStart={(e) => {
+              e.evt.preventDefault();
+              onPointerDown();
+            }}
+            onTouchMove={(e) => {
+              e.evt.preventDefault();
+              onPointerMove();
+            }}
+            onTouchEnd={(e) => {
+              e.evt.preventDefault();
+              onPointerUp();
+            }}
           >
+            <Layer listening={false}>
+              <Rect x={-2000} y={-2000} width={6000} height={6000} fill={bg} />
+            </Layer>
             <Layer>
-              <Rect x={-2000} y={-2000} width={6000} height={6000} fill={bg} listening={false} />
               {pageObjects.map(renderObject)}
               <Transformer ref={transformerRef} rotateEnabled={false} borderStroke="#D4B06A" />
             </Layer>
