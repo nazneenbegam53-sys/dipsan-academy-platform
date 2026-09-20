@@ -63,6 +63,8 @@ export interface Board {
   title: string;
   createdBy: string;
   studentEditingLocked: boolean;
+  liveEnded?: boolean;
+  endedAt?: string | null;
   currentPage: number;
   version: number;
   pages: BoardPage[];

@@ -35,6 +35,9 @@ const boardSchema = new mongoose.Schema(
     title: { type: String, required: true, trim: true, default: "Whiteboard" },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     studentEditingLocked: { type: Boolean, default: true },
+    liveEnded: { type: Boolean, default: false },
+    endedAt: { type: Date },
+    endedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     currentPage: { type: Number, default: 1 },
     version: { type: Number, default: 0 },
     pages: {

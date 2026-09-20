@@ -21,6 +21,8 @@ type Props = {
   selfUserId: string;
   selfName: string;
   peers: PresenceUser[];
+  /** When true, hang up and leave the call (e.g. teacher ended class). */
+  forceEnded?: boolean;
 };
 
 export default function CallDock({
@@ -29,6 +31,7 @@ export default function CallDock({
   selfUserId,
   selfName,
   peers,
+  forceEnded = false,
 }: Props) {
   const [inCall, setInCall] = useState(false);
   const [joining, setJoining] = useState(false);
@@ -396,6 +399,14 @@ export default function CallDock({
     cleanupAll();
     setError("");
   }
+
+  useEffect(() => {
+    if (!forceEnded) return;
+    if (inCallRef.current || localStreamRef.current) {
+      leaveCall();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [forceEnded]);
 
   function toggleMic() {
     const stream = localStreamRef.current;

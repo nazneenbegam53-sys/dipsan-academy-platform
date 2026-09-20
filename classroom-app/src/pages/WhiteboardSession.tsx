@@ -41,7 +41,7 @@ export default function WhiteboardSession() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isTeacher = user?.role === "teacher";
-  
+  const home = "/classroom";
 
   const [board, setBoard] = useState<Board | null>(null);
   const [objects, setObjects] = useState<WhiteboardObject[]>([]);
@@ -61,6 +61,8 @@ export default function WhiteboardSession() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [saving, setSaving] = useState(false);
   const [handRaised, setHandRaised] = useState(false);
+  const [endingClass, setEndingClass] = useState(false);
+  const [endedBanner, setEndedBanner] = useState("");
   const [socket, setSocket] = useState<Socket | null>(null);
 
   const historyRef = useRef<WhiteboardObject[][]>([]);
@@ -76,7 +78,8 @@ export default function WhiteboardSession() {
   objectsRef.current = objects;
 
   const lockedForStudent = Boolean(board?.studentEditingLocked && !isTeacher);
-  const canEdit = !lockedForStudent;
+  const classEnded = Boolean(board?.liveEnded);
+  const canEdit = !lockedForStudent && !classEnded;
 
   const pageObjects = useMemo(
     () => objects.filter((o) => !o.deleted && o.pageNumber === page).sort((a, b) => a.zIndex - b.zIndex),
@@ -158,6 +161,32 @@ export default function WhiteboardSession() {
         }
       }
     );
+
+    s.on(
+      "board:ended",
+      (payload: { endedByName?: string; board?: Partial<Board> }) => {
+        if (payload.board) {
+          setBoard((b) => (b ? { ...b, ...payload.board, liveEnded: true } : b));
+        } else {
+          setBoard((b) => (b ? { ...b, liveEnded: true, studentEditingLocked: true } : b));
+        }
+        setEndedBanner(
+          payload.endedByName
+            ? `${payload.endedByName} ended the live class.`
+            : "The teacher ended the live class."
+        );
+        setSelectedId(null);
+      }
+    );
+
+    s.on("board:reopened", (payload: { board?: Partial<Board> }) => {
+      if (payload.board) {
+        setBoard((b) => (b ? { ...b, ...payload.board, liveEnded: false } : b));
+      } else {
+        setBoard((b) => (b ? { ...b, liveEnded: false } : b));
+      }
+      setEndedBanner("");
+    });
 
     return () => {
       s.emit("board:leave");
@@ -245,6 +274,15 @@ export default function WhiteboardSession() {
             }
           : b
       );
+    } else if (type === "END_CLASS") {
+      setBoard((b) =>
+        b ? { ...b, liveEnded: true, studentEditingLocked: true, endedAt: new Date().toISOString() } : b
+      );
+      setEndedBanner("The teacher ended the live class.");
+      setSelectedId(null);
+    } else if (type === "REOPEN_CLASS") {
+      setBoard((b) => (b ? { ...b, liveEnded: false, endedAt: null } : b));
+      setEndedBanner("");
     } else if (type === "CHANGE_PAGE") {
       if (op.pageNumber) setPage(Number(op.pageNumber));
     } else if (type === "ADD_PAGE") {
@@ -425,10 +463,58 @@ export default function WhiteboardSession() {
   }
 
   function toggleLock() {
-    if (!isTeacher || !board) return;
+    if (!isTeacher || !board || classEnded) return;
     const locked = !board.studentEditingLocked;
     setBoard({ ...board, studentEditingLocked: locked });
     emitOperation({ type: "LOCK_STUDENTS", locked });
+  }
+
+  function endClass() {
+    if (!isTeacher || !board || endingClass || classEnded) return;
+    const ok = window.confirm(
+      "End this live class for everyone? Students will leave the call and cannot draw until you reopen."
+    );
+    if (!ok) return;
+    setEndingClass(true);
+    setError("");
+    setBoard({
+      ...board,
+      liveEnded: true,
+      studentEditingLocked: true,
+      endedAt: new Date().toISOString(),
+    });
+    setEndedBanner("You ended the live class.");
+    setSelectedId(null);
+    const socket = socketRef.current;
+    if (socket?.connected) {
+      emitOperation({ type: "END_CLASS" });
+      setEndingClass(false);
+    } else {
+      boardApi
+        .endClass(boardId)
+        .then((r) => setBoard((b) => (b ? { ...b, ...r.board, liveEnded: true } : b)))
+        .catch((err) => setError(err instanceof Error ? err.message : "Could not end class."))
+        .finally(() => setEndingClass(false));
+    }
+  }
+
+  function reopenClass() {
+    if (!isTeacher || !board || endingClass) return;
+    setEndingClass(true);
+    setError("");
+    setBoard({ ...board, liveEnded: false, endedAt: null });
+    setEndedBanner("");
+    const socket = socketRef.current;
+    if (socket?.connected) {
+      emitOperation({ type: "REOPEN_CLASS" });
+      setEndingClass(false);
+    } else {
+      boardApi
+        .reopenClass(boardId)
+        .then((r) => setBoard((b) => (b ? { ...b, ...r.board, liveEnded: false } : b)))
+        .catch((err) => setError(err instanceof Error ? err.message : "Could not reopen class."))
+        .finally(() => setEndingClass(false));
+    }
   }
 
   function changePage(pageNumber: number) {
@@ -588,7 +674,7 @@ export default function WhiteboardSession() {
       <PageShell>
         <div className="mx-auto max-w-lg px-6 py-16">
           <ErrorBanner message={error || "Board not found."} />
-          <Button variant="ghost" onClick={() => navigate("/classroom")}>
+          <Button variant="ghost" onClick={() => navigate(`${home}`)}>
             Back to classroom
           </Button>
         </div>
@@ -613,7 +699,7 @@ export default function WhiteboardSession() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs text-bronze">{saving ? "Saving…" : `v${board.version}`}</span>
-            <Link to={"/classroom"}>
+            <Link to={`${home}`}>
               <Button variant="ghost">Hub</Button>
             </Link>
             <Button variant="ghost" onClick={exportPng}>
@@ -631,7 +717,32 @@ export default function WhiteboardSession() {
             selfUserId={user.id}
             selfName={user.name}
             peers={presence}
+            forceEnded={classEnded}
           />
+        )}
+
+        {(classEnded || endedBanner) && (
+          <div className="rounded-2xl border border-gold/30 bg-gold/10 px-4 py-3 text-sm text-champagne">
+            <p className="font-semibold">
+              {classEnded ? "Live class ended" : "Class update"}
+            </p>
+            <p className="mt-1 text-bronze">
+              {endedBanner ||
+                "This session is closed. Students cannot draw or rejoin the call until the teacher reopens it."}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {!isTeacher && (
+                <Button variant="ghost" onClick={() => navigate(home)}>
+                  Back to classroom
+                </Button>
+              )}
+              {isTeacher && classEnded && (
+                <Button onClick={reopenClass} disabled={endingClass}>
+                  {endingClass ? "Reopening…" : "Reopen class"}
+                </Button>
+              )}
+            </div>
+          </div>
         )}
 
         <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -677,12 +788,39 @@ export default function WhiteboardSession() {
           </Button>
           {isTeacher && (
             <>
-              <Button variant="ghost" className="!px-3 !py-1.5 text-xs" onClick={toggleLock}>
+              <Button
+                variant="ghost"
+                className="!px-3 !py-1.5 text-xs"
+                onClick={toggleLock}
+                disabled={classEnded}
+              >
                 {board.studentEditingLocked ? "Unlock students" : "Lock students"}
               </Button>
-              <Button variant="ghost" className="!px-3 !py-1.5 text-xs" onClick={addPage}>
+              <Button
+                variant="ghost"
+                className="!px-3 !py-1.5 text-xs"
+                onClick={addPage}
+                disabled={classEnded}
+              >
                 + Page
               </Button>
+              {!classEnded ? (
+                <Button
+                  className="!px-3 !py-1.5 text-xs !bg-red-500/90 !text-white hover:!bg-red-400"
+                  onClick={endClass}
+                  disabled={endingClass}
+                >
+                  {endingClass ? "Ending…" : "End class"}
+                </Button>
+              ) : (
+                <Button
+                  className="!px-3 !py-1.5 text-xs"
+                  onClick={reopenClass}
+                  disabled={endingClass}
+                >
+                  {endingClass ? "Reopening…" : "Reopen class"}
+                </Button>
+              )}
             </>
           )}
           {!isTeacher && (
