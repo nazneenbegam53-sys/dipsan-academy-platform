@@ -22,6 +22,10 @@ JWT auth · Cloudinary (optional) file storage · Chart.js (analytics) · jsPDF 
 - **Live Classroom whiteboard** (DIPSAN ACADEMY CLASSROOM): create/join rooms, Konva
   board (pen, shapes, text, pages), real-time sync via Socket.IO, presence, lock students,
   raise hand — open from dashboards or the Classroom tab (`/teacher/classroom`, `/student/classroom`)
+- **Teacher ↔ student video & mic** on live boards (WebRTC + Socket.IO signaling)
+- **Standalone Classroom PWA** in `classroom-app/` — installable separate app (whiteboard + A/V only);
+  home page section + `/install-classroom` explain phone install. Deploy as its own Vercel project
+  (root `classroom-app`) → e.g. `https://dipsan-classroom.vercel.app`
 - Question editor: text, **image upload (shown above the options)**, 4 options,
   correct answer, marks, negative marks, chapter/topic/difficulty, explanation
 - Image upload via Cloudinary if configured, else **MongoDB GridFS** (durable;

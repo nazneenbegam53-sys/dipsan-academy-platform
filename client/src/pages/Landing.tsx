@@ -498,6 +498,109 @@ function MarketingLanding() {
           </div>
         </section>
 
+        <section
+          id="classroom-app"
+          className="relative overflow-hidden border-t border-white/10 bg-ink"
+        >
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(ellipse 70% 55% at 15% 20%, rgba(94,200,192,0.14), transparent 55%)," +
+                "radial-gradient(ellipse 55% 45% at 90% 80%, rgba(212,176,106,0.12), transparent 50%)",
+            }}
+            aria-hidden
+          />
+          <div className="relative z-10 mx-auto grid max-w-6xl gap-10 px-6 py-16 md:grid-cols-2 md:items-center md:px-10 md:py-22">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-aurora">
+                Separate app
+              </p>
+              <h2 className="mt-3 font-display text-3xl font-semibold leading-tight text-mist md:text-5xl">
+                DIPSAN ACADEMY
+                <br />
+                <span className="gold-text">CLASSROOM</span>
+              </h2>
+              <p className="mt-4 max-w-md text-base leading-relaxed text-bronze">
+                A dedicated live classroom app — collaborative whiteboard plus teacher and student
+                video &amp; mic — separate from mock exams. Install it on your phone like a native
+                app, or open it in the browser.
+              </p>
+              <ul className="mt-5 space-y-2 text-sm text-bronze">
+                <li className="flex gap-2">
+                  <span className="text-gold">✓</span> Live whiteboard (pen, shapes, pages, presence)
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-gold">✓</span> Talk face-to-face — camera &amp; microphone for
+                  teachers and students
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-gold">✓</span> Same Dipsan login as this exam platform
+                </li>
+              </ul>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <a
+                  href={
+                    (import.meta.env.VITE_CLASSROOM_APP_URL as string | undefined) ||
+                    "https://dipsan-classroom.vercel.app"
+                  }
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center rounded-full bg-gold px-6 py-3 text-sm font-bold text-ink transition hover:bg-champagne"
+                >
+                  Open Classroom app
+                </a>
+                <Link
+                  to="/install-classroom"
+                  className="inline-flex items-center rounded-full border border-aurora/40 bg-aurora/10 px-6 py-3 text-sm font-bold text-champagne transition hover:border-gold hover:text-gold"
+                >
+                  Install on phone
+                </Link>
+                {user && (
+                  <Link
+                    to={user.role === "teacher" ? "/teacher/classroom" : "/student/classroom"}
+                    className="inline-flex items-center rounded-full border border-white/25 bg-white/5 px-6 py-3 text-sm font-semibold text-mist transition hover:border-gold hover:text-gold"
+                  >
+                    Use inside exams app
+                  </Link>
+                )}
+              </div>
+            </div>
+            <div className="rounded-3xl border border-white/10 bg-charcoal/60 p-6 backdrop-blur-sm md:p-8">
+              <h3 className="font-display text-xl font-semibold text-champagne">
+                Install DIPSAN ACADEMY CLASSROOM
+              </h3>
+              <div className="mt-5 space-y-5 text-sm text-bronze">
+                <div>
+                  <p className="font-semibold text-mist">Android (Chrome)</p>
+                  <ol className="mt-2 list-decimal space-y-1 pl-5">
+                    <li>Open the Classroom app link above.</li>
+                    <li>Tap the browser menu → <span className="text-mist">Install app</span>.</li>
+                    <li>Confirm — the Classroom icon appears on your home screen.</li>
+                  </ol>
+                </div>
+                <div>
+                  <p className="font-semibold text-mist">iPhone / iPad (Safari)</p>
+                  <ol className="mt-2 list-decimal space-y-1 pl-5">
+                    <li>Open the Classroom app in Safari.</li>
+                    <li>
+                      Tap Share → <span className="text-mist">Add to Home Screen</span>.
+                    </li>
+                    <li>Tap Add — open it anytime for live class + video.</li>
+                  </ol>
+                </div>
+                <p className="rounded-xl border border-gold/20 bg-gold/5 p-3 text-xs leading-relaxed">
+                  Full step-by-step guide:{" "}
+                  <Link to="/install-classroom" className="font-semibold text-gold hover:text-champagne">
+                    /install-classroom
+                  </Link>
+                  . Exams stay in this app; live teaching lives in Classroom.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <footer className="border-t border-white/10 bg-paper px-6 py-8 md:px-10">
           <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-4 sm:grid-cols-3">
             <div className="flex justify-center sm:justify-start">
@@ -507,7 +610,10 @@ function MarketingLanding() {
               © {new Date().getFullYear()} Dipsan Academy. All rights reserved.
             </p>
             <span className="text-center text-xs tracking-wide text-bronze sm:text-right">
-              Online examination platform
+              Exams +{" "}
+              <a href="#classroom-app" className="text-gold hover:text-champagne">
+                Classroom app
+              </a>
             </span>
           </div>
         </footer>

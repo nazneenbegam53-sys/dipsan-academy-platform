@@ -5,6 +5,7 @@ import Register from "./pages/Register";
 import CompleteProfile from "./pages/CompleteProfile";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import InstallApp from "./pages/InstallApp";
+import InstallClassroom from "./pages/InstallClassroom";
 import StudentDashboard from "./pages/StudentDashboard";
 import ExamInstructions from "./pages/ExamInstructions";
 import ExamAttempt from "./pages/ExamAttempt";
@@ -35,6 +36,7 @@ export default function App() {
       />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/install" element={<InstallApp />} />
+      <Route path="/install-classroom" element={<InstallClassroom />} />
 
       {/* Student */}
       <Route path="/student" element={<ProtectedRoute role="student"><StudentDashboard /></ProtectedRoute>} />
