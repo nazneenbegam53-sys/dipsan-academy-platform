@@ -19,6 +19,9 @@ JWT auth · Cloudinary (optional) file storage · Chart.js (analytics) · jsPDF 
 
 - Auth (register/login, JWT, student + teacher roles)
 - Exam CRUD (title, subject, duration, marking scheme, instructions, publish/unpublish)
+- **Live Classroom whiteboard** (DIPSAN ACADEMY CLASSROOM): create/join rooms, Konva
+  board (pen, shapes, text, pages), real-time sync via Socket.IO, presence, lock students,
+  raise hand — open from dashboards or the Classroom tab (`/teacher/classroom`, `/student/classroom`)
 - Question editor: text, **image upload (shown above the options)**, 4 options,
   correct answer, marks, negative marks, chapter/topic/difficulty, explanation
 - Image upload via Cloudinary if configured, else **MongoDB GridFS** (durable;

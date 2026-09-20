@@ -14,7 +14,8 @@ export default function InstallApp() {
         <p className="mt-3 text-sm leading-relaxed text-bronze">
           You do <span className="text-champagne">not</span> need the Play Store or App Store.
           Install from this website at no cost. It opens like a normal app from your home screen —
-          and stays in sync with the website (exams, results, teacher tools).
+          and stays in sync with the website (exams, results, notes, and the live{" "}
+          <span className="text-mist">DIPSAN ACADEMY CLASSROOM</span> whiteboard).
         </p>
 
         <div className="mt-8">
