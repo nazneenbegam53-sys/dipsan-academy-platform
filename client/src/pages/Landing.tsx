@@ -465,6 +465,12 @@ function MarketingLanding() {
                 >
                   Open dashboard
                 </Link>
+                <Link
+                  to={user.role === "teacher" ? "/teacher/classroom" : "/student/classroom"}
+                  className="inline-flex rounded-full border border-white/25 bg-white/5 px-8 py-3.5 text-sm font-semibold text-mist transition hover:border-gold hover:text-gold"
+                >
+                  Classroom whiteboard
+                </Link>
                 <button
                   type="button"
                   onClick={logout}

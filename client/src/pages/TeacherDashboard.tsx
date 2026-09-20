@@ -98,6 +98,9 @@ export default function TeacherDashboard() {
               <Button variant="ghost" onClick={() => navigate("/teacher/notes")}>
                 Notes
               </Button>
+              <Button variant="ghost" onClick={() => navigate("/teacher/classroom")}>
+                Live whiteboard
+              </Button>
               <Button variant="ghost" onClick={() => navigate("/teacher/results")}>
                 Results by exam
               </Button>

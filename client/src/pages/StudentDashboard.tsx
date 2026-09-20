@@ -88,6 +88,9 @@ export default function StudentDashboard() {
               <Button variant="ghost" onClick={() => navigate("/student/notes")}>
                 Notes
               </Button>
+              <Button variant="ghost" onClick={() => navigate("/student/classroom")}>
+                Classroom
+              </Button>
             </>
           }
         />
